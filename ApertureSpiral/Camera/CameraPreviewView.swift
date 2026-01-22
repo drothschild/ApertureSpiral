@@ -8,7 +8,7 @@ struct CameraPreviewView: UIViewRepresentable {
 
     func makeUIView(context: Context) -> CameraPreviewUIView {
         let view = CameraPreviewUIView()
-        view.backgroundColor = .black
+        view.backgroundColor = .clear
         return view
     }
 
@@ -21,16 +21,19 @@ struct CameraPreviewView: UIViewRepresentable {
 class CameraPreviewUIView: UIView {
     private var currentPreviewLayer: AVCaptureVideoPreviewLayer?
     private var currentEyeOffset: CGPoint = .zero
+    private let maskLayer = CAShapeLayer()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
         clipsToBounds = true
+        layer.mask = maskLayer
         setupOrientationObserver()
     }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         clipsToBounds = true
+        layer.mask = maskLayer
         setupOrientationObserver()
     }
 
@@ -57,6 +60,8 @@ class CameraPreviewUIView: UIView {
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         updatePreviewLayerFrame()
+        // Update circular mask path
+        maskLayer.path = UIBezierPath(ovalIn: bounds).cgPath
         CATransaction.commit()
     }
 
