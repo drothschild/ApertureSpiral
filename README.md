@@ -1,8 +1,9 @@
 # ApertureSpiral
 
-An immersive, meditative iOS app featuring an animated spiral aperture visualization with integrated front-facing camera preview and AI-powered face centering. Created to test developing iOS apps in Claude.
+An immersive, meditative iOS app featuring an animated spiral aperture visualization with integrated front-facing camera preview and AI-powered face centering. 
 
 ## Features
+
 
 ### Spiral Visualization
 - Dynamic animated spiral mimicking a camera iris opening/closing
