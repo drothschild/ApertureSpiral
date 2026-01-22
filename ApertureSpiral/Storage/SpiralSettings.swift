@@ -17,6 +17,7 @@ class SpiralSettings: ObservableObject {
         static let mirrorAlwaysOn = "spiral.mirrorAlwaysOn"
         static let mirrorAnimationMode = "spiral.mirrorAnimationMode"
         static let eyeCenteringEnabled = "spiral.eyeCenteringEnabled"
+        static let colorPaletteId = "spiral.colorPaletteId"
         static let hasLaunchedBefore = "spiral.hasLaunchedBefore"
     }
 
@@ -33,6 +34,7 @@ class SpiralSettings: ObservableObject {
         static let mirrorAlwaysOn = true
         static let mirrorAnimationMode = 2
         static let eyeCenteringEnabled = true
+        static let colorPaletteId = "warm"
     }
 
     @Published var bladeCount: Int {
@@ -68,6 +70,13 @@ class SpiralSettings: ObservableObject {
     @Published var eyeCenteringEnabled: Bool {  // Use AI to center camera on user's eyes
         didSet { userDefaults.set(eyeCenteringEnabled, forKey: Keys.eyeCenteringEnabled) }
     }
+    @Published var colorPaletteId: String {
+        didSet { userDefaults.set(colorPaletteId, forKey: Keys.colorPaletteId) }
+    }
+
+    var colorPalette: ColorPalette {
+        ColorPalette.find(id: colorPaletteId) ?? .default
+    }
 
     private let userDefaults: UserDefaults
 
@@ -90,6 +99,7 @@ class SpiralSettings: ObservableObject {
             mirrorAnimationMode = userDefaults.integer(forKey: Keys.mirrorAnimationMode)
             // Eye centering defaults to true if not set
             eyeCenteringEnabled = userDefaults.object(forKey: Keys.eyeCenteringEnabled) == nil ? Defaults.eyeCenteringEnabled : userDefaults.bool(forKey: Keys.eyeCenteringEnabled)
+            colorPaletteId = userDefaults.string(forKey: Keys.colorPaletteId) ?? Defaults.colorPaletteId
 
             // Handle zero values that might indicate unset (use defaults instead)
             if bladeCount == 0 { bladeCount = Defaults.bladeCount }
@@ -110,6 +120,7 @@ class SpiralSettings: ObservableObject {
             mirrorAlwaysOn = Defaults.mirrorAlwaysOn
             mirrorAnimationMode = Defaults.mirrorAnimationMode
             eyeCenteringEnabled = Defaults.eyeCenteringEnabled
+            colorPaletteId = Defaults.colorPaletteId
 
             userDefaults.set(true, forKey: Keys.hasLaunchedBefore)
         }
@@ -129,6 +140,7 @@ class SpiralSettings: ObservableObject {
         mirrorAlwaysOn = Defaults.mirrorAlwaysOn
         mirrorAnimationMode = Defaults.mirrorAnimationMode
         eyeCenteringEnabled = Defaults.eyeCenteringEnabled
+        colorPaletteId = Defaults.colorPaletteId
     }
 
     /// Resets all settings to defaults
@@ -144,6 +156,7 @@ class SpiralSettings: ObservableObject {
         mirrorAlwaysOn = Defaults.mirrorAlwaysOn
         mirrorAnimationMode = Defaults.mirrorAnimationMode
         eyeCenteringEnabled = Defaults.eyeCenteringEnabled
+        colorPaletteId = Defaults.colorPaletteId
     }
 
     var phrasesText: String {

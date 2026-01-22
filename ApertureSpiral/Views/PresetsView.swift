@@ -14,8 +14,9 @@ struct Preset: Codable, Identifiable {
     var colorFlowSpeed: Double
     var mirrorAlwaysOn: Bool
     var mirrorAnimationMode: Int
+    var colorPaletteId: String
 
-    init(id: UUID = UUID(), name: String, bladeCount: Int, layerCount: Int, speed: Double, apertureSize: Double, phrases: [String], captureTimerMinutes: Int = 0, previewOnly: Bool = false, colorFlowSpeed: Double = 0.5, mirrorAlwaysOn: Bool = false, mirrorAnimationMode: Int = 2) {
+    init(id: UUID = UUID(), name: String, bladeCount: Int, layerCount: Int, speed: Double, apertureSize: Double, phrases: [String], captureTimerMinutes: Int = 0, previewOnly: Bool = false, colorFlowSpeed: Double = 0.5, mirrorAlwaysOn: Bool = false, mirrorAnimationMode: Int = 2, colorPaletteId: String = "warm") {
         self.id = id
         self.name = name
         self.bladeCount = bladeCount
@@ -28,10 +29,11 @@ struct Preset: Codable, Identifiable {
         self.colorFlowSpeed = colorFlowSpeed
         self.mirrorAlwaysOn = mirrorAlwaysOn
         self.mirrorAnimationMode = mirrorAnimationMode
+        self.colorPaletteId = colorPaletteId
     }
 
     /// Checks if this preset's settings match the given values
-    func matchesSettings(bladeCount: Int, layerCount: Int, speed: Double, apertureSize: Double, phrases: [String], captureTimerMinutes: Int, previewOnly: Bool, colorFlowSpeed: Double, mirrorAlwaysOn: Bool, mirrorAnimationMode: Int) -> Bool {
+    func matchesSettings(bladeCount: Int, layerCount: Int, speed: Double, apertureSize: Double, phrases: [String], captureTimerMinutes: Int, previewOnly: Bool, colorFlowSpeed: Double, mirrorAlwaysOn: Bool, mirrorAnimationMode: Int, colorPaletteId: String) -> Bool {
         return self.bladeCount == bladeCount &&
                self.layerCount == layerCount &&
                abs(self.speed - speed) < 0.01 &&
@@ -41,7 +43,8 @@ struct Preset: Codable, Identifiable {
                self.previewOnly == previewOnly &&
                abs(self.colorFlowSpeed - colorFlowSpeed) < 0.01 &&
                self.mirrorAlwaysOn == mirrorAlwaysOn &&
-               self.mirrorAnimationMode == mirrorAnimationMode
+               self.mirrorAnimationMode == mirrorAnimationMode &&
+               self.colorPaletteId == colorPaletteId
     }
 }
 
@@ -52,9 +55,9 @@ class PresetManager: ObservableObject {
     @Published var currentPresetId: UUID?
 
     let builtInPresets: [Preset] = [
-        Preset(name: "Birthday", bladeCount: 9, layerCount: 5, speed: 1.0, apertureSize: 0.5, phrases: ["Happy", "Birthday", "We Love You"]),
-        Preset(name: "Calm", bladeCount: 6, layerCount: 3, speed: 0.5, apertureSize: 0.7, phrases: ["Breathe", "Relax", "Peace"]),
-        Preset(name: "Intense", bladeCount: 16, layerCount: 8, speed: 2.5, apertureSize: 0.3, phrases: ["WOW", "AMAZING", "YES"])
+        Preset(name: "Birthday", bladeCount: 9, layerCount: 5, speed: 1.0, apertureSize: 0.5, phrases: ["Happy", "Birthday", "We Love You"], colorPaletteId: "warm"),
+        Preset(name: "Calm", bladeCount: 6, layerCount: 3, speed: 0.5, apertureSize: 0.7, phrases: ["Breathe", "Relax", "Peace"], colorPaletteId: "cool"),
+        Preset(name: "Intense", bladeCount: 16, layerCount: 8, speed: 2.5, apertureSize: 0.3, phrases: ["WOW", "AMAZING", "YES"], colorPaletteId: "neon")
     ]
 
     var allPresets: [Preset] {
@@ -97,7 +100,8 @@ class PresetManager: ObservableObject {
             previewOnly: settings.previewOnly,
             colorFlowSpeed: settings.colorFlowSpeed,
             mirrorAlwaysOn: settings.mirrorAlwaysOn,
-            mirrorAnimationMode: settings.mirrorAnimationMode
+            mirrorAnimationMode: settings.mirrorAnimationMode,
+            colorPaletteId: settings.colorPaletteId
         )
         userPresets.append(preset)
         saveUserPresets()
@@ -116,6 +120,7 @@ class PresetManager: ObservableObject {
         settings.colorFlowSpeed = preset.colorFlowSpeed
         settings.mirrorAlwaysOn = preset.mirrorAlwaysOn
         settings.mirrorAnimationMode = preset.mirrorAnimationMode
+        settings.colorPaletteId = preset.colorPaletteId
         currentPresetId = preset.id
     }
 
@@ -154,7 +159,8 @@ class PresetManager: ObservableObject {
                 previewOnly: settings.previewOnly,
                 colorFlowSpeed: settings.colorFlowSpeed,
                 mirrorAlwaysOn: settings.mirrorAlwaysOn,
-                mirrorAnimationMode: settings.mirrorAnimationMode
+                mirrorAnimationMode: settings.mirrorAnimationMode,
+                colorPaletteId: settings.colorPaletteId
             ) {
                 currentPresetId = preset.id
                 return

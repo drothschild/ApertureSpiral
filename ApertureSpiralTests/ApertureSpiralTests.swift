@@ -322,7 +322,8 @@ struct PresetTests {
             previewOnly: false,
             colorFlowSpeed: 0.5,
             mirrorAlwaysOn: true,
-            mirrorAnimationMode: 1
+            mirrorAnimationMode: 1,
+            colorPaletteId: "warm"
         )
 
         #expect(matches == true)
@@ -351,7 +352,8 @@ struct PresetTests {
             previewOnly: false,
             colorFlowSpeed: 0.5,
             mirrorAlwaysOn: false, // Different
-            mirrorAnimationMode: 2
+            mirrorAnimationMode: 2,
+            colorPaletteId: "warm"
         )
 
         #expect(matches == false)
@@ -380,7 +382,8 @@ struct PresetTests {
             previewOnly: false,
             colorFlowSpeed: 0.5,
             mirrorAlwaysOn: false,
-            mirrorAnimationMode: 2 // Both (different)
+            mirrorAnimationMode: 2, // Both (different)
+            colorPaletteId: "warm"
         )
 
         #expect(matches == false)

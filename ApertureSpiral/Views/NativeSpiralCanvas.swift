@@ -21,28 +21,14 @@ struct NativeSpiralCanvas: View {
     private let pauseFrames: Int = 30
     private var cycleLength: Int { showFrames + pauseFrames }
 
-    // Color palette - warm amber to magenta
-    private let colors: [Color] = [
-        Color(red: 248/255, green: 181/255, blue: 0/255),     // Gold
-        Color(red: 255/255, green: 107/255, blue: 53/255),    // Orange
-        Color(red: 247/255, green: 37/255, blue: 133/255),    // Magenta
-        Color(red: 114/255, green: 9/255, blue: 183/255),     // Purple
-        Color(red: 72/255, green: 149/255, blue: 239/255),    // Blue
-        Color(red: 0/255, green: 245/255, blue: 160/255),     // Teal
-        Color(red: 255/255, green: 200/255, blue: 87/255),    // Light gold
-        Color(red: 255/255, green: 71/255, blue: 87/255),     // Coral
-    ]
+    // Color palette from settings
+    private var colors: [Color] {
+        settings.colorPalette.swiftUIColors
+    }
 
-    private let colorComponents: [(r: Double, g: Double, b: Double)] = [
-        (248, 181, 0),
-        (255, 107, 53),
-        (247, 37, 133),
-        (114, 9, 183),
-        (72, 149, 239),
-        (0, 245, 160),
-        (255, 200, 87),
-        (255, 71, 87),
-    ]
+    private var colorComponents: [(r: Double, g: Double, b: Double)] {
+        settings.colorPalette.colorComponents
+    }
 
     var body: some View {
         GeometryReader { geometry in

@@ -136,6 +136,36 @@ struct SettingsView: View {
                         .foregroundColor(.secondary)
                 }
 
+                Section("Color Palette") {
+                    ForEach(ColorPalette.allBuiltIn) { palette in
+                        Button(action: {
+                            settings.colorPaletteId = palette.id
+                            presetManager.currentPresetId = nil
+                        }) {
+                            HStack {
+                                HStack(spacing: 1) {
+                                    ForEach(0..<8, id: \.self) { i in
+                                        Rectangle()
+                                            .fill(palette.swiftUIColors[i])
+                                    }
+                                }
+                                .frame(width: 80, height: 24)
+                                .clipShape(RoundedRectangle(cornerRadius: 4))
+
+                                Text(palette.name)
+                                    .foregroundColor(.primary)
+
+                                Spacer()
+
+                                if settings.colorPaletteId == palette.id {
+                                    Image(systemName: "checkmark")
+                                        .foregroundColor(.yellow)
+                                }
+                            }
+                        }
+                    }
+                }
+
                 Section("Mirror View") {
                     Toggle("Always On", isOn: $settings.mirrorAlwaysOn)
 
