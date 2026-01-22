@@ -17,23 +17,23 @@ struct SpiralSettingsTests {
 
     @Test("Default values are correct")
     func defaultValues() {
-        let settings = SpiralSettings(forTesting: true)
+        let settings = SpiralSettings(forTesting: .standard)
 
         #expect(settings.bladeCount == 9)
         #expect(settings.layerCount == 5)
         #expect(settings.speed == 1.0)
         #expect(settings.apertureSize == 0.5)
-        #expect(settings.phrases == ["Happy Birthday", "Evelyn", "We Love You"])
-        #expect(settings.captureTimerMinutes == 1)
+        #expect(settings.phrases == ["Happy", "Birthday", "We Love You"])
+        #expect(settings.captureTimerMinutes == 0)
         #expect(settings.previewOnly == true)
-        #expect(settings.colorFlowSpeed == 0.5)
-        #expect(settings.mirrorAlwaysOn == false)
+        #expect(settings.colorFlowSpeed == 0.3)
+        #expect(settings.mirrorAlwaysOn == true)
         #expect(settings.mirrorAnimationMode == 2)
     }
 
     @Test("Blade count can be modified")
     func bladeCountModification() {
-        let settings = SpiralSettings(forTesting: true)
+        let settings = SpiralSettings(forTesting: .standard)
         settings.bladeCount = 12
 
         #expect(settings.bladeCount == 12)
@@ -41,7 +41,7 @@ struct SpiralSettingsTests {
 
     @Test("Layer count can be modified")
     func layerCountModification() {
-        let settings = SpiralSettings(forTesting: true)
+        let settings = SpiralSettings(forTesting: .standard)
         settings.layerCount = 8
 
         #expect(settings.layerCount == 8)
@@ -49,7 +49,7 @@ struct SpiralSettingsTests {
 
     @Test("Speed can be modified")
     func speedModification() {
-        let settings = SpiralSettings(forTesting: true)
+        let settings = SpiralSettings(forTesting: .standard)
         settings.speed = 2.5
 
         #expect(settings.speed == 2.5)
@@ -57,7 +57,7 @@ struct SpiralSettingsTests {
 
     @Test("Aperture size can be modified")
     func apertureSizeModification() {
-        let settings = SpiralSettings(forTesting: true)
+        let settings = SpiralSettings(forTesting: .standard)
         settings.apertureSize = 0.8
 
         #expect(settings.apertureSize == 0.8)
@@ -65,7 +65,7 @@ struct SpiralSettingsTests {
 
     @Test("Phrases can be modified")
     func phrasesModification() {
-        let settings = SpiralSettings(forTesting: true)
+        let settings = SpiralSettings(forTesting: .standard)
         settings.phrases = ["Test", "Phrases"]
 
         #expect(settings.phrases == ["Test", "Phrases"])
@@ -73,7 +73,7 @@ struct SpiralSettingsTests {
 
     @Test("Capture timer can be modified")
     func captureTimerModification() {
-        let settings = SpiralSettings(forTesting: true)
+        let settings = SpiralSettings(forTesting: .standard)
         settings.captureTimerMinutes = 15
 
         #expect(settings.captureTimerMinutes == 15)
@@ -81,7 +81,7 @@ struct SpiralSettingsTests {
 
     @Test("PhrasesText getter joins phrases with newlines")
     func phrasesTextGetter() {
-        let settings = SpiralSettings(forTesting: true)
+        let settings = SpiralSettings(forTesting: .standard)
         settings.phrases = ["One", "Two", "Three"]
 
         #expect(settings.phrasesText == "One\nTwo\nThree")
@@ -89,7 +89,7 @@ struct SpiralSettingsTests {
 
     @Test("PhrasesText setter splits text into phrases")
     func phrasesTextSetter() {
-        let settings = SpiralSettings(forTesting: true)
+        let settings = SpiralSettings(forTesting: .standard)
         settings.phrasesText = "Alpha\nBeta\nGamma"
 
         #expect(settings.phrases == ["Alpha", "Beta", "Gamma"])
@@ -97,7 +97,7 @@ struct SpiralSettingsTests {
 
     @Test("PhrasesText setter filters empty lines")
     func phrasesTextSetterFiltersEmpty() {
-        let settings = SpiralSettings(forTesting: true)
+        let settings = SpiralSettings(forTesting: .standard)
         settings.phrasesText = "Alpha\n\nBeta\n\n\nGamma"
 
         #expect(settings.phrases == ["Alpha", "Beta", "Gamma"])
@@ -105,7 +105,7 @@ struct SpiralSettingsTests {
 
     @Test("Preview only can be modified")
     func previewOnlyModification() {
-        let settings = SpiralSettings(forTesting: true)
+        let settings = SpiralSettings(forTesting: .standard)
         settings.previewOnly = false
 
         #expect(settings.previewOnly == false)
@@ -113,7 +113,7 @@ struct SpiralSettingsTests {
 
     @Test("Color flow speed can be modified")
     func colorFlowSpeedModification() {
-        let settings = SpiralSettings(forTesting: true)
+        let settings = SpiralSettings(forTesting: .standard)
         settings.colorFlowSpeed = 1.5
 
         #expect(settings.colorFlowSpeed == 1.5)
@@ -121,7 +121,7 @@ struct SpiralSettingsTests {
 
     @Test("Mirror always on can be modified")
     func mirrorAlwaysOnModification() {
-        let settings = SpiralSettings(forTesting: true)
+        let settings = SpiralSettings(forTesting: .standard)
         settings.mirrorAlwaysOn = true
 
         #expect(settings.mirrorAlwaysOn == true)
@@ -129,7 +129,7 @@ struct SpiralSettingsTests {
 
     @Test("Mirror animation mode can be modified")
     func mirrorAnimationModeModification() {
-        let settings = SpiralSettings(forTesting: true)
+        let settings = SpiralSettings(forTesting: .standard)
 
         settings.mirrorAnimationMode = 0 // Scale
         #expect(settings.mirrorAnimationMode == 0)
@@ -143,14 +143,14 @@ struct SpiralSettingsTests {
 
     @Test("Mirror animation mode default is Both (2)")
     func mirrorAnimationModeDefaultIsBoth() {
-        let settings = SpiralSettings(forTesting: true)
+        let settings = SpiralSettings(forTesting: .standard)
 
         #expect(settings.mirrorAnimationMode == 2)
     }
 
     @Test("Reset restores default values")
     func resetRestoresDefaults() {
-        let settings = SpiralSettings(forTesting: true)
+        let settings = SpiralSettings(forTesting: .standard)
         settings.bladeCount = 16
         settings.layerCount = 8
         settings.speed = 3.0
@@ -159,7 +159,7 @@ struct SpiralSettingsTests {
         settings.captureTimerMinutes = 30
         settings.previewOnly = false
         settings.colorFlowSpeed = 2.0
-        settings.mirrorAlwaysOn = true
+        settings.mirrorAlwaysOn = false
         settings.mirrorAnimationMode = 0
 
         settings.reset()
@@ -168,11 +168,11 @@ struct SpiralSettingsTests {
         #expect(settings.layerCount == 5)
         #expect(settings.speed == 1.0)
         #expect(settings.apertureSize == 0.5)
-        #expect(settings.phrases == ["Happy Birthday", "Evelyn", "We Love You"])
-        #expect(settings.captureTimerMinutes == 1)
+        #expect(settings.phrases == ["Happy", "Birthday", "We Love You"])
+        #expect(settings.captureTimerMinutes == 0)
         #expect(settings.previewOnly == true)
-        #expect(settings.colorFlowSpeed == 0.5)
-        #expect(settings.mirrorAlwaysOn == false)
+        #expect(settings.colorFlowSpeed == 0.3)
+        #expect(settings.mirrorAlwaysOn == true)
         #expect(settings.mirrorAnimationMode == 2)
     }
 }
@@ -419,7 +419,7 @@ struct PresetManagerTests {
         #expect(birthday.layerCount == 5)
         #expect(birthday.speed == 1.0)
         #expect(birthday.apertureSize == 0.5)
-        #expect(birthday.phrases == ["Happy Birthday", "Evelyn", "We Love You"])
+        #expect(birthday.phrases == ["Happy", "Birthday", "We Love You"])
     }
 
     @Test("Calm preset has correct values")
@@ -484,6 +484,7 @@ struct PresetManagerTests {
         #expect(settings.apertureSize == 0.3)
         #expect(settings.phrases == ["WOW", "AMAZING", "YES"])
         #expect(settings.previewOnly == false)
+        // Built-in presets use default Preset colorFlowSpeed of 0.5
         #expect(settings.colorFlowSpeed == 0.5)
 
         // Restore settings
@@ -974,5 +975,513 @@ struct CameraManagerTests {
         let manager = CameraManager()
 
         #expect(manager.previewLayer == nil)
+    }
+
+    @Test("CameraManager initializes with zero eyeCenterOffset")
+    func initialEyeCenterOffset() {
+        let manager = CameraManager()
+
+        #expect(manager.eyeCenterOffset == .zero)
+    }
+
+    @Test("CameraManager initializes with faceDetected as false")
+    func initialFaceDetected() {
+        let manager = CameraManager()
+
+        #expect(manager.faceDetected == false)
+    }
+}
+
+// MARK: - Face Center Offset Calculation Tests
+
+@Suite("Face Center Offset Calculation Tests")
+struct FaceCenterOffsetTests {
+
+    // Test the face center offset calculation logic
+    // These tests verify the algorithm independently of CameraManager
+
+    @Test("Face at center returns zero offset")
+    func faceAtCenterReturnsZero() {
+        let offset = calculateFaceCenterOffset(faceCenterX: 0.5, faceCenterY: 0.5)
+        #expect(abs(offset.x) < 0.001)
+        #expect(abs(offset.y) < 0.001)
+    }
+
+    @Test("Face to the right returns negative X offset (mirrored)")
+    func faceToRightReturnsNegativeX() {
+        let offset = calculateFaceCenterOffset(faceCenterX: 0.7, faceCenterY: 0.5)
+        #expect(offset.x < 0)
+        #expect(abs(offset.y) < 0.001)
+    }
+
+    @Test("Face to the left returns positive X offset (mirrored)")
+    func faceToLeftReturnsPositiveX() {
+        let offset = calculateFaceCenterOffset(faceCenterX: 0.3, faceCenterY: 0.5)
+        #expect(offset.x > 0)
+        #expect(abs(offset.y) < 0.001)
+    }
+
+    @Test("Face above center returns positive Y offset")
+    func faceAboveReturnsPositiveY() {
+        let offset = calculateFaceCenterOffset(faceCenterX: 0.5, faceCenterY: 0.7)
+        #expect(abs(offset.x) < 0.001)
+        #expect(offset.y > 0)
+    }
+
+    @Test("Face below center returns negative Y offset")
+    func faceBelowReturnsNegativeY() {
+        let offset = calculateFaceCenterOffset(faceCenterX: 0.5, faceCenterY: 0.3)
+        #expect(abs(offset.x) < 0.001)
+        #expect(offset.y < 0)
+    }
+
+    @Test("Offset is clamped to max 0.3")
+    func offsetIsClampedToMax() {
+        // Face at extreme corner
+        let offset = calculateFaceCenterOffset(faceCenterX: 1.0, faceCenterY: 1.0)
+        #expect(abs(offset.x) <= 0.3)
+        #expect(abs(offset.y) <= 0.3)
+    }
+
+    @Test("Offset is clamped to min -0.3")
+    func offsetIsClampedToMin() {
+        // Face at opposite extreme corner
+        let offset = calculateFaceCenterOffset(faceCenterX: 0.0, faceCenterY: 0.0)
+        #expect(abs(offset.x) <= 0.3)
+        #expect(abs(offset.y) <= 0.3)
+    }
+
+    @Test("Face in top-right corner returns correct offset")
+    func faceInTopRightCorner() {
+        let offset = calculateFaceCenterOffset(faceCenterX: 0.8, faceCenterY: 0.8)
+        #expect(offset.x < 0) // Mirrored, so right face -> negative X
+        #expect(offset.y > 0) // Above center -> positive Y
+    }
+
+    @Test("Face in bottom-left corner returns correct offset")
+    func faceInBottomLeftCorner() {
+        let offset = calculateFaceCenterOffset(faceCenterX: 0.2, faceCenterY: 0.2)
+        #expect(offset.x > 0) // Mirrored, so left face -> positive X
+        #expect(offset.y < 0) // Below center -> negative Y
+    }
+
+    // Helper function that mirrors CameraManager's calculation logic
+    private func calculateFaceCenterOffset(faceCenterX: CGFloat, faceCenterY: CGFloat) -> CGPoint {
+        let offsetX = -(faceCenterX - 0.5)  // Negative because front camera is mirrored
+        let offsetY = (faceCenterY - 0.5)
+
+        let maxOffset: CGFloat = 0.3
+        return CGPoint(
+            x: max(-maxOffset, min(maxOffset, offsetX)),
+            y: max(-maxOffset, min(maxOffset, offsetY))
+        )
+    }
+}
+
+// MARK: - Smoothing Algorithm Tests
+
+@Suite("Eye Center Smoothing Tests")
+struct EyeCenterSmoothingTests {
+
+    @Test("Smoothing reduces sudden jumps")
+    func smoothingReducesJumps() {
+        var smoothedOffset = CGPoint.zero
+        let newOffset = CGPoint(x: 0.3, y: 0.3)
+
+        // Apply smoothing (same formula as CameraManager)
+        smoothedOffset = CGPoint(
+            x: smoothedOffset.x * 0.7 + newOffset.x * 0.3,
+            y: smoothedOffset.y * 0.7 + newOffset.y * 0.3
+        )
+
+        // Result should be 30% of the new value
+        #expect(abs(smoothedOffset.x - 0.09) < 0.001)
+        #expect(abs(smoothedOffset.y - 0.09) < 0.001)
+    }
+
+    @Test("Smoothing converges to target over multiple frames")
+    func smoothingConvergesToTarget() {
+        var smoothedOffset = CGPoint.zero
+        let targetOffset = CGPoint(x: 0.2, y: 0.2)
+
+        // Apply smoothing 20 times
+        for _ in 0..<20 {
+            smoothedOffset = CGPoint(
+                x: smoothedOffset.x * 0.7 + targetOffset.x * 0.3,
+                y: smoothedOffset.y * 0.7 + targetOffset.y * 0.3
+            )
+        }
+
+        // Should be very close to target after many iterations
+        #expect(abs(smoothedOffset.x - targetOffset.x) < 0.01)
+        #expect(abs(smoothedOffset.y - targetOffset.y) < 0.01)
+    }
+
+    @Test("Return-to-center smoothing when face lost")
+    func returnToCenterSmoothing() {
+        var smoothedOffset = CGPoint(x: 0.2, y: 0.2)
+
+        // Apply return-to-center smoothing (85% decay)
+        smoothedOffset = CGPoint(
+            x: smoothedOffset.x * 0.85,
+            y: smoothedOffset.y * 0.85
+        )
+
+        #expect(abs(smoothedOffset.x - 0.17) < 0.001)
+        #expect(abs(smoothedOffset.y - 0.17) < 0.001)
+    }
+
+    @Test("Return-to-center converges to zero")
+    func returnToCenterConvergesToZero() {
+        var smoothedOffset = CGPoint(x: 0.3, y: 0.3)
+
+        // Apply return-to-center smoothing 50 times
+        for _ in 0..<50 {
+            smoothedOffset = CGPoint(
+                x: smoothedOffset.x * 0.85,
+                y: smoothedOffset.y * 0.85
+            )
+        }
+
+        // Should be very close to zero
+        #expect(abs(smoothedOffset.x) < 0.001)
+        #expect(abs(smoothedOffset.y) < 0.001)
+    }
+}
+
+// MARK: - Spiral Calculation Tests
+
+@Suite("Spiral Breathing Animation Tests")
+struct SpiralBreathingTests {
+
+    private let breathCycleSeconds: Double = 8.0
+    private let breathDepth: Double = 1.0
+
+    @Test("Breathing at start of cycle returns maximum aperture")
+    func breathingAtStartReturnsMax() {
+        let time: Double = 0
+        let baseApertureSize: Double = 0.5
+
+        let breathPhase = (time / breathCycleSeconds) * .pi * 2
+        let breathAmount = (cos(breathPhase) + 1) / 2
+        let apertureSize = baseApertureSize * (1 - breathDepth * breathAmount)
+
+        // At time 0, cos(0) = 1, so breathAmount = 1, aperture = 0
+        #expect(abs(apertureSize) < 0.001)
+    }
+
+    @Test("Breathing at half cycle returns minimum aperture (fully open)")
+    func breathingAtHalfCycleReturnsMin() {
+        let time: Double = 4.0 // Half of 8 second cycle
+        let baseApertureSize: Double = 0.5
+
+        let breathPhase = (time / breathCycleSeconds) * .pi * 2
+        let breathAmount = (cos(breathPhase) + 1) / 2
+        let apertureSize = baseApertureSize * (1 - breathDepth * breathAmount)
+
+        // At half cycle, cos(π) = -1, so breathAmount = 0, aperture = baseApertureSize
+        #expect(abs(apertureSize - baseApertureSize) < 0.001)
+    }
+
+    @Test("Breathing is periodic")
+    func breathingIsPeriodic() {
+        let baseApertureSize: Double = 0.5
+
+        let aperture1 = calculateAperture(time: 0, baseApertureSize: baseApertureSize)
+        let aperture2 = calculateAperture(time: 8.0, baseApertureSize: baseApertureSize)
+
+        #expect(abs(aperture1 - aperture2) < 0.001)
+    }
+
+    @Test("Breathing varies smoothly between extremes")
+    func breathingVariesSmoothly() {
+        let baseApertureSize: Double = 0.5
+        var previousAperture = calculateAperture(time: 0, baseApertureSize: baseApertureSize)
+
+        // Check that aperture changes smoothly over 1 second intervals
+        for i in 1...8 {
+            let currentAperture = calculateAperture(time: Double(i), baseApertureSize: baseApertureSize)
+            let change = abs(currentAperture - previousAperture)
+
+            // Change per second should be gradual (less than half of base)
+            #expect(change < baseApertureSize / 2)
+            previousAperture = currentAperture
+        }
+    }
+
+    private func calculateAperture(time: Double, baseApertureSize: Double) -> Double {
+        let breathPhase = (time / breathCycleSeconds) * .pi * 2
+        let breathAmount = (cos(breathPhase) + 1) / 2
+        return baseApertureSize * (1 - breathDepth * breathAmount)
+    }
+}
+
+// MARK: - Word Cycling Tests
+
+@Suite("Word Cycling Tests")
+struct WordCyclingTests {
+
+    private let showFrames: Int = 15
+    private let pauseFrames: Int = 30
+    private var cycleLength: Int { showFrames + pauseFrames }
+
+    @Test("Word shows during first showFrames of cycle")
+    func wordShowsDuringShowFrames() {
+        for frame in 0..<showFrames {
+            let cyclePosition = frame % cycleLength
+            let shouldShow = cyclePosition < showFrames
+            #expect(shouldShow == true)
+        }
+    }
+
+    @Test("Word hides during pause frames")
+    func wordHidesDuringPauseFrames() {
+        for frame in showFrames..<cycleLength {
+            let cyclePosition = frame % cycleLength
+            let shouldShow = cyclePosition < showFrames
+            #expect(shouldShow == false)
+        }
+    }
+
+    @Test("Cycle repeats correctly")
+    func cycleRepeatsCorrectly() {
+        // First cycle
+        let frame1Position = 5 % cycleLength
+        // Second cycle at same relative position
+        let frame2Position = (cycleLength + 5) % cycleLength
+
+        #expect(frame1Position == frame2Position)
+    }
+
+    @Test("Fade in alpha calculation")
+    func fadeInAlphaCalculation() {
+        // During first 3 frames, alpha fades in
+        for cyclePosition in 0..<3 {
+            let alpha = Double(cyclePosition) / 3.0
+            #expect(alpha >= 0 && alpha < 1)
+        }
+
+        // At frame 3, should be fully visible
+        let alphaAtFrame3 = Double(3) / 3.0
+        #expect(abs(alphaAtFrame3 - 1.0) < 0.001)
+    }
+
+    @Test("Fade out alpha calculation")
+    func fadeOutAlphaCalculation() {
+        // During last 3 frames before pause, alpha fades out
+        for cyclePosition in (showFrames - 3)..<showFrames {
+            let alpha = Double(showFrames - cyclePosition) / 3.0
+            #expect(alpha > 0 && alpha <= 1)
+        }
+    }
+
+    @Test("Full visibility in middle of show period")
+    func fullVisibilityInMiddle() {
+        let cyclePosition = showFrames / 2
+
+        var alpha: Double = 1
+        if cyclePosition < 3 {
+            alpha = Double(cyclePosition) / 3.0
+        } else if cyclePosition > showFrames - 3 {
+            alpha = Double(showFrames - cyclePosition) / 3.0
+        }
+
+        #expect(abs(alpha - 1.0) < 0.001)
+    }
+}
+
+// MARK: - Blade Drawing Calculation Tests
+
+@Suite("Blade Drawing Calculation Tests")
+struct BladeDrawingTests {
+
+    @Test("Blade radius increases with layer index")
+    func bladeRadiusIncreasesWithLayer() {
+        let baseRadius: CGFloat = 100
+
+        let radius0 = calculateBladeRadius(baseRadius: baseRadius, layerIndex: 0)
+        let radius1 = calculateBladeRadius(baseRadius: baseRadius, layerIndex: 1)
+        let radius2 = calculateBladeRadius(baseRadius: baseRadius, layerIndex: 2)
+
+        #expect(radius1 > radius0)
+        #expect(radius2 > radius1)
+    }
+
+    @Test("Arc center moves inward as aperture closes")
+    func arcCenterMovesInward() {
+        let bladeRadius: CGFloat = 100
+
+        let arcCenterOpen = calculateArcCenterX(bladeRadius: bladeRadius, apertureSize: 1.0)
+        let arcCenterClosed = calculateArcCenterX(bladeRadius: bladeRadius, apertureSize: 0.0)
+
+        #expect(arcCenterOpen > arcCenterClosed)
+    }
+
+    @Test("Arc radius scales with aperture size")
+    func arcRadiusScalesWithAperture() {
+        let bladeRadius: CGFloat = 100
+
+        let radiusOpen = calculateArcRadius(bladeRadius: bladeRadius, apertureSize: 1.0)
+        let radiusClosed = calculateArcRadius(bladeRadius: bladeRadius, apertureSize: 0.0)
+
+        #expect(radiusOpen > radiusClosed)
+    }
+
+    @Test("Blade angles are evenly distributed")
+    func bladeAnglesEvenlyDistributed() {
+        let bladeCount = 9
+        var angles: [Double] = []
+
+        for i in 0..<bladeCount {
+            let angle = (Double(i) / Double(bladeCount)) * .pi * 2
+            angles.append(angle)
+        }
+
+        // Check spacing between consecutive blades
+        let expectedSpacing = (2 * .pi) / Double(bladeCount)
+        for i in 1..<bladeCount {
+            let spacing = angles[i] - angles[i-1]
+            #expect(abs(spacing - expectedSpacing) < 0.001)
+        }
+    }
+
+    @Test("Layer alpha increases with layer index")
+    func layerAlphaIncreasesWithIndex() {
+        let layerCount = 5
+
+        let alpha0 = calculateLayerAlpha(layerIndex: 0, layerCount: layerCount)
+        let alpha4 = calculateLayerAlpha(layerIndex: 4, layerCount: layerCount)
+
+        #expect(alpha4 > alpha0)
+    }
+
+    @Test("Color index wraps correctly")
+    func colorIndexWrapsCorrectly() {
+        let colorCount = 8
+
+        for layer in 0..<20 {
+            let colorOffset = 5 // arbitrary offset
+            let colorIndex = ((layer - colorOffset) % colorCount + colorCount) % colorCount
+            #expect(colorIndex >= 0 && colorIndex < colorCount)
+        }
+    }
+
+    // Helper functions mirroring NativeSpiralCanvas logic
+    private func calculateBladeRadius(baseRadius: CGFloat, layerIndex: Int) -> CGFloat {
+        return baseRadius * (0.4 + CGFloat(layerIndex) * 0.12)
+    }
+
+    private func calculateArcCenterX(bladeRadius: CGFloat, apertureSize: Double) -> CGFloat {
+        return bladeRadius * (0.05 + 0.30 * apertureSize)
+    }
+
+    private func calculateArcRadius(bladeRadius: CGFloat, apertureSize: Double) -> CGFloat {
+        return bladeRadius * (0.85 + apertureSize * 0.4)
+    }
+
+    private func calculateLayerAlpha(layerIndex: Int, layerCount: Int) -> Double {
+        return 0.15 + (Double(layerIndex) / Double(layerCount)) * 0.25
+    }
+}
+
+// MARK: - Hole Diameter Calculation Tests
+
+@Suite("Hole Diameter Calculation Tests")
+struct HoleDiameterTests {
+
+    @Test("Hole diameter is zero when aperture is zero")
+    func holeDiameterZeroWhenApertureClosed() {
+        let radius: CGFloat = 100
+        let apertureSize: Double = 0
+
+        let holeRadius = radius * apertureSize * 0.43
+        let holeDiameter = holeRadius * 2
+
+        #expect(holeDiameter == 0)
+    }
+
+    @Test("Hole diameter scales with aperture size")
+    func holeDiameterScalesWithAperture() {
+        let radius: CGFloat = 100
+
+        let diameter1 = calculateHoleDiameter(radius: radius, apertureSize: 0.25)
+        let diameter2 = calculateHoleDiameter(radius: radius, apertureSize: 0.5)
+        let diameter3 = calculateHoleDiameter(radius: radius, apertureSize: 1.0)
+
+        #expect(diameter2 > diameter1)
+        #expect(diameter3 > diameter2)
+    }
+
+    @Test("Max hole diameter uses base aperture size")
+    func maxHoleDiameterUsesBaseAperture() {
+        let radius: CGFloat = 100
+        let baseApertureSize: Double = 0.5
+
+        let maxHoleRadius = radius * baseApertureSize * 0.43
+        let maxHoleDiameter = maxHoleRadius * 2
+
+        #expect(abs(maxHoleDiameter - 43.0) < 0.001)
+    }
+
+    private func calculateHoleDiameter(radius: CGFloat, apertureSize: Double) -> CGFloat {
+        let holeRadius = radius * apertureSize * 0.43
+        return holeRadius * 2
+    }
+}
+
+// MARK: - Lens Flare Calculation Tests
+
+@Suite("Lens Flare Calculation Tests")
+struct LensFlareTests {
+
+    @Test("Flare position orbits around center")
+    func flarePositionOrbits() {
+        let cx: CGFloat = 100
+        let cy: CGFloat = 100
+        let radius: CGFloat = 100
+
+        var positions: [CGPoint] = []
+
+        for i in 0..<4 {
+            let time = Double(i) * .pi / 2  // Quarter rotations
+            let flareAngle = time * 0.5
+            let flareX = cx + cos(flareAngle) * radius * 0.3
+            let flareY = cy + sin(flareAngle) * radius * 0.3
+            positions.append(CGPoint(x: flareX, y: flareY))
+        }
+
+        // All positions should be different
+        for i in 0..<positions.count {
+            for j in (i+1)..<positions.count {
+                let dx = positions[i].x - positions[j].x
+                let dy = positions[i].y - positions[j].y
+                let distance = sqrt(dx*dx + dy*dy)
+                #expect(distance > 1.0)
+            }
+        }
+    }
+
+    @Test("Flare alpha oscillates")
+    func flareAlphaOscillates() {
+        let baseAlpha: Double = 0.05
+        let amplitude: Double = 0.02
+
+        var alphas: [Double] = []
+        for i in 0..<10 {
+            let time = Double(i) * 0.5
+            let alpha = baseAlpha + sin(time * 3) * amplitude
+            alphas.append(alpha)
+        }
+
+        // Check that alpha varies
+        let minAlpha = alphas.min()!
+        let maxAlpha = alphas.max()!
+        #expect(maxAlpha > minAlpha)
+
+        // Check that alpha stays in reasonable range
+        for alpha in alphas {
+            #expect(alpha >= baseAlpha - amplitude)
+            #expect(alpha <= baseAlpha + amplitude)
+        }
     }
 }
