@@ -12,27 +12,52 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 Section("Preset") {
-                    Picker("Load Preset", selection: $presetManager.currentPresetId) {
-                        Text("Custom").tag(nil as UUID?)
+                    // Replaced Picker with explicit tappable rows so taps apply immediately
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Load Preset")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+
                         ForEach(presetManager.builtInPresets) { preset in
-                            HStack {
-                                Text(preset.name)
-                                Image(systemName: "star.fill")
-                                    .foregroundColor(.yellow)
-                                    .font(.caption2)
-                            }.tag(preset.id as UUID?)
-                        }
-                        if !presetManager.userPresets.isEmpty {
-                            ForEach(presetManager.userPresets) { preset in
-                                Text(preset.name).tag(preset.id as UUID?)
+                            Button {
+                                presetManager.applyPreset(preset)
+                                phrasesText = settings.phrasesText
+                            } label: {
+                                HStack {
+                                    Text(preset.name)
+                                    Image(systemName: "star.fill")
+                                        .foregroundColor(.yellow)
+                                        .font(.caption2)
+                                    Spacer()
+                                    if presetManager.currentPresetId == preset.id {
+                                        Image(systemName: "checkmark")
+                                            .foregroundColor(.yellow)
+                                    }
+                                }
+                                .contentShape(Rectangle())
                             }
+                            .buttonStyle(.plain)
                         }
-                    }
-                    .onChange(of: presetManager.currentPresetId) { _, newValue in
-                        if let id = newValue,
-                           let preset = presetManager.allPresets.first(where: { $0.id == id }) {
-                            presetManager.applyPreset(preset)
-                            phrasesText = settings.phrasesText
+
+                        if !presetManager.userPresets.isEmpty {
+                            Divider()
+                            ForEach(presetManager.userPresets) { preset in
+                                Button {
+                                    presetManager.applyPreset(preset)
+                                    phrasesText = settings.phrasesText
+                                } label: {
+                                    HStack {
+                                        Text(preset.name)
+                                        Spacer()
+                                        if presetManager.currentPresetId == preset.id {
+                                            Image(systemName: "checkmark")
+                                                .foregroundColor(.yellow)
+                                        }
+                                    }
+                                    .contentShape(Rectangle())
+                                }
+                                .buttonStyle(.plain)
+                            }
                         }
                     }
 

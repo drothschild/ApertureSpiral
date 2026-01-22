@@ -111,9 +111,20 @@ class PresetManager: ObservableObject {
             mirrorAnimationMode: (s.mirrorAnimationMode == 0 ? 1 : s.mirrorAnimationMode),
             colorPaletteId: s.colorPaletteId
         )
-        userPresets.append(preset)
-        saveUserPresets()
-        currentPresetId = preset.id
+        // Snapshot the new preset list so encoding/saving can occur off the main thread.
+        let snapshot = userPresets + [preset]
+
+        // Update published state on main thread immediately so UI shows change.
+        DispatchQueue.main.async {
+            self.userPresets.append(preset)
+            self.currentPresetId = preset.id
+        }
+
+        // Encode and persist on a background queue to avoid blocking UI taps.
+        DispatchQueue.global(qos: .userInitiated).async {
+            guard let data = try? JSONEncoder().encode(snapshot) else { return }
+            self.userDefaults.set(data, forKey: self.userPresetsKey)
+        }
     }
 
     func applyPreset(_ preset: Preset) {
@@ -147,8 +158,12 @@ class PresetManager: ObservableObject {
     }
 
     private func saveUserPresets() {
-        guard let data = try? JSONEncoder().encode(userPresets) else { return }
-        userDefaults.set(data, forKey: userPresetsKey)
+        // Persist using a background queue to avoid UI jank during encodes.
+        let snapshot = userPresets
+        DispatchQueue.global(qos: .utility).async {
+            guard let data = try? JSONEncoder().encode(snapshot) else { return }
+            self.userDefaults.set(data, forKey: self.userPresetsKey)
+        }
     }
 
     /// Detects if current settings match any preset and sets currentPresetId accordingly

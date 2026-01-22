@@ -105,19 +105,39 @@ class SpiralSettings: ObservableObject {
     }
 
     private func persistAllToUserDefaults() {
-        userDefaults.set(bladeCount, forKey: Keys.bladeCount)
-        userDefaults.set(layerCount, forKey: Keys.layerCount)
-        userDefaults.set(speed, forKey: Keys.speed)
-        userDefaults.set(apertureSize, forKey: Keys.apertureSize)
-        userDefaults.set(phrases, forKey: Keys.phrases)
-        userDefaults.set(captureTimerMinutes, forKey: Keys.captureTimerMinutes)
-        userDefaults.set(previewOnly, forKey: Keys.previewOnly)
-        userDefaults.set(colorFlowSpeed, forKey: Keys.colorFlowSpeed)
-        userDefaults.set(mirrorAlwaysOn, forKey: Keys.mirrorAlwaysOn)
-        userDefaults.set(mirrorAnimationMode, forKey: Keys.mirrorAnimationMode)
-        userDefaults.set(eyeCenteringEnabled, forKey: Keys.eyeCenteringEnabled)
-        userDefaults.set(freezeWhenNoFace, forKey: Keys.freezeWhenNoFace)
-        userDefaults.set(colorPaletteId, forKey: Keys.colorPaletteId)
+        // Snapshot values and persist off the main thread to avoid blocking UI.
+        let snapshot = (
+            bladeCount: bladeCount,
+            layerCount: layerCount,
+            speed: speed,
+            apertureSize: apertureSize,
+            phrases: phrases,
+            captureTimerMinutes: captureTimerMinutes,
+            previewOnly: previewOnly,
+            colorFlowSpeed: colorFlowSpeed,
+            mirrorAlwaysOn: mirrorAlwaysOn,
+            mirrorAnimationMode: mirrorAnimationMode,
+            eyeCenteringEnabled: eyeCenteringEnabled,
+            freezeWhenNoFace: freezeWhenNoFace,
+            colorPaletteId: colorPaletteId
+        )
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            let ud = self.userDefaults
+            ud.set(snapshot.bladeCount, forKey: Keys.bladeCount)
+            ud.set(snapshot.layerCount, forKey: Keys.layerCount)
+            ud.set(snapshot.speed, forKey: Keys.speed)
+            ud.set(snapshot.apertureSize, forKey: Keys.apertureSize)
+            ud.set(snapshot.phrases, forKey: Keys.phrases)
+            ud.set(snapshot.captureTimerMinutes, forKey: Keys.captureTimerMinutes)
+            ud.set(snapshot.previewOnly, forKey: Keys.previewOnly)
+            ud.set(snapshot.colorFlowSpeed, forKey: Keys.colorFlowSpeed)
+            ud.set(snapshot.mirrorAlwaysOn, forKey: Keys.mirrorAlwaysOn)
+            ud.set(snapshot.mirrorAnimationMode, forKey: Keys.mirrorAnimationMode)
+            ud.set(snapshot.eyeCenteringEnabled, forKey: Keys.eyeCenteringEnabled)
+            ud.set(snapshot.freezeWhenNoFace, forKey: Keys.freezeWhenNoFace)
+            ud.set(snapshot.colorPaletteId, forKey: Keys.colorPaletteId)
+        }
     }
 
     var colorPalette: ColorPalette {
