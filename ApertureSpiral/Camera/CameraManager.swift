@@ -19,7 +19,7 @@ class CameraManager: NSObject, ObservableObject {
     private let videoDataOutput = AVCaptureVideoDataOutput()
     private var photoCaptureCompletion: ((UIImage?) -> Void)?
     private let sessionQueue = DispatchQueue(label: "camera.session.queue")
-    private let videoDataQueue = DispatchQueue(label: "video.data.queue", qos: .userInteractive)
+    private let videoDataQueue = DispatchQueue(label: "video.data.queue", qos: .utility)
 
     private var faceDetectionRequest: VNDetectFaceLandmarksRequest?
     private var frameCounter = 0
@@ -293,7 +293,8 @@ class CameraManager: NSObject, ObservableObject {
 
     private func configureSession() {
         captureSession.beginConfiguration()
-        captureSession.sessionPreset = .photo
+        // Use medium preset for better performance on older devices (sufficient for face detection)
+        captureSession.sessionPreset = .medium
 
         // Front camera
         guard let camera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front),
@@ -409,9 +410,9 @@ extension CameraManager: @preconcurrency AVCapturePhotoCaptureDelegate {
 
 extension CameraManager: @preconcurrency AVCaptureVideoDataOutputSampleBufferDelegate {
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-        // Process every 3rd frame to reduce CPU load
+        // Process every 5th frame to reduce CPU load on older devices
         frameCounter += 1
-        guard frameCounter % 3 == 0 else { return }
+        guard frameCounter % 5 == 0 else { return }
 
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer),
               let request = faceDetectionRequest else { return }
