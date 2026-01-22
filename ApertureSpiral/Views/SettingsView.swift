@@ -172,7 +172,12 @@ struct SettingsView: View {
 
                 Section("Face Detection") {
                     Toggle("Freeze spiral when no face detected", isOn: $settings.freezeWhenNoFace)
-                    Text("Freeze the spiral after 5 seconds without a detected face. Works even when mirror view is off.")
+                    Text("Freeze the spiral after 5 seconds without a detected face.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
+                    Toggle("Freeze spiral when not looking", isOn: $settings.freezeWhenNotLooking)
+                    Text("Uses eye tracking to freeze when you look away from the screen.")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }

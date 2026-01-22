@@ -18,6 +18,7 @@ class SpiralSettings: ObservableObject {
         static let mirrorAnimationMode = "spiral.mirrorAnimationMode"
         static let eyeCenteringEnabled = "spiral.eyeCenteringEnabled"
         static let freezeWhenNoFace = "spiral.freezeWhenNoFace"
+        static let freezeWhenNotLooking = "spiral.freezeWhenNotLooking"
         static let colorPaletteId = "spiral.colorPaletteId"
         static let hasLaunchedBefore = "spiral.hasLaunchedBefore"
     }
@@ -37,6 +38,7 @@ class SpiralSettings: ObservableObject {
         static let mirrorAnimationMode = 2
         static let eyeCenteringEnabled = true
         static let freezeWhenNoFace = false
+        static let freezeWhenNotLooking = false
         static let colorPaletteId = "warm"
     }
 
@@ -76,7 +78,10 @@ class SpiralSettings: ObservableObject {
     @Published var freezeWhenNoFace: Bool = Defaults.freezeWhenNoFace {
         didSet { if !suppressUserDefaultsWrites { userDefaults.set(freezeWhenNoFace, forKey: Keys.freezeWhenNoFace) } }
     }
-    // Runtime flag controlled by CameraManager when face is lost
+    @Published var freezeWhenNotLooking: Bool = Defaults.freezeWhenNotLooking {
+        didSet { if !suppressUserDefaultsWrites { userDefaults.set(freezeWhenNotLooking, forKey: Keys.freezeWhenNotLooking) } }
+    }
+    // Runtime flag controlled by CameraManager when face is lost or not looking
     @Published var spiralFrozen: Bool = false
     @Published var colorPaletteId: String = Defaults.colorPaletteId {
         didSet { if !suppressUserDefaultsWrites { userDefaults.set(colorPaletteId, forKey: Keys.colorPaletteId) } }
@@ -119,6 +124,7 @@ class SpiralSettings: ObservableObject {
             mirrorAnimationMode: mirrorAnimationMode,
             eyeCenteringEnabled: eyeCenteringEnabled,
             freezeWhenNoFace: freezeWhenNoFace,
+            freezeWhenNotLooking: freezeWhenNotLooking,
             colorPaletteId: colorPaletteId
         )
 
@@ -136,6 +142,7 @@ class SpiralSettings: ObservableObject {
             ud.set(snapshot.mirrorAnimationMode, forKey: Keys.mirrorAnimationMode)
             ud.set(snapshot.eyeCenteringEnabled, forKey: Keys.eyeCenteringEnabled)
             ud.set(snapshot.freezeWhenNoFace, forKey: Keys.freezeWhenNoFace)
+            ud.set(snapshot.freezeWhenNotLooking, forKey: Keys.freezeWhenNotLooking)
             ud.set(snapshot.colorPaletteId, forKey: Keys.colorPaletteId)
         }
     }
@@ -170,6 +177,7 @@ class SpiralSettings: ObservableObject {
             // Eye centering defaults to true if not set
             eyeCenteringEnabled = userDefaults.object(forKey: Keys.eyeCenteringEnabled) == nil ? Defaults.eyeCenteringEnabled : userDefaults.bool(forKey: Keys.eyeCenteringEnabled)
             freezeWhenNoFace = userDefaults.object(forKey: Keys.freezeWhenNoFace) == nil ? Defaults.freezeWhenNoFace : userDefaults.bool(forKey: Keys.freezeWhenNoFace)
+            freezeWhenNotLooking = userDefaults.object(forKey: Keys.freezeWhenNotLooking) == nil ? Defaults.freezeWhenNotLooking : userDefaults.bool(forKey: Keys.freezeWhenNotLooking)
             colorPaletteId = userDefaults.string(forKey: Keys.colorPaletteId) ?? Defaults.colorPaletteId
 
             // Handle zero values that might indicate unset (use defaults instead)
@@ -192,6 +200,7 @@ class SpiralSettings: ObservableObject {
             mirrorAnimationMode = Defaults.mirrorAnimationMode
             eyeCenteringEnabled = Defaults.eyeCenteringEnabled
             freezeWhenNoFace = Defaults.freezeWhenNoFace
+            freezeWhenNotLooking = Defaults.freezeWhenNotLooking
             colorPaletteId = Defaults.colorPaletteId
 
             userDefaults.set(true, forKey: Keys.hasLaunchedBefore)
@@ -213,6 +222,7 @@ class SpiralSettings: ObservableObject {
         mirrorAnimationMode = Defaults.mirrorAnimationMode
         eyeCenteringEnabled = Defaults.eyeCenteringEnabled
         freezeWhenNoFace = Defaults.freezeWhenNoFace
+        freezeWhenNotLooking = Defaults.freezeWhenNotLooking
         colorPaletteId = Defaults.colorPaletteId
     }
 
@@ -230,6 +240,7 @@ class SpiralSettings: ObservableObject {
         mirrorAnimationMode = Defaults.mirrorAnimationMode
         eyeCenteringEnabled = Defaults.eyeCenteringEnabled
         freezeWhenNoFace = Defaults.freezeWhenNoFace
+        freezeWhenNotLooking = Defaults.freezeWhenNotLooking
         colorPaletteId = Defaults.colorPaletteId
     }
 

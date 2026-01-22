@@ -8,7 +8,10 @@ class CameraManager: NSObject, ObservableObject {
     @Published var isSessionRunning = false
     @Published var eyeCenterOffset: CGPoint = .zero
     @Published var faceDetected: Bool = false {
-        didSet { updateNoFaceTimer() }
+        didSet { updateFreezeTimer() }
+    }
+    @Published var isLookingAtScreen: Bool = true {
+        didSet { updateFreezeTimer() }
     }
 
     private let captureSession = AVCaptureSession()
@@ -18,13 +21,18 @@ class CameraManager: NSObject, ObservableObject {
     private let sessionQueue = DispatchQueue(label: "camera.session.queue")
     private let videoDataQueue = DispatchQueue(label: "video.data.queue", qos: .userInteractive)
 
-    private var faceDetectionRequest: VNDetectFaceRectanglesRequest?
+    private var faceDetectionRequest: VNDetectFaceLandmarksRequest?
     private var frameCounter = 0
     private var smoothedOffset: CGPoint = .zero
-    private var noFaceTimer: Timer?
-    @Published var noFaceCountdown: Int = 0
+    private var freezeTimer: Timer?
+    @Published var freezeCountdown: Int = 0
     private let settings = SpiralSettings.shared
     private var cancellables = Set<AnyCancellable>()
+
+    // Gaze tracking state (integrated into face detection)
+    private var gazeHistory: [Bool] = []
+    private let gazeHistorySize = 5
+    private let eyeOpenThreshold: CGFloat = 0.02
 
     var previewLayer: AVCaptureVideoPreviewLayer?
 
@@ -32,25 +40,40 @@ class CameraManager: NSObject, ObservableObject {
         super.init()
         checkAuthorizationStatus()
         setupFaceDetection()
-        // Observe user toggling of the freeze setting so we can (re)start timer if needed
+        // Observe user toggling of the freeze settings so we can (re)start timer if needed
         settings.$freezeWhenNoFace
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
-                self?.updateNoFaceTimer()
+                self?.updateFreezeTimer()
+            }
+            .store(in: &cancellables)
+        settings.$freezeWhenNotLooking
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] enabled in
+                self?.handleGazeTrackingSettingChanged(enabled)
             }
             .store(in: &cancellables)
     }
 
+    private func handleGazeTrackingSettingChanged(_ enabled: Bool) {
+        if !enabled {
+            gazeHistory.removeAll()
+            isLookingAtScreen = true  // Reset to default when disabled
+        }
+        updateFreezeTimer()
+    }
+
     deinit {
-        noFaceTimer?.invalidate()
-        noFaceTimer = nil
+        freezeTimer?.invalidate()
+        freezeTimer = nil
         settings.spiralFrozen = false
         cancellables.forEach { $0.cancel() }
         cancellables.removeAll()
     }
 
     private func setupFaceDetection() {
-        faceDetectionRequest = VNDetectFaceRectanglesRequest { [weak self] request, error in
+        // Use landmarks request which includes face bounding box AND eye data for gaze tracking
+        faceDetectionRequest = VNDetectFaceLandmarksRequest { [weak self] request, error in
             guard let self = self,
                   error == nil,
                   let results = request.results as? [VNFaceObservation],
@@ -63,13 +86,22 @@ class CameraManager: NSObject, ObservableObject {
                         y: (self?.smoothedOffset.y ?? 0) * 0.85
                     )
                     self?.eyeCenterOffset = self?.smoothedOffset ?? .zero
-                    // Ensure the no-face timer is (re)started even if faceDetected was already false
-                    self?.updateNoFaceTimer()
+                    // Update gaze as not looking when no face
+                    self?.updateGazeWithSmoothing(false)
+                    // Ensure the freeze timer is (re)started even if faceDetected was already false
+                    self?.updateFreezeTimer()
                 }
                 return
             }
 
             let offset = self.calculateFaceCenterOffset(from: face)
+
+            // Analyze eye landmarks for gaze tracking if enabled
+            var isLooking = true
+            if self.settings.freezeWhenNotLooking, let landmarks = face.landmarks {
+                isLooking = self.analyzeGaze(landmarks: landmarks)
+            }
+
             DispatchQueue.main.async {
                 self.faceDetected = true
                 // Exponential smoothing to prevent jitter
@@ -78,53 +110,132 @@ class CameraManager: NSObject, ObservableObject {
                     y: self.smoothedOffset.y * 0.7 + offset.y * 0.3
                 )
                 self.eyeCenterOffset = self.smoothedOffset
+
+                // Update gaze state with smoothing
+                if self.settings.freezeWhenNotLooking {
+                    self.updateGazeWithSmoothing(isLooking)
+                }
             }
         }
     }
 
+    /// Analyze face landmarks to determine if user is looking at screen
+    private func analyzeGaze(landmarks: VNFaceLandmarks2D) -> Bool {
+        guard let leftEye = landmarks.leftEye,
+              let rightEye = landmarks.rightEye else {
+            return true  // Can't determine, assume looking
+        }
 
-    /// Schedules or cancels a one-shot timer that freezes the spiral after 5s without a face.
-    private func updateNoFaceTimer() {
+        // Check if eyes are open
+        let leftOpen = isEyeOpen(leftEye)
+        let rightOpen = isEyeOpen(rightEye)
+
+        // If both eyes closed, not looking
+        if !leftOpen && !rightOpen {
+            return false
+        }
+
+        // Check pupil positions if available
+        if let leftPupil = landmarks.leftPupil,
+           let rightPupil = landmarks.rightPupil {
+            let leftCentered = isPupilCentered(eye: leftEye, pupil: leftPupil)
+            let rightCentered = isPupilCentered(eye: rightEye, pupil: rightPupil)
+            return leftCentered || rightCentered
+        }
+
+        return leftOpen || rightOpen
+    }
+
+    private func isEyeOpen(_ eye: VNFaceLandmarkRegion2D) -> Bool {
+        let points = eye.normalizedPoints
+        guard points.count >= 6 else { return true }
+
+        let yValues = points.map { $0.y }
+        guard let minY = yValues.min(), let maxY = yValues.max() else { return true }
+
+        return (maxY - minY) > eyeOpenThreshold
+    }
+
+    private func isPupilCentered(eye: VNFaceLandmarkRegion2D, pupil: VNFaceLandmarkRegion2D) -> Bool {
+        guard let pupilPoint = pupil.normalizedPoints.first else { return true }
+
+        let eyePoints = eye.normalizedPoints
+        guard !eyePoints.isEmpty else { return true }
+
+        let eyeCenterX = eyePoints.map { $0.x }.reduce(0, +) / CGFloat(eyePoints.count)
+        let xValues = eyePoints.map { $0.x }
+        guard let minX = xValues.min(), let maxX = xValues.max() else { return true }
+
+        let eyeWidth = maxX - minX
+        guard eyeWidth > 0 else { return true }
+
+        let offsetFromCenter = abs(pupilPoint.x - eyeCenterX) / eyeWidth
+        return offsetFromCenter < 0.35
+    }
+
+    private func updateGazeWithSmoothing(_ looking: Bool) {
+        gazeHistory.append(looking)
+        if gazeHistory.count > gazeHistorySize {
+            gazeHistory.removeFirst()
+        }
+
+        // Require majority to agree
+        let lookingCount = gazeHistory.filter { $0 }.count
+        isLookingAtScreen = lookingCount > gazeHistorySize / 2
+    }
+
+
+    /// Schedules or cancels a timer that freezes the spiral after 5s without attention.
+    /// Attention is lost when: no face detected OR (gaze tracking enabled AND not looking at screen)
+    private func updateFreezeTimer() {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            // If a face is detected, ensure spiral is unfrozen and cancel countdown
-            if self.faceDetected {
+
+            // Determine if user is paying attention
+            let hasAttention = self.faceDetected && (
+                !self.settings.freezeWhenNotLooking || self.isLookingAtScreen
+            )
+
+            // If user is paying attention, ensure spiral is unfrozen and cancel countdown
+            if hasAttention {
                 self.settings.spiralFrozen = false
-                self.noFaceTimer?.invalidate()
-                self.noFaceTimer = nil
-                self.noFaceCountdown = 0
+                self.freezeTimer?.invalidate()
+                self.freezeTimer = nil
+                self.freezeCountdown = 0
                 return
             }
 
-            // If user disabled freeze behavior, cancel any timer and do nothing
-            guard self.settings.freezeWhenNoFace else {
-                self.noFaceTimer?.invalidate()
-                self.noFaceTimer = nil
-                self.noFaceCountdown = 0
+            // Check if any freeze behavior is enabled
+            let shouldFreezeOnNoFace = self.settings.freezeWhenNoFace && !self.faceDetected
+            let shouldFreezeOnNotLooking = self.settings.freezeWhenNotLooking && !self.isLookingAtScreen
+            guard shouldFreezeOnNoFace || shouldFreezeOnNotLooking else {
+                self.freezeTimer?.invalidate()
+                self.freezeTimer = nil
+                self.freezeCountdown = 0
                 return
             }
 
             // If a countdown is already running, do not restart it (prevents resetting to 5s)
-            if self.noFaceTimer != nil {
+            if self.freezeTimer != nil {
                 return
             }
 
             // Start a 1s repeating timer to provide a countdown to freeze
-            self.noFaceCountdown = 5
-            self.noFaceTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] timer in
+            self.freezeCountdown = 5
+            self.freezeTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] timer in
                 guard let self = self else { return }
-                if self.noFaceCountdown > 0 {
-                    self.noFaceCountdown -= 1
+                if self.freezeCountdown > 0 {
+                    self.freezeCountdown -= 1
                 }
 
-                if self.noFaceCountdown <= 0 {
+                if self.freezeCountdown <= 0 {
                     // Freeze spiral and stop timer
                     DispatchQueue.main.async {
                         self.settings.spiralFrozen = true
                     }
                     timer.invalidate()
                     DispatchQueue.main.async {
-                        self.noFaceTimer = nil
+                        self.freezeTimer = nil
                     }
                 }
             }
@@ -238,10 +349,12 @@ class CameraManager: NSObject, ObservableObject {
                 }
             }
         }
-        // Ensure timer is stopped and spiral unfrozen when session stops
+        // Ensure timer is stopped, gaze state reset, and spiral unfrozen when session stops
         DispatchQueue.main.async { [weak self] in
-            self?.noFaceTimer?.invalidate()
-            self?.noFaceTimer = nil
+            self?.freezeTimer?.invalidate()
+            self?.freezeTimer = nil
+            self?.gazeHistory.removeAll()
+            self?.isLookingAtScreen = true
             self?.settings.spiralFrozen = false
         }
     }

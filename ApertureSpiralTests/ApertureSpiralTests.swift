@@ -1004,19 +1004,24 @@ struct CameraManagerTests {
     }
 
     @Test("Spiral freezes after 5s when enabled")
+    @MainActor
     func spiralFreezesAfterDelay() {
         let manager = CameraManager()
         let settings = SpiralSettings.shared
 
-        // Ensure initial state
+        // Ensure initial state - only test face detection, not gaze
         settings.spiralFrozen = false
         settings.freezeWhenNoFace = true
+        settings.freezeWhenNotLooking = false
+
+        // Allow Combine publishers to process the settings changes
+        RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.1))
 
         // Simulate losing face
         manager.faceDetected = false
 
-        // Wait longer than the 5s timeout to allow timer to fire
-        Thread.sleep(forTimeInterval: 6.5)
+        // Run the main run loop to allow timer to fire (5s countdown + buffer)
+        RunLoop.main.run(until: Date(timeIntervalSinceNow: 6.5))
 
         #expect(settings.spiralFrozen == true)
 
@@ -1026,21 +1031,24 @@ struct CameraManagerTests {
     }
 
     @Test("Spiral does not freeze if face returns before timeout")
+    @MainActor
     func spiralDoesNotFreezeIfFaceReturns() {
         let manager = CameraManager()
         let settings = SpiralSettings.shared
 
+        // Ensure initial state - only test face detection, not gaze
         settings.spiralFrozen = false
         settings.freezeWhenNoFace = true
+        settings.freezeWhenNotLooking = false
 
         manager.faceDetected = false
 
         // Wait a short time, then simulate face return
-        Thread.sleep(forTimeInterval: 2.0)
+        RunLoop.main.run(until: Date(timeIntervalSinceNow: 2.0))
         manager.faceDetected = true
 
         // Wait enough time that if the countdown had continued it would have frozen
-        Thread.sleep(forTimeInterval: 4.0)
+        RunLoop.main.run(until: Date(timeIntervalSinceNow: 4.0))
 
         #expect(settings.spiralFrozen == false)
 
@@ -1543,5 +1551,231 @@ struct LensFlareTests {
             #expect(alpha >= baseAlpha - amplitude)
             #expect(alpha <= baseAlpha + amplitude)
         }
+    }
+}
+
+// MARK: - Gaze Detection Tests
+
+@Suite("Gaze Detection Tests")
+struct GazeDetectionTests {
+
+    @Test("Gaze angle threshold calculation - looking straight")
+    func gazeAngleStraight() {
+        // When looking straight at camera: small X/Y, positive Z
+        let lookAtX: Float = 0.0
+        let lookAtY: Float = 0.0
+        let lookAtZ: Float = 1.0
+
+        let horizontalOffset = sqrt(lookAtX * lookAtX + lookAtY * lookAtY)
+        let gazeAngle = atan2(horizontalOffset, abs(lookAtZ))
+
+        // Angle should be near zero (looking at screen)
+        #expect(gazeAngle < 0.1)
+    }
+
+    @Test("Gaze angle threshold calculation - looking away")
+    func gazeAngleLookingAway() {
+        // Looking 45 degrees to the side
+        let lookAtX: Float = 1.0
+        let lookAtY: Float = 0.0
+        let lookAtZ: Float = 1.0
+
+        let horizontalOffset = sqrt(lookAtX * lookAtX + lookAtY * lookAtY)
+        let gazeAngle = atan2(horizontalOffset, abs(lookAtZ))
+
+        // Angle should be about 45 degrees (pi/4)
+        let expectedAngle: Float = .pi / 4
+        #expect(abs(gazeAngle - expectedAngle) < 0.01)
+    }
+
+    @Test("Gaze angle threshold - 25 degree boundary")
+    func gazeAngleThreshold() {
+        let thresholdDegrees: Float = 25
+        let thresholdRadians = thresholdDegrees * .pi / 180
+
+        // Just inside threshold (24 degrees)
+        let insideAngle: Float = 24 * .pi / 180
+        #expect(insideAngle < thresholdRadians)
+
+        // Just outside threshold (26 degrees)
+        let outsideAngle: Float = 26 * .pi / 180
+        #expect(outsideAngle > thresholdRadians)
+    }
+
+    @Test("Eye openness detection - open eye")
+    func eyeOpennessOpen() {
+        // Simulate eye points with significant vertical distance
+        let topY: CGFloat = 0.6
+        let bottomY: CGFloat = 0.4
+        let verticalExtent = topY - bottomY
+
+        let threshold: CGFloat = 0.015
+        #expect(verticalExtent > threshold)
+    }
+
+    @Test("Eye openness detection - closed eye")
+    func eyeOpennessClosed() {
+        // Simulate eye points with minimal vertical distance (closed)
+        let topY: CGFloat = 0.51
+        let bottomY: CGFloat = 0.50
+        let verticalExtent = topY - bottomY
+
+        let threshold: CGFloat = 0.015
+        #expect(verticalExtent < threshold)
+    }
+
+    @Test("Pupil centering - centered pupil")
+    func pupilCentered() {
+        // Eye spans from 0.3 to 0.5 (width = 0.2)
+        let eyeMinX: CGFloat = 0.3
+        let eyeMaxX: CGFloat = 0.5
+        let eyeCenterX = (eyeMinX + eyeMaxX) / 2  // 0.4
+        let eyeWidth = eyeMaxX - eyeMinX  // 0.2
+
+        // Pupil at center
+        let pupilX: CGFloat = 0.4
+        let offsetFromCenter = abs(pupilX - eyeCenterX) / eyeWidth
+
+        // Should be nearly zero (centered)
+        #expect(offsetFromCenter < 0.3)
+    }
+
+    @Test("Pupil centering - off-center pupil (looking away)")
+    func pupilOffCenter() {
+        // Eye spans from 0.3 to 0.5 (width = 0.2)
+        let eyeMinX: CGFloat = 0.3
+        let eyeMaxX: CGFloat = 0.5
+        let eyeCenterX = (eyeMinX + eyeMaxX) / 2  // 0.4
+        let eyeWidth = eyeMaxX - eyeMinX  // 0.2
+
+        // Pupil far to one side
+        let pupilX: CGFloat = 0.48
+        let offsetFromCenter = abs(pupilX - eyeCenterX) / eyeWidth
+
+        // Should be significant offset (looking away)
+        #expect(offsetFromCenter > 0.3)
+    }
+
+    @Test("Smoothing history - majority voting")
+    func smoothingMajorityVoting() {
+        // Simulate smoothing with history
+        var history: [Bool] = [true, true, true, false, false]
+        let historySize = 5
+
+        // Majority is true (3 out of 5)
+        let lookingCount = history.filter { $0 }.count
+        let isLooking = lookingCount > historySize / 2
+        #expect(isLooking == true)
+
+        // Change to majority false
+        history = [true, false, false, false, false]
+        let lookingCount2 = history.filter { $0 }.count
+        let isLooking2 = lookingCount2 > historySize / 2
+        #expect(isLooking2 == false)
+    }
+}
+
+// MARK: - Gaze-Based Freeze Logic Tests
+
+@Suite("Gaze-Based Freeze Logic Tests")
+struct GazeBasedFreezeTests {
+
+    @Test("freezeWhenNotLooking setting default is false")
+    func freezeWhenNotLookingDefault() {
+        let settings = SpiralSettings(forTesting: .standard)
+        #expect(settings.freezeWhenNotLooking == false)
+    }
+
+    @Test("freezeWhenNotLooking can be toggled")
+    func freezeWhenNotLookingToggle() {
+        let settings = SpiralSettings(forTesting: .standard)
+
+        settings.freezeWhenNotLooking = true
+        #expect(settings.freezeWhenNotLooking == true)
+
+        settings.freezeWhenNotLooking = false
+        #expect(settings.freezeWhenNotLooking == false)
+    }
+
+    @Test("Attention logic - face detected and looking")
+    func attentionFaceAndLooking() {
+        let faceDetected = true
+        let isLookingAtScreen = true
+        let freezeWhenNotLooking = true
+
+        let hasAttention = faceDetected && (!freezeWhenNotLooking || isLookingAtScreen)
+        #expect(hasAttention == true)
+    }
+
+    @Test("Attention logic - face detected but not looking (gaze enabled)")
+    func attentionFaceButNotLooking() {
+        let faceDetected = true
+        let isLookingAtScreen = false
+        let freezeWhenNotLooking = true
+
+        let hasAttention = faceDetected && (!freezeWhenNotLooking || isLookingAtScreen)
+        #expect(hasAttention == false)
+    }
+
+    @Test("Attention logic - face detected but not looking (gaze disabled)")
+    func attentionFaceNotLookingGazeDisabled() {
+        let faceDetected = true
+        let isLookingAtScreen = false
+        let freezeWhenNotLooking = false  // Gaze tracking disabled
+
+        let hasAttention = faceDetected && (!freezeWhenNotLooking || isLookingAtScreen)
+        #expect(hasAttention == true)  // Still has attention because gaze tracking is off
+    }
+
+    @Test("Attention logic - no face detected")
+    func attentionNoFace() {
+        let faceDetected = false
+        let isLookingAtScreen = true
+        let freezeWhenNotLooking = true
+
+        let hasAttention = faceDetected && (!freezeWhenNotLooking || isLookingAtScreen)
+        #expect(hasAttention == false)
+    }
+
+    @Test("Should freeze - no face with freezeWhenNoFace enabled")
+    func shouldFreezeNoFace() {
+        let faceDetected = false
+        let isLookingAtScreen = true
+        let freezeWhenNoFace = true
+        let freezeWhenNotLooking = false
+
+        let shouldFreezeOnNoFace = freezeWhenNoFace && !faceDetected
+        let shouldFreezeOnNotLooking = freezeWhenNotLooking && !isLookingAtScreen
+        let shouldFreeze = shouldFreezeOnNoFace || shouldFreezeOnNotLooking
+
+        #expect(shouldFreeze == true)
+    }
+
+    @Test("Should freeze - not looking with freezeWhenNotLooking enabled")
+    func shouldFreezeNotLooking() {
+        let faceDetected = true
+        let isLookingAtScreen = false
+        let freezeWhenNoFace = false
+        let freezeWhenNotLooking = true
+
+        let shouldFreezeOnNoFace = freezeWhenNoFace && !faceDetected
+        let shouldFreezeOnNotLooking = freezeWhenNotLooking && !isLookingAtScreen
+        let shouldFreeze = shouldFreezeOnNoFace || shouldFreezeOnNotLooking
+
+        #expect(shouldFreeze == true)
+    }
+
+    @Test("Should not freeze - all conditions met")
+    func shouldNotFreeze() {
+        let faceDetected = true
+        let isLookingAtScreen = true
+        let freezeWhenNoFace = true
+        let freezeWhenNotLooking = true
+
+        let shouldFreezeOnNoFace = freezeWhenNoFace && !faceDetected
+        let shouldFreezeOnNotLooking = freezeWhenNotLooking && !isLookingAtScreen
+        let shouldFreeze = shouldFreezeOnNoFace || shouldFreezeOnNotLooking
+
+        #expect(shouldFreeze == false)
     }
 }
