@@ -66,22 +66,29 @@ An immersive, meditative iOS app featuring an animated spiral aperture visualiza
 
 ```
 ApertureSpiral/
-├── ApertureSpiralApp.swift          # App entry point
-├── Camera/
-│   ├── CameraManager.swift          # Camera & face detection
-│   └── CameraPreviewView.swift      # Camera preview component
-├── Storage/
-│   ├── TrancePhoto.swift            # Photo data model
-│   ├── SpiralSettings.swift         # Settings persistence
-│   └── PhotoStorageManager.swift    # Photo storage
-└── Views/
-    ├── MainView.swift               # Tab navigation
-    ├── SpiralView.swift             # Main visualization
-    ├── SettingsView.swift           # Configuration
-    ├── GalleryView.swift            # Photo gallery
-    ├── PhotoDetailView.swift        # Photo viewer
-    ├── NativeSpiralCanvas.swift     # Spiral rendering
-    └── PresetsView.swift            # Preset management
+├── ApertureSpiral.xcodeproj         # Xcode project
+├── ApertureSpiral/                  # Main app source
+│   ├── ApertureSpiralApp.swift      # App entry point
+│   ├── Camera/
+│   │   ├── CameraManager.swift      # Camera & face detection
+│   │   └── CameraPreviewView.swift  # Camera preview component
+│   ├── Storage/
+│   │   ├── TrancePhoto.swift        # Photo data model
+│   │   ├── SpiralSettings.swift     # Settings persistence
+│   │   └── PhotoStorageManager.swift# Photo storage
+│   └── Views/
+│       ├── MainView.swift           # Tab navigation
+│       ├── SpiralView.swift         # Main visualization
+│       ├── SettingsView.swift       # Configuration
+│       ├── GalleryView.swift        # Photo gallery
+│       ├── PhotoDetailView.swift    # Photo viewer
+│       ├── NativeSpiralCanvas.swift # Spiral rendering
+│       └── PresetsView.swift        # Preset management
+├── ApertureSpiralTests/             # Unit tests
+│   └── ApertureSpiralTests.swift    # Swift Testing suite
+└── ApertureSpiralUITests/           # UI tests
+    ├── ApertureSpiralUITests.swift  # XCTest UI tests
+    └── ApertureSpiralUITestsLaunchTests.swift
 ```
 
 ## Technologies
@@ -91,6 +98,18 @@ ApertureSpiral/
 - **Vision** - AI face detection
 - **Core Data** - Data management
 - **Combine** - Reactive state management
+
+## Testing
+
+Run tests in Xcode with Cmd+U or via command line:
+
+```bash
+xcodebuild test -scheme ApertureSpiral -destination 'platform=iOS Simulator,name=iPhone 16'
+```
+
+**Unit Tests** - Swift Testing framework covering SpiralSettings, Presets, PresetManager, TrancePhoto, PhotoStorageManager, and CameraManager.
+
+**UI Tests** - XCTest UI tests for tab navigation, settings interactions, and performance metrics.
 
 ## License
 

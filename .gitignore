@@ -1,43 +1,14 @@
-# Xcode
+# macOS
+.DS_Store
+
+# Xcode user data
+*.xcuserstate
+xcuserdata/
+
+# Build products
 build/
 DerivedData/
-*.xcodeproj/xcuserdata/
-*.xcworkspace/xcuserdata/
-*.xcodeproj/project.xcworkspace/xcuserdata/
-xcuserdata/
 
 # Swift Package Manager
 .build/
 .swiftpm/
-Package.resolved
-
-# CocoaPods
-Pods/
-
-# Fastlane
-fastlane/report.xml
-fastlane/Preview.html
-fastlane/screenshots/**/*.png
-fastlane/test_output
-
-# macOS
-.DS_Store
-.AppleDouble
-.LSOverride
-._*
-
-# Xcode playgrounds
-timeline.xctimeline
-playground.xcworkspace
-
-# Archives
-*.xcarchive
-
-# App packaging
-*.ipa
-*.dSYM.zip
-*.dSYM
-
-# Provisioning profiles
-*.mobileprovision
-*.provisionprofile
