@@ -100,7 +100,7 @@ class PresetManager: ObservableObject {
             previewOnly: settings.previewOnly,
             colorFlowSpeed: settings.colorFlowSpeed,
             mirrorAlwaysOn: settings.mirrorAlwaysOn,
-            mirrorAnimationMode: settings.mirrorAnimationMode,
+            mirrorAnimationMode: (settings.mirrorAnimationMode == 0 ? 1 : settings.mirrorAnimationMode),
             colorPaletteId: settings.colorPaletteId
         )
         userPresets.append(preset)
@@ -119,7 +119,7 @@ class PresetManager: ObservableObject {
         settings.previewOnly = preset.previewOnly
         settings.colorFlowSpeed = preset.colorFlowSpeed
         settings.mirrorAlwaysOn = preset.mirrorAlwaysOn
-        settings.mirrorAnimationMode = preset.mirrorAnimationMode
+        settings.mirrorAnimationMode = (preset.mirrorAnimationMode == 0 ? 1 : preset.mirrorAnimationMode)
         settings.colorPaletteId = preset.colorPaletteId
         currentPresetId = preset.id
     }
@@ -137,7 +137,15 @@ class PresetManager: ObservableObject {
               let presets = try? JSONDecoder().decode([Preset].self, from: data) else {
             return
         }
-        userPresets = presets
+        // Normalize any legacy mirrorAnimationMode == 0 values to 1 (zoom-only)
+        let sanitized = presets.map { (p: Preset) -> Preset in
+            var p = p
+            if p.mirrorAnimationMode == 0 { p.mirrorAnimationMode = 1 }
+            return p
+        }
+        userPresets = sanitized
+        // Persist sanitized presets back to storage
+        saveUserPresets()
     }
 
     private func saveUserPresets() {

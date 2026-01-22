@@ -32,6 +32,7 @@ class SpiralSettings: ObservableObject {
         static let previewOnly = true
         static let colorFlowSpeed = 0.3
         static let mirrorAlwaysOn = true
+        // 1 = Zoom only, 2 = Zoom + Scale
         static let mirrorAnimationMode = 2
         static let eyeCenteringEnabled = true
         static let colorPaletteId = "warm"
@@ -64,7 +65,7 @@ class SpiralSettings: ObservableObject {
     @Published var mirrorAlwaysOn: Bool {  // Keep camera preview always visible
         didSet { userDefaults.set(mirrorAlwaysOn, forKey: Keys.mirrorAlwaysOn) }
     }
-    @Published var mirrorAnimationMode: Int {  // 0 = Scale, 1 = Zoom, 2 = Both (default)
+    @Published var mirrorAnimationMode: Int {  // 1 = Zoom only, 2 = Zoom + Scale
         didSet { userDefaults.set(mirrorAnimationMode, forKey: Keys.mirrorAnimationMode) }
     }
     @Published var eyeCenteringEnabled: Bool {  // Use AI to center camera on user's eyes
@@ -97,6 +98,10 @@ class SpiralSettings: ObservableObject {
             colorFlowSpeed = userDefaults.double(forKey: Keys.colorFlowSpeed)
             mirrorAlwaysOn = userDefaults.bool(forKey: Keys.mirrorAlwaysOn)
             mirrorAnimationMode = userDefaults.integer(forKey: Keys.mirrorAnimationMode)
+            // Normalize legacy value 0 -> 1
+            if mirrorAnimationMode == 0 {
+                mirrorAnimationMode = 1
+            }
             // Eye centering defaults to true if not set
             eyeCenteringEnabled = userDefaults.object(forKey: Keys.eyeCenteringEnabled) == nil ? Defaults.eyeCenteringEnabled : userDefaults.bool(forKey: Keys.eyeCenteringEnabled)
             colorPaletteId = userDefaults.string(forKey: Keys.colorPaletteId) ?? Defaults.colorPaletteId

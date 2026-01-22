@@ -174,15 +174,16 @@ struct SettingsView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
 
-                    Picker("Animation", selection: $settings.mirrorAnimationMode) {
-                        Text("Scale").tag(0)
-                        Text("Zoom").tag(1)
-                        Text("Both").tag(2)
-                    }
-                    .pickerStyle(.segmented)
+                    Toggle("Scale", isOn: Binding(
+                        get: { settings.mirrorAnimationMode == 2 },
+                        set: {
+                            settings.mirrorAnimationMode = $0 ? 2 : 1
+                            presetManager.currentPresetId = nil
+                        }
+                    ))
 
                     if settings.mirrorAlwaysOn {
-                        Text("Camera preview stays visible. Words are hidden while mirror is on.")
+                        Text("Camera preview stays visible.")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     } else {
