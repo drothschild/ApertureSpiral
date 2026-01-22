@@ -568,4 +568,6 @@ final class ApertureSpiralUITests: XCTestCase {
             slider.adjust(toNormalizedSliderPosition: 0.8)
         }
     }
+
+    
 }

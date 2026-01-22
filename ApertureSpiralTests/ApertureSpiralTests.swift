@@ -131,9 +131,6 @@ struct SpiralSettingsTests {
     func mirrorAnimationModeModification() {
         let settings = SpiralSettings(forTesting: .standard)
 
-        settings.mirrorAnimationMode = 0 // Scale
-        #expect(settings.mirrorAnimationMode == 0)
-
         settings.mirrorAnimationMode = 1 // Zoom
         #expect(settings.mirrorAnimationMode == 1)
 
@@ -544,12 +541,13 @@ struct PresetManagerTests {
             previewOnly: false,
             colorFlowSpeed: 0.5,
             mirrorAlwaysOn: true,
-            mirrorAnimationMode: 0 // Scale
+            mirrorAnimationMode: 0 // Scale (legacy)
         )
         manager.applyPreset(preset)
 
         #expect(settings.mirrorAlwaysOn == true)
-        #expect(settings.mirrorAnimationMode == 0)
+        // legacy preset mode 0 is normalized to 1 (Zoom-only)
+        #expect(settings.mirrorAnimationMode == 1)
 
         // Restore settings
         settings.reset()
@@ -993,6 +991,19 @@ struct CameraManagerTests {
 
         #expect(manager.faceDetected == false)
     }
+    
+    @Test("CameraManager faceDetected can be toggled")
+    func faceDetectedToggle() {
+        let manager = CameraManager()
+
+        manager.faceDetected = true
+        #expect(manager.faceDetected == true)
+
+        manager.faceDetected = false
+        #expect(manager.faceDetected == false)
+    }
+
+    
 }
 
 // MARK: - Face Center Offset Calculation Tests
