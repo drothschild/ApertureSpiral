@@ -103,6 +103,9 @@ class SpiralSettings: ObservableObject {
         colorFlowSpeed = preset.colorFlowSpeed
         mirrorAlwaysOn = preset.mirrorAlwaysOn
         mirrorAnimationMode = (preset.mirrorAnimationMode == 0 ? 1 : preset.mirrorAnimationMode)
+        eyeCenteringEnabled = preset.eyeCenteringEnabled
+        freezeWhenNoFace = preset.freezeWhenNoFace
+        freezeWhenNotLooking = preset.freezeWhenNotLooking
         colorPaletteId = preset.colorPaletteId
         suppressUserDefaultsWrites = false
         // Persist all values once

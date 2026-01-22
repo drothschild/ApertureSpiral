@@ -15,9 +15,12 @@ struct Preset: Codable, Identifiable {
     var colorFlowSpeed: Double
     var mirrorAlwaysOn: Bool
     var mirrorAnimationMode: Int
+    var eyeCenteringEnabled: Bool
+    var freezeWhenNoFace: Bool
+    var freezeWhenNotLooking: Bool
     var colorPaletteId: String
 
-    init(id: UUID = UUID(), name: String, bladeCount: Int, layerCount: Int, speed: Double, apertureSize: Double, phrases: [String], captureTimerMinutes: Int = 0, previewOnly: Bool = false, colorFlowSpeed: Double = 0.5, mirrorAlwaysOn: Bool = false, mirrorAnimationMode: Int = 2, colorPaletteId: String = "warm") {
+    init(id: UUID = UUID(), name: String, bladeCount: Int, layerCount: Int, speed: Double, apertureSize: Double, phrases: [String], captureTimerMinutes: Int = 0, previewOnly: Bool = false, colorFlowSpeed: Double = 0.5, mirrorAlwaysOn: Bool = false, mirrorAnimationMode: Int = 2, eyeCenteringEnabled: Bool = true, freezeWhenNoFace: Bool = false, freezeWhenNotLooking: Bool = false, colorPaletteId: String = "warm") {
         self.id = id
         self.name = name
         self.bladeCount = bladeCount
@@ -30,11 +33,14 @@ struct Preset: Codable, Identifiable {
         self.colorFlowSpeed = colorFlowSpeed
         self.mirrorAlwaysOn = mirrorAlwaysOn
         self.mirrorAnimationMode = mirrorAnimationMode
+        self.eyeCenteringEnabled = eyeCenteringEnabled
+        self.freezeWhenNoFace = freezeWhenNoFace
+        self.freezeWhenNotLooking = freezeWhenNotLooking
         self.colorPaletteId = colorPaletteId
     }
 
     /// Checks if this preset's settings match the given values
-    func matchesSettings(bladeCount: Int, layerCount: Int, speed: Double, apertureSize: Double, phrases: [String], captureTimerMinutes: Int, previewOnly: Bool, colorFlowSpeed: Double, mirrorAlwaysOn: Bool, mirrorAnimationMode: Int, colorPaletteId: String) -> Bool {
+    func matchesSettings(bladeCount: Int, layerCount: Int, speed: Double, apertureSize: Double, phrases: [String], captureTimerMinutes: Int, previewOnly: Bool, colorFlowSpeed: Double, mirrorAlwaysOn: Bool, mirrorAnimationMode: Int, eyeCenteringEnabled: Bool, freezeWhenNoFace: Bool, freezeWhenNotLooking: Bool, colorPaletteId: String) -> Bool {
         return self.bladeCount == bladeCount &&
                self.layerCount == layerCount &&
                abs(self.speed - speed) < 0.01 &&
@@ -45,6 +51,9 @@ struct Preset: Codable, Identifiable {
                abs(self.colorFlowSpeed - colorFlowSpeed) < 0.01 &&
                self.mirrorAlwaysOn == mirrorAlwaysOn &&
                self.mirrorAnimationMode == mirrorAnimationMode &&
+               self.eyeCenteringEnabled == eyeCenteringEnabled &&
+               self.freezeWhenNoFace == freezeWhenNoFace &&
+               self.freezeWhenNotLooking == freezeWhenNotLooking &&
                self.colorPaletteId == colorPaletteId
     }
 
@@ -68,6 +77,9 @@ struct Preset: Codable, Identifiable {
         xml += "  <colorFlowSpeed>\(colorFlowSpeed)</colorFlowSpeed>\n"
         xml += "  <mirrorAlwaysOn>\(mirrorAlwaysOn)</mirrorAlwaysOn>\n"
         xml += "  <mirrorAnimationMode>\(mirrorAnimationMode)</mirrorAnimationMode>\n"
+        xml += "  <eyeCenteringEnabled>\(eyeCenteringEnabled)</eyeCenteringEnabled>\n"
+        xml += "  <freezeWhenNoFace>\(freezeWhenNoFace)</freezeWhenNoFace>\n"
+        xml += "  <freezeWhenNotLooking>\(freezeWhenNotLooking)</freezeWhenNotLooking>\n"
         xml += "  <colorPaletteId>\(escapeXML(colorPaletteId))</colorPaletteId>\n"
         xml += "</preset>"
         return xml
@@ -107,6 +119,9 @@ private class PresetXMLParser: NSObject, XMLParserDelegate {
     private var colorFlowSpeed: Double = 0.5
     private var mirrorAlwaysOn: Bool = false
     private var mirrorAnimationMode: Int = 2
+    private var eyeCenteringEnabled: Bool = true
+    private var freezeWhenNoFace: Bool = false
+    private var freezeWhenNotLooking: Bool = false
     private var colorPaletteId: String = "warm"
 
     private var inPhrases = false
@@ -140,6 +155,9 @@ private class PresetXMLParser: NSObject, XMLParserDelegate {
             colorFlowSpeed: colorFlowSpeed,
             mirrorAlwaysOn: mirrorAlwaysOn,
             mirrorAnimationMode: mirrorAnimationMode == 0 ? 1 : mirrorAnimationMode,
+            eyeCenteringEnabled: eyeCenteringEnabled,
+            freezeWhenNoFace: freezeWhenNoFace,
+            freezeWhenNotLooking: freezeWhenNotLooking,
             colorPaletteId: colorPaletteId
         )
     }
@@ -188,6 +206,12 @@ private class PresetXMLParser: NSObject, XMLParserDelegate {
             mirrorAlwaysOn = value.lowercased() == "true"
         case "mirrorAnimationMode":
             mirrorAnimationMode = Int(value) ?? 2
+        case "eyeCenteringEnabled":
+            eyeCenteringEnabled = value.lowercased() == "true"
+        case "freezeWhenNoFace":
+            freezeWhenNoFace = value.lowercased() == "true"
+        case "freezeWhenNotLooking":
+            freezeWhenNotLooking = value.lowercased() == "true"
         case "colorPaletteId":
             colorPaletteId = value.isEmpty ? "warm" : value
         default:
@@ -231,10 +255,10 @@ class PresetManager: ObservableObject {
     @Published var currentPresetId: UUID?
 
     let builtInPresets: [Preset] = [
-        Preset(name: "Birthday", bladeCount: 9, layerCount: 5, speed: 1.0, apertureSize: 0.5, phrases: ["Happy", "Birthday", "We Love You"], captureTimerMinutes: 0, previewOnly: false, colorFlowSpeed: 1.0, mirrorAlwaysOn: true, mirrorAnimationMode: 2, colorPaletteId: "warm"),
-        Preset(name: "Calm", bladeCount: 6, layerCount: 3, speed: 0.5, apertureSize: 0.7, phrases: ["Breathe", "Relax", "Peace"], captureTimerMinutes: 0, previewOnly: false, colorFlowSpeed: 0.3, mirrorAlwaysOn: false, mirrorAnimationMode: 2, colorPaletteId: "cool"),
-        Preset(name: "Intense", bladeCount: 16, layerCount: 8, speed: 2.5, apertureSize: 0.3, phrases: ["WOW", "AMAZING", "YES"], captureTimerMinutes: 0, previewOnly: false, colorFlowSpeed: 2.0, mirrorAlwaysOn: true, mirrorAnimationMode: 2, colorPaletteId: "neon"),
-        Preset(name: "Trippy", bladeCount: 12, layerCount: 6, speed: 1.5, apertureSize: 0.4, phrases: ["Whoa", "Dude", "Vibrate", "What's Happening?", "Drift"], captureTimerMinutes: 0, previewOnly: false, colorFlowSpeed: 0.8, mirrorAlwaysOn: true, mirrorAnimationMode: 1, colorPaletteId: "earth"),
+        Preset(name: "Birthday", bladeCount: 9, layerCount: 5, speed: 1.0, apertureSize: 0.5, phrases: ["Happy", "Birthday", "We Love You"], captureTimerMinutes: 0, previewOnly: false, colorFlowSpeed: 1.0, mirrorAlwaysOn: true, mirrorAnimationMode: 2, eyeCenteringEnabled: true, freezeWhenNoFace: false, freezeWhenNotLooking: false, colorPaletteId: "warm"),
+        Preset(name: "Calm", bladeCount: 6, layerCount: 3, speed: 0.5, apertureSize: 0.7, phrases: ["Breathe", "Relax", "Peace"], captureTimerMinutes: 0, previewOnly: false, colorFlowSpeed: 0.3, mirrorAlwaysOn: false, mirrorAnimationMode: 2, eyeCenteringEnabled: true, freezeWhenNoFace: true, freezeWhenNotLooking: true, colorPaletteId: "cool"),
+        Preset(name: "Intense", bladeCount: 16, layerCount: 8, speed: 2.5, apertureSize: 0.3, phrases: ["WOW", "AMAZING", "YES"], captureTimerMinutes: 0, previewOnly: false, colorFlowSpeed: 2.0, mirrorAlwaysOn: true, mirrorAnimationMode: 2, eyeCenteringEnabled: true, freezeWhenNoFace: false, freezeWhenNotLooking: false, colorPaletteId: "neon"),
+        Preset(name: "Trippy", bladeCount: 12, layerCount: 6, speed: 1.5, apertureSize: 0.4, phrases: ["Whoa", "Dude", "Vibrate", "What's Happening?", "Drift"], captureTimerMinutes: 0, previewOnly: false, colorFlowSpeed: 0.8, mirrorAlwaysOn: true, mirrorAnimationMode: 1, eyeCenteringEnabled: true, freezeWhenNoFace: false, freezeWhenNotLooking: false, colorPaletteId: "earth"),
     ]
 
     var allPresets: [Preset] {
@@ -286,6 +310,9 @@ class PresetManager: ObservableObject {
             colorFlowSpeed: s.colorFlowSpeed,
             mirrorAlwaysOn: s.mirrorAlwaysOn,
             mirrorAnimationMode: (s.mirrorAnimationMode == 0 ? 1 : s.mirrorAnimationMode),
+            eyeCenteringEnabled: s.eyeCenteringEnabled,
+            freezeWhenNoFace: s.freezeWhenNoFace,
+            freezeWhenNotLooking: s.freezeWhenNotLooking,
             colorPaletteId: s.colorPaletteId
         )
         // Snapshot the new preset list so encoding/saving can occur off the main thread.
@@ -335,6 +362,9 @@ class PresetManager: ObservableObject {
             colorFlowSpeed: preset.colorFlowSpeed,
             mirrorAlwaysOn: preset.mirrorAlwaysOn,
             mirrorAnimationMode: preset.mirrorAnimationMode,
+            eyeCenteringEnabled: preset.eyeCenteringEnabled,
+            freezeWhenNoFace: preset.freezeWhenNoFace,
+            freezeWhenNotLooking: preset.freezeWhenNotLooking,
             colorPaletteId: preset.colorPaletteId
         )
         userPresets.append(preset)
@@ -395,6 +425,9 @@ class PresetManager: ObservableObject {
                 colorFlowSpeed: s.colorFlowSpeed,
                 mirrorAlwaysOn: s.mirrorAlwaysOn,
                 mirrorAnimationMode: s.mirrorAnimationMode,
+                eyeCenteringEnabled: s.eyeCenteringEnabled,
+                freezeWhenNoFace: s.freezeWhenNoFace,
+                freezeWhenNotLooking: s.freezeWhenNotLooking,
                 colorPaletteId: s.colorPaletteId
             ) {
                 currentPresetId = preset.id
