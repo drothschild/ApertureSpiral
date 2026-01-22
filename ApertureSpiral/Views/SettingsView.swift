@@ -204,7 +204,7 @@ struct SettingsView: View {
                             ))
                             Text(settings.previewOnly
                                 ? "Camera preview will appear but no photo will be taken."
-                                : "Automatically capture a trance photo after the specified time.")
+                                : "Automatically capture a photo after the specified time.")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         } else {

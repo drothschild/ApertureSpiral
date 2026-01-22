@@ -56,7 +56,7 @@ struct SpiralView: View {
                                 .frame(width: fixedCameraSize, height: fixedCameraSize)
                                 .scaleEffect(zoomMultiplier)
                                 .clipShape(Circle())
-                                .overlay(Circle().stroke(Color.yellow.opacity(0.8), lineWidth: 3))
+                                .overlay(Circle().stroke(cameraManager.faceDetected ? Color.blue.opacity(0.8) : Color.yellow.opacity(0.8), lineWidth: 3))
                                 .shadow(color: .black.opacity(0.7), radius: 10)
                                 .transition(.scale.combined(with: .opacity))
                         case 2: // Both mode: frame scales AND content zooms
@@ -69,7 +69,7 @@ struct SpiralView: View {
                                 .scaleEffect(zoomMultiplier)
                                 .frame(width: holeDiameter, height: holeDiameter)
                                 .clipShape(Circle())
-                                .overlay(Circle().stroke(Color.yellow.opacity(0.8), lineWidth: 3))
+                                .overlay(Circle().stroke(cameraManager.faceDetected ? Color.blue.opacity(0.8) : Color.yellow.opacity(0.8), lineWidth: 3))
                                 .shadow(color: .black.opacity(0.7), radius: 10)
                                 .transition(.scale.combined(with: .opacity))
                         default: // Scale mode (0): frame changes size only
@@ -80,7 +80,7 @@ struct SpiralView: View {
                             )
                                 .frame(width: holeDiameter, height: holeDiameter)
                                 .clipShape(Circle())
-                                .overlay(Circle().stroke(Color.yellow.opacity(0.8), lineWidth: 3))
+                                .overlay(Circle().stroke(cameraManager.faceDetected ? Color.blue.opacity(0.8) : Color.yellow.opacity(0.8), lineWidth: 3))
                                 .shadow(color: .black.opacity(0.7), radius: 10)
                                 .transition(.scale.combined(with: .opacity))
                         }
