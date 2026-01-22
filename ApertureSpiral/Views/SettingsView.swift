@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct SettingsView: View {
     @ObservedObject private var settings = SpiralSettings.shared
@@ -12,29 +13,16 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 Section("Preset") {
-                    Picker("Load Preset", selection: Binding(
-                        get: { presetManager.currentPresetId },
-                        set: { newId in
-                            if let newId,
-                               let preset = presetManager.allPresets.first(where: { $0.id == newId }) {
-                                presetManager.applyPreset(preset)
-                                phrasesText = settings.phrasesText
-                            }
-                        }
-                    )) {
-                        ForEach(presetManager.builtInPresets) { preset in
-                            Label(preset.name, systemImage: "star.fill")
-                                .tag(Optional(preset.id))
-                        }
-                        if !presetManager.userPresets.isEmpty {
-                            Divider()
-                            ForEach(presetManager.userPresets) { preset in
-                                Text(preset.name)
-                                    .tag(Optional(preset.id))
-                            }
+                    NavigationLink {
+                        PresetSelectionView(phrasesText: $phrasesText)
+                    } label: {
+                        HStack {
+                            Text("Load Preset")
+                            Spacer()
+                            Text(presetManager.allPresets.first { $0.id == presetManager.currentPresetId }?.name ?? "None")
+                                .foregroundColor(.secondary)
                         }
                     }
-                    .pickerStyle(.menu)
 
                     Button("Save Current as Preset") {
                         showingSavePreset = true
@@ -233,7 +221,7 @@ struct SettingsView: View {
                 }
 
             }
-            .gesture(phrasesFocused ? TapGesture().onEnded { phrasesFocused = false } : nil)
+            .scrollDismissesKeyboard(.interactively)
             .navigationTitle("Settings")
             .onAppear {
                 phrasesText = settings.phrasesText
@@ -253,6 +241,135 @@ struct SettingsView: View {
             } message: {
                 Text("Enter a name for this preset")
             }
+        }
+    }
+}
+
+struct PresetSelectionView: View {
+    @ObservedObject private var settings = SpiralSettings.shared
+    @ObservedObject private var presetManager = PresetManager.shared
+    @Binding var phrasesText: String
+    @Environment(\.dismiss) private var dismiss
+    @State private var showingImporter = false
+    @State private var showingExporter = false
+    @State private var presetToExport: Preset?
+    @State private var importError: String?
+    @State private var showingImportError = false
+
+    var body: some View {
+        List {
+            Section {
+                Button {
+                    showingImporter = true
+                } label: {
+                    Label("Import Preset", systemImage: "square.and.arrow.down")
+                }
+            }
+
+            Section("Built-in Presets") {
+                ForEach(presetManager.builtInPresets) { preset in
+                    presetRow(preset: preset, isBuiltIn: true)
+                }
+            }
+
+            if !presetManager.userPresets.isEmpty {
+                Section("Your Presets") {
+                    ForEach(presetManager.userPresets) { preset in
+                        presetRow(preset: preset, isBuiltIn: false)
+                    }
+                }
+            }
+        }
+        .navigationTitle("Select Preset")
+        .navigationBarTitleDisplayMode(.inline)
+        .fileImporter(
+            isPresented: $showingImporter,
+            allowedContentTypes: [.xml],
+            allowsMultipleSelection: false
+        ) { result in
+            handleImport(result)
+        }
+        .fileExporter(
+            isPresented: $showingExporter,
+            document: presetToExport.map { PresetDocument(preset: $0) },
+            contentType: .xml,
+            defaultFilename: presetToExport.map { "\($0.name).xml" }
+        ) { result in
+            if case .failure(let error) = result {
+                importError = error.localizedDescription
+                showingImportError = true
+            }
+        }
+        .alert("Import Error", isPresented: $showingImportError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(importError ?? "Failed to import preset")
+        }
+    }
+
+    @ViewBuilder
+    private func presetRow(preset: Preset, isBuiltIn: Bool) -> some View {
+        Button {
+            presetManager.applyPreset(preset)
+            phrasesText = settings.phrasesText
+            dismiss()
+        } label: {
+            HStack {
+                Label(preset.name, systemImage: isBuiltIn ? "star.fill" : "person")
+                    .foregroundColor(.primary)
+                Spacer()
+                if presetManager.currentPresetId == preset.id {
+                    Image(systemName: "checkmark")
+                        .foregroundColor(.accentColor)
+                }
+            }
+        }
+        .swipeActions(edge: .leading) {
+            Button {
+                presetToExport = preset
+                showingExporter = true
+            } label: {
+                Label("Export", systemImage: "square.and.arrow.up")
+            }
+            .tint(.blue)
+        }
+        .swipeActions(edge: .trailing) {
+            if !isBuiltIn {
+                Button(role: .destructive) {
+                    presetManager.deletePreset(preset)
+                } label: {
+                    Label("Delete", systemImage: "trash")
+                }
+            }
+        }
+    }
+
+    private func handleImport(_ result: Result<[URL], Error>) {
+        switch result {
+        case .success(let urls):
+            guard let url = urls.first else { return }
+            guard url.startAccessingSecurityScopedResource() else {
+                importError = "Unable to access file"
+                showingImportError = true
+                return
+            }
+            defer { url.stopAccessingSecurityScopedResource() }
+
+            do {
+                let xmlString = try String(contentsOf: url, encoding: .utf8)
+                if presetManager.importPreset(from: xmlString) != nil {
+                    // Successfully imported
+                } else {
+                    importError = "Invalid preset file format"
+                    showingImportError = true
+                }
+            } catch {
+                importError = error.localizedDescription
+                showingImportError = true
+            }
+        case .failure(let error):
+            importError = error.localizedDescription
+            showingImportError = true
         }
     }
 }

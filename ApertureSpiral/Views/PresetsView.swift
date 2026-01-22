@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import UniformTypeIdentifiers
 
 struct Preset: Codable, Identifiable {
     let id: UUID
@@ -46,6 +47,181 @@ struct Preset: Codable, Identifiable {
                self.mirrorAnimationMode == mirrorAnimationMode &&
                self.colorPaletteId == colorPaletteId
     }
+
+    /// Converts the preset to XML format
+    func toXML() -> String {
+        var xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+        xml += "<preset>\n"
+        xml += "  <id>\(id.uuidString)</id>\n"
+        xml += "  <name>\(escapeXML(name))</name>\n"
+        xml += "  <bladeCount>\(bladeCount)</bladeCount>\n"
+        xml += "  <layerCount>\(layerCount)</layerCount>\n"
+        xml += "  <speed>\(speed)</speed>\n"
+        xml += "  <apertureSize>\(apertureSize)</apertureSize>\n"
+        xml += "  <phrases>\n"
+        for phrase in phrases {
+            xml += "    <phrase>\(escapeXML(phrase))</phrase>\n"
+        }
+        xml += "  </phrases>\n"
+        xml += "  <captureTimerMinutes>\(captureTimerMinutes)</captureTimerMinutes>\n"
+        xml += "  <previewOnly>\(previewOnly)</previewOnly>\n"
+        xml += "  <colorFlowSpeed>\(colorFlowSpeed)</colorFlowSpeed>\n"
+        xml += "  <mirrorAlwaysOn>\(mirrorAlwaysOn)</mirrorAlwaysOn>\n"
+        xml += "  <mirrorAnimationMode>\(mirrorAnimationMode)</mirrorAnimationMode>\n"
+        xml += "  <colorPaletteId>\(escapeXML(colorPaletteId))</colorPaletteId>\n"
+        xml += "</preset>"
+        return xml
+    }
+
+    private func escapeXML(_ string: String) -> String {
+        string
+            .replacingOccurrences(of: "&", with: "&amp;")
+            .replacingOccurrences(of: "<", with: "&lt;")
+            .replacingOccurrences(of: ">", with: "&gt;")
+            .replacingOccurrences(of: "\"", with: "&quot;")
+            .replacingOccurrences(of: "'", with: "&apos;")
+    }
+
+    /// Creates a preset from XML data
+    static func fromXML(_ xmlString: String) -> Preset? {
+        let parser = PresetXMLParser(xmlString: xmlString)
+        return parser.parse()
+    }
+}
+
+/// XML Parser for Preset data
+private class PresetXMLParser: NSObject, XMLParserDelegate {
+    private let xmlString: String
+    private var currentElement = ""
+    private var currentValue = ""
+
+    private var id: UUID?
+    private var name: String?
+    private var bladeCount: Int?
+    private var layerCount: Int?
+    private var speed: Double?
+    private var apertureSize: Double?
+    private var phrases: [String] = []
+    private var captureTimerMinutes: Int = 0
+    private var previewOnly: Bool = false
+    private var colorFlowSpeed: Double = 0.5
+    private var mirrorAlwaysOn: Bool = false
+    private var mirrorAnimationMode: Int = 2
+    private var colorPaletteId: String = "warm"
+
+    private var inPhrases = false
+
+    init(xmlString: String) {
+        self.xmlString = xmlString
+    }
+
+    func parse() -> Preset? {
+        guard let data = xmlString.data(using: .utf8) else { return nil }
+        let parser = XMLParser(data: data)
+        parser.delegate = self
+        guard parser.parse(),
+              let name = name,
+              let bladeCount = bladeCount,
+              let layerCount = layerCount,
+              let speed = speed,
+              let apertureSize = apertureSize else {
+            return nil
+        }
+        return Preset(
+            id: id ?? UUID(),
+            name: name,
+            bladeCount: bladeCount,
+            layerCount: layerCount,
+            speed: speed,
+            apertureSize: apertureSize,
+            phrases: phrases.isEmpty ? [""] : phrases,
+            captureTimerMinutes: captureTimerMinutes,
+            previewOnly: previewOnly,
+            colorFlowSpeed: colorFlowSpeed,
+            mirrorAlwaysOn: mirrorAlwaysOn,
+            mirrorAnimationMode: mirrorAnimationMode == 0 ? 1 : mirrorAnimationMode,
+            colorPaletteId: colorPaletteId
+        )
+    }
+
+    func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:]) {
+        currentElement = elementName
+        currentValue = ""
+        if elementName == "phrases" {
+            inPhrases = true
+        }
+    }
+
+    func parser(_ parser: XMLParser, foundCharacters string: String) {
+        currentValue += string
+    }
+
+    func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
+        let value = currentValue.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        switch elementName {
+        case "id":
+            id = UUID(uuidString: value)
+        case "name":
+            name = value
+        case "bladeCount":
+            bladeCount = Int(value)
+        case "layerCount":
+            layerCount = Int(value)
+        case "speed":
+            speed = Double(value)
+        case "apertureSize":
+            apertureSize = Double(value)
+        case "phrase":
+            if inPhrases && !value.isEmpty {
+                phrases.append(value)
+            }
+        case "phrases":
+            inPhrases = false
+        case "captureTimerMinutes":
+            captureTimerMinutes = Int(value) ?? 0
+        case "previewOnly":
+            previewOnly = value.lowercased() == "true"
+        case "colorFlowSpeed":
+            colorFlowSpeed = Double(value) ?? 0.5
+        case "mirrorAlwaysOn":
+            mirrorAlwaysOn = value.lowercased() == "true"
+        case "mirrorAnimationMode":
+            mirrorAnimationMode = Int(value) ?? 2
+        case "colorPaletteId":
+            colorPaletteId = value.isEmpty ? "warm" : value
+        default:
+            break
+        }
+    }
+}
+
+/// Document type for preset XML files
+struct PresetDocument: FileDocument {
+    static var readableContentTypes: [UTType] { [.xml] }
+
+    var preset: Preset
+
+    init(preset: Preset) {
+        self.preset = preset
+    }
+
+    init(configuration: ReadConfiguration) throws {
+        guard let data = configuration.file.regularFileContents,
+              let xmlString = String(data: data, encoding: .utf8),
+              let preset = Preset.fromXML(xmlString) else {
+            throw CocoaError(.fileReadCorruptFile)
+        }
+        self.preset = preset
+    }
+
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        let xml = preset.toXML()
+        guard let data = xml.data(using: .utf8) else {
+            throw CocoaError(.fileWriteUnknown)
+        }
+        return FileWrapper(regularFileWithContents: data)
+    }
 }
 
 class PresetManager: ObservableObject {
@@ -55,9 +231,10 @@ class PresetManager: ObservableObject {
     @Published var currentPresetId: UUID?
 
     let builtInPresets: [Preset] = [
-        Preset(name: "Birthday", bladeCount: 9, layerCount: 5, speed: 1.0, apertureSize: 0.5, phrases: ["Happy", "Birthday", "We Love You"], colorPaletteId: "warm"),
-        Preset(name: "Calm", bladeCount: 6, layerCount: 3, speed: 0.5, apertureSize: 0.7, phrases: ["Breathe", "Relax", "Peace"], colorPaletteId: "cool"),
-        Preset(name: "Intense", bladeCount: 16, layerCount: 8, speed: 2.5, apertureSize: 0.3, phrases: ["WOW", "AMAZING", "YES"], colorPaletteId: "neon")
+        Preset(name: "Birthday", bladeCount: 9, layerCount: 5, speed: 1.0, apertureSize: 0.5, phrases: ["Happy", "Birthday", "We Love You"], captureTimerMinutes: 0, previewOnly: false, colorFlowSpeed: 1.0, mirrorAlwaysOn: true, mirrorAnimationMode: 2, colorPaletteId: "warm"),
+        Preset(name: "Calm", bladeCount: 6, layerCount: 3, speed: 0.5, apertureSize: 0.7, phrases: ["Breathe", "Relax", "Peace"], captureTimerMinutes: 0, previewOnly: false, colorFlowSpeed: 0.3, mirrorAlwaysOn: false, mirrorAnimationMode: 2, colorPaletteId: "cool"),
+        Preset(name: "Intense", bladeCount: 16, layerCount: 8, speed: 2.5, apertureSize: 0.3, phrases: ["WOW", "AMAZING", "YES"], captureTimerMinutes: 0, previewOnly: false, colorFlowSpeed: 2.0, mirrorAlwaysOn: true, mirrorAnimationMode: 2, colorPaletteId: "neon"),
+        Preset(name: "Trippy", bladeCount: 12, layerCount: 6, speed: 1.5, apertureSize: 0.4, phrases: ["Whoa", "Dude", "Vibrate", "What's Happening?", "Drift"], captureTimerMinutes: 0, previewOnly: false, colorFlowSpeed: 0.8, mirrorAlwaysOn: true, mirrorAnimationMode: 1, colorPaletteId: "earth"),
     ]
 
     var allPresets: [Preset] {
@@ -138,6 +315,43 @@ class PresetManager: ObservableObject {
         saveUserPresets()
         if currentPresetId == preset.id {
             currentPresetId = nil
+        }
+    }
+
+    /// Imports a preset from XML data and adds it to user presets
+    func importPreset(from xmlString: String) -> Preset? {
+        guard var preset = Preset.fromXML(xmlString) else { return nil }
+        // Generate new ID to avoid conflicts with existing presets
+        preset = Preset(
+            id: UUID(),
+            name: preset.name,
+            bladeCount: preset.bladeCount,
+            layerCount: preset.layerCount,
+            speed: preset.speed,
+            apertureSize: preset.apertureSize,
+            phrases: preset.phrases,
+            captureTimerMinutes: preset.captureTimerMinutes,
+            previewOnly: preset.previewOnly,
+            colorFlowSpeed: preset.colorFlowSpeed,
+            mirrorAlwaysOn: preset.mirrorAlwaysOn,
+            mirrorAnimationMode: preset.mirrorAnimationMode,
+            colorPaletteId: preset.colorPaletteId
+        )
+        userPresets.append(preset)
+        saveUserPresets()
+        return preset
+    }
+
+    /// Creates a temporary file URL for exporting a preset
+    func exportPresetURL(_ preset: Preset) -> URL? {
+        let xml = preset.toXML()
+        let fileName = "\(preset.name.replacingOccurrences(of: " ", with: "_")).xml"
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+        do {
+            try xml.write(to: tempURL, atomically: true, encoding: .utf8)
+            return tempURL
+        } catch {
+            return nil
         }
     }
 
