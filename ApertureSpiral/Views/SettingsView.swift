@@ -12,54 +12,29 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 Section("Preset") {
-                    // Replaced Picker with explicit tappable rows so taps apply immediately
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Load Preset")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-
-                        ForEach(presetManager.builtInPresets) { preset in
-                            Button {
+                    Picker("Load Preset", selection: Binding(
+                        get: { presetManager.currentPresetId },
+                        set: { newId in
+                            if let newId,
+                               let preset = presetManager.allPresets.first(where: { $0.id == newId }) {
                                 presetManager.applyPreset(preset)
                                 phrasesText = settings.phrasesText
-                            } label: {
-                                HStack {
-                                    Text(preset.name)
-                                    Image(systemName: "star.fill")
-                                        .foregroundColor(.yellow)
-                                        .font(.caption2)
-                                    Spacer()
-                                    if presetManager.currentPresetId == preset.id {
-                                        Image(systemName: "checkmark")
-                                            .foregroundColor(.yellow)
-                                    }
-                                }
-                                .contentShape(Rectangle())
                             }
-                            .buttonStyle(.plain)
                         }
-
+                    )) {
+                        ForEach(presetManager.builtInPresets) { preset in
+                            Label(preset.name, systemImage: "star.fill")
+                                .tag(Optional(preset.id))
+                        }
                         if !presetManager.userPresets.isEmpty {
                             Divider()
                             ForEach(presetManager.userPresets) { preset in
-                                Button {
-                                    presetManager.applyPreset(preset)
-                                    phrasesText = settings.phrasesText
-                                } label: {
-                                    HStack {
-                                        Text(preset.name)
-                                        Spacer()
-                                        if presetManager.currentPresetId == preset.id {
-                                            Image(systemName: "checkmark")
-                                                .foregroundColor(.yellow)
-                                        }
-                                    }
-                                    .contentShape(Rectangle())
-                                }
-                                .buttonStyle(.plain)
+                                Text(preset.name)
+                                    .tag(Optional(preset.id))
                             }
                         }
                     }
+                    .pickerStyle(.menu)
 
                     Button("Save Current as Preset") {
                         showingSavePreset = true
@@ -251,9 +226,7 @@ struct SettingsView: View {
                 }
 
             }
-            .onTapGesture {
-                phrasesFocused = false
-            }
+            .gesture(phrasesFocused ? TapGesture().onEnded { phrasesFocused = false } : nil)
             .navigationTitle("Settings")
             .onAppear {
                 phrasesText = settings.phrasesText

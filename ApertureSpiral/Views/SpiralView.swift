@@ -18,7 +18,7 @@ struct SpiralView: View {
     @State private var showPhrase: Bool = false
 
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
-    let phraseTimer = Timer.publish(every: 0.75, on: .main, in: .common).autoconnect()
+    let phraseTimer = Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()
 
     private var cameraVisible: Bool {
         showCameraPreview || settings.mirrorAlwaysOn
@@ -97,7 +97,7 @@ struct SpiralView: View {
                         settings.spiralFrozen
                         ? "LOOK AT THE SPIRAL"
                         : (!settings.phrases.isEmpty && currentPhraseIndex >= 0 && currentPhraseIndex < settings.phrases.count
-                           ? settings.phrases[currentPhraseIndex].trimmingCharacters(in: .whitespaces).uppercased()
+                           ? settings.phrases[currentPhraseIndex].trimmingCharacters(in: .whitespaces)
                            : "")
 
                     if !displayText.isEmpty {
