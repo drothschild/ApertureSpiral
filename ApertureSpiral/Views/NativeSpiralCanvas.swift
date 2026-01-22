@@ -347,7 +347,7 @@ struct NativeSpiralCanvas: View {
         guard cyclePosition < showFrames else { return }
         guard currentWordIndex >= 0 && currentWordIndex < settings.phrases.count else { return }
 
-        let word = settings.phrases[currentWordIndex].trimmingCharacters(in: .whitespaces).uppercased()
+        let word = settings.phrases[currentWordIndex].trimmingCharacters(in: .whitespaces)
         guard !word.isEmpty else { return }
 
         // Calculate alpha for fade in/out

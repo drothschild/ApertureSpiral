@@ -90,8 +90,8 @@ struct SpiralView: View {
                 .ignoresSafeArea()
             }
 
-            // Phrase overlay on camera preview
-            if cameraVisible && showPhrase {
+            // Phrase overlay - shows when camera visible with phrases, or when spiral is frozen
+            if (cameraVisible && showPhrase) || settings.spiralFrozen {
                 GeometryReader { geometry in
                     let displayText: String =
                         settings.spiralFrozen
@@ -102,12 +102,14 @@ struct SpiralView: View {
 
                     if !displayText.isEmpty {
                         Text(displayText)
-                            .font(.custom("Bebas Neue", size: 48))
-                            .foregroundColor(.white)
-                            .shadow(color: .black, radius: 4, x: 0, y: 2)
-                            .shadow(color: .black.opacity(0.5), radius: 8, x: 0, y: 4)
+                            .font(.custom("Bebas Neue", size: settings.spiralFrozen ? 72 : 48))
+                            .foregroundColor(settings.spiralFrozen ? .yellow : .white)
+                            .shadow(color: .black, radius: settings.spiralFrozen ? 8 : 4, x: 0, y: 2)
+                            .shadow(color: .black.opacity(0.7), radius: settings.spiralFrozen ? 16 : 8, x: 0, y: 4)
+                            .shadow(color: settings.spiralFrozen ? .yellow.opacity(0.5) : .clear, radius: 20)
                             .transition(.opacity)
                             .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+                            .animation(.easeInOut(duration: 0.3), value: settings.spiralFrozen)
                     }
                 }
                 .ignoresSafeArea()
@@ -235,7 +237,8 @@ struct SpiralView: View {
     }
 
     private func cyclePhrase() {
-        guard cameraVisible && !settings.phrases.isEmpty else {
+        // Don't cycle phrases when spiral is frozen - only show "LOOK AT THE SPIRAL"
+        guard !settings.spiralFrozen, cameraVisible, !settings.phrases.isEmpty else {
             showPhrase = false
             return
         }
