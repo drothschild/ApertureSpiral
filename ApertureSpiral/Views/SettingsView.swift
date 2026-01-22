@@ -1,8 +1,8 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @StateObject private var settings = SpiralSettings.shared
-    @StateObject private var presetManager = PresetManager.shared
+    @ObservedObject private var settings = SpiralSettings.shared
+    @ObservedObject private var presetManager = PresetManager.shared
     @State private var phrasesText: String = ""
     @State private var newPresetName = ""
     @State private var showingSavePreset = false
@@ -164,7 +164,9 @@ struct SettingsView: View {
                                         .foregroundColor(.yellow)
                                 }
                             }
+                            .contentShape(Rectangle())
                         }
+                        .buttonStyle(.plain)
                     }
                 }
 
@@ -173,6 +175,11 @@ struct SettingsView: View {
 
                     Toggle("Center on Face", isOn: $settings.eyeCenteringEnabled)
                     Text("Uses AI face detection to keep your face centered in the preview.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
+                    Toggle("Freeze spiral when no face detected", isOn: $settings.freezeWhenNoFace)
+                    Text("Freeze the spiral after 5 seconds without a detected face.")
                         .font(.caption)
                         .foregroundColor(.secondary)
 

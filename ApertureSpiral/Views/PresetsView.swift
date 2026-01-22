@@ -66,18 +66,26 @@ class PresetManager: ObservableObject {
 
     private let userPresetsKey = "userPresets"
     private let userDefaults: UserDefaults
+    private let settings: SpiralSettings
 
     private init() {
         self.userDefaults = .standard
+        self.settings = SpiralSettings.shared
         loadUserPresets()
         detectCurrentPreset()
     }
 
-    /// Creates an instance for testing purposes with custom UserDefaults
-    init(forTesting userDefaults: UserDefaults) {
+    /// Creates an instance for testing purposes with custom UserDefaults and settings
+    init(forTesting userDefaults: UserDefaults, settings: SpiralSettings) {
         self.userDefaults = userDefaults
+        self.settings = settings
         loadUserPresets()
         detectCurrentPreset()
+    }
+
+    /// Backwards-compatible testing initializer that only accepts UserDefaults
+    convenience init(forTesting userDefaults: UserDefaults) {
+        self.init(forTesting: userDefaults, settings: SpiralSettings(forTesting: userDefaults))
     }
 
     /// Resets user presets (for testing)
@@ -88,20 +96,20 @@ class PresetManager: ObservableObject {
     }
 
     func saveCurrentAsPreset(name: String) {
-        let settings = SpiralSettings.shared
+        let s = self.settings
         let preset = Preset(
             name: name,
-            bladeCount: settings.bladeCount,
-            layerCount: settings.layerCount,
-            speed: settings.speed,
-            apertureSize: settings.apertureSize,
-            phrases: settings.phrases,
-            captureTimerMinutes: settings.captureTimerMinutes,
-            previewOnly: settings.previewOnly,
-            colorFlowSpeed: settings.colorFlowSpeed,
-            mirrorAlwaysOn: settings.mirrorAlwaysOn,
-            mirrorAnimationMode: (settings.mirrorAnimationMode == 0 ? 1 : settings.mirrorAnimationMode),
-            colorPaletteId: settings.colorPaletteId
+            bladeCount: s.bladeCount,
+            layerCount: s.layerCount,
+            speed: s.speed,
+            apertureSize: s.apertureSize,
+            phrases: s.phrases,
+            captureTimerMinutes: s.captureTimerMinutes,
+            previewOnly: s.previewOnly,
+            colorFlowSpeed: s.colorFlowSpeed,
+            mirrorAlwaysOn: s.mirrorAlwaysOn,
+            mirrorAnimationMode: (s.mirrorAnimationMode == 0 ? 1 : s.mirrorAnimationMode),
+            colorPaletteId: s.colorPaletteId
         )
         userPresets.append(preset)
         saveUserPresets()
@@ -109,18 +117,8 @@ class PresetManager: ObservableObject {
     }
 
     func applyPreset(_ preset: Preset) {
-        let settings = SpiralSettings.shared
-        settings.bladeCount = preset.bladeCount
-        settings.layerCount = preset.layerCount
-        settings.speed = preset.speed
-        settings.apertureSize = preset.apertureSize
-        settings.phrases = preset.phrases
-        settings.captureTimerMinutes = preset.captureTimerMinutes
-        settings.previewOnly = preset.previewOnly
-        settings.colorFlowSpeed = preset.colorFlowSpeed
-        settings.mirrorAlwaysOn = preset.mirrorAlwaysOn
-        settings.mirrorAnimationMode = (preset.mirrorAnimationMode == 0 ? 1 : preset.mirrorAnimationMode)
-        settings.colorPaletteId = preset.colorPaletteId
+        // Use the batched apply on the settings instance to avoid multiple UserDefaults writes
+        settings.applyPreset(preset)
         currentPresetId = preset.id
     }
 
@@ -155,20 +153,20 @@ class PresetManager: ObservableObject {
 
     /// Detects if current settings match any preset and sets currentPresetId accordingly
     func detectCurrentPreset() {
-        let settings = SpiralSettings.shared
+        let s = settings
         for preset in allPresets {
             if preset.matchesSettings(
-                bladeCount: settings.bladeCount,
-                layerCount: settings.layerCount,
-                speed: settings.speed,
-                apertureSize: settings.apertureSize,
-                phrases: settings.phrases,
-                captureTimerMinutes: settings.captureTimerMinutes,
-                previewOnly: settings.previewOnly,
-                colorFlowSpeed: settings.colorFlowSpeed,
-                mirrorAlwaysOn: settings.mirrorAlwaysOn,
-                mirrorAnimationMode: settings.mirrorAnimationMode,
-                colorPaletteId: settings.colorPaletteId
+                bladeCount: s.bladeCount,
+                layerCount: s.layerCount,
+                speed: s.speed,
+                apertureSize: s.apertureSize,
+                phrases: s.phrases,
+                captureTimerMinutes: s.captureTimerMinutes,
+                previewOnly: s.previewOnly,
+                colorFlowSpeed: s.colorFlowSpeed,
+                mirrorAlwaysOn: s.mirrorAlwaysOn,
+                mirrorAnimationMode: s.mirrorAnimationMode,
+                colorPaletteId: s.colorPaletteId
             ) {
                 currentPresetId = preset.id
                 return

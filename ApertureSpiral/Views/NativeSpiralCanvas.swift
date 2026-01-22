@@ -109,9 +109,11 @@ struct NativeSpiralCanvas: View {
                     drawLensFlare(context: context, cx: cx, cy: cy, radius: radius, canvasSize: canvasSize)
                 }
                 .onChange(of: timeline.date) { _, _ in
-                    time += 0.016 * settings.speed
-                    frameCount += 1
-                    updateWordCycle()
+                    if !settings.spiralFrozen {
+                        time += 0.016 * settings.speed
+                        frameCount += 1
+                        updateWordCycle()
+                    }
                 }
             }
             .frame(width: size, height: size)

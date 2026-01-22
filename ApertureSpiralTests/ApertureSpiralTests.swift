@@ -1003,6 +1003,52 @@ struct CameraManagerTests {
         #expect(manager.faceDetected == false)
     }
 
+    @Test("Spiral freezes after 5s when enabled")
+    func spiralFreezesAfterDelay() {
+        let manager = CameraManager()
+        let settings = SpiralSettings.shared
+
+        // Ensure initial state
+        settings.spiralFrozen = false
+        settings.freezeWhenNoFace = true
+
+        // Simulate losing face
+        manager.faceDetected = false
+
+        // Wait longer than the 5s timeout to allow timer to fire
+        Thread.sleep(forTimeInterval: 6.5)
+
+        #expect(settings.spiralFrozen == true)
+
+        // Cleanup
+        settings.spiralFrozen = false
+        settings.freezeWhenNoFace = false
+    }
+
+    @Test("Spiral does not freeze if face returns before timeout")
+    func spiralDoesNotFreezeIfFaceReturns() {
+        let manager = CameraManager()
+        let settings = SpiralSettings.shared
+
+        settings.spiralFrozen = false
+        settings.freezeWhenNoFace = true
+
+        manager.faceDetected = false
+
+        // Wait a short time, then simulate face return
+        Thread.sleep(forTimeInterval: 2.0)
+        manager.faceDetected = true
+
+        // Wait enough time that if the countdown had continued it would have frozen
+        Thread.sleep(forTimeInterval: 4.0)
+
+        #expect(settings.spiralFrozen == false)
+
+        // Cleanup
+        settings.spiralFrozen = false
+        settings.freezeWhenNoFace = false
+    }
+
     
 }
 

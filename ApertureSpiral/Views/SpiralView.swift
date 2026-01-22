@@ -91,15 +91,24 @@ struct SpiralView: View {
             }
 
             // Phrase overlay on camera preview
-            if cameraVisible && !settings.phrases.isEmpty && showPhrase && currentPhraseIndex >= 0 && currentPhraseIndex < settings.phrases.count {
+            if cameraVisible && showPhrase {
                 GeometryReader { geometry in
-                    Text(settings.phrases[currentPhraseIndex].trimmingCharacters(in: .whitespaces).uppercased())
-                        .font(.custom("Bebas Neue", size: 48))
-                        .foregroundColor(.white)
-                        .shadow(color: .black, radius: 4, x: 0, y: 2)
-                        .shadow(color: .black.opacity(0.5), radius: 8, x: 0, y: 4)
-                        .transition(.opacity)
-                        .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+                    let displayText: String =
+                        settings.spiralFrozen
+                        ? "LOOK AT THE SPIRAL"
+                        : (!settings.phrases.isEmpty && currentPhraseIndex >= 0 && currentPhraseIndex < settings.phrases.count
+                           ? settings.phrases[currentPhraseIndex].trimmingCharacters(in: .whitespaces).uppercased()
+                           : "")
+
+                    if !displayText.isEmpty {
+                        Text(displayText)
+                            .font(.custom("Bebas Neue", size: 48))
+                            .foregroundColor(.white)
+                            .shadow(color: .black, radius: 4, x: 0, y: 2)
+                            .shadow(color: .black.opacity(0.5), radius: 8, x: 0, y: 4)
+                            .transition(.opacity)
+                            .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+                    }
                 }
                 .ignoresSafeArea()
             }

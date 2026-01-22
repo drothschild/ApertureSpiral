@@ -7,7 +7,9 @@ class CameraManager: NSObject, ObservableObject {
     @Published var isAuthorized = false
     @Published var isSessionRunning = false
     @Published var eyeCenterOffset: CGPoint = .zero
-    @Published var faceDetected: Bool = false
+    @Published var faceDetected: Bool = false {
+        didSet { updateNoFaceTimer() }
+    }
 
     private let captureSession = AVCaptureSession()
     private let photoOutput = AVCapturePhotoOutput()
@@ -19,6 +21,10 @@ class CameraManager: NSObject, ObservableObject {
     private var faceDetectionRequest: VNDetectFaceRectanglesRequest?
     private var frameCounter = 0
     private var smoothedOffset: CGPoint = .zero
+    private var noFaceTimer: Timer?
+    @Published var noFaceCountdown: Int = 0
+    private let settings = SpiralSettings.shared
+    private var cancellables = Set<AnyCancellable>()
 
     var previewLayer: AVCaptureVideoPreviewLayer?
 
@@ -26,6 +32,21 @@ class CameraManager: NSObject, ObservableObject {
         super.init()
         checkAuthorizationStatus()
         setupFaceDetection()
+        // Observe user toggling of the freeze setting so we can (re)start timer if needed
+        settings.$freezeWhenNoFace
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.updateNoFaceTimer()
+            }
+            .store(in: &cancellables)
+    }
+
+    deinit {
+        noFaceTimer?.invalidate()
+        noFaceTimer = nil
+        settings.spiralFrozen = false
+        cancellables.forEach { $0.cancel() }
+        cancellables.removeAll()
     }
 
     private func setupFaceDetection() {
@@ -42,6 +63,8 @@ class CameraManager: NSObject, ObservableObject {
                         y: (self?.smoothedOffset.y ?? 0) * 0.85
                     )
                     self?.eyeCenterOffset = self?.smoothedOffset ?? .zero
+                    // Ensure the no-face timer is (re)started even if faceDetected was already false
+                    self?.updateNoFaceTimer()
                 }
                 return
             }
@@ -59,6 +82,54 @@ class CameraManager: NSObject, ObservableObject {
         }
     }
 
+
+    /// Schedules or cancels a one-shot timer that freezes the spiral after 5s without a face.
+    private func updateNoFaceTimer() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            // If a face is detected, ensure spiral is unfrozen and cancel countdown
+            if self.faceDetected {
+                self.settings.spiralFrozen = false
+                self.noFaceTimer?.invalidate()
+                self.noFaceTimer = nil
+                self.noFaceCountdown = 0
+                return
+            }
+
+            // If user disabled freeze behavior, cancel any timer and do nothing
+            guard self.settings.freezeWhenNoFace else {
+                self.noFaceTimer?.invalidate()
+                self.noFaceTimer = nil
+                self.noFaceCountdown = 0
+                return
+            }
+
+            // If a countdown is already running, do not restart it (prevents resetting to 5s)
+            if self.noFaceTimer != nil {
+                return
+            }
+
+            // Start a 1s repeating timer to provide a countdown to freeze
+            self.noFaceCountdown = 5
+            self.noFaceTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] timer in
+                guard let self = self else { return }
+                if self.noFaceCountdown > 0 {
+                    self.noFaceCountdown -= 1
+                }
+
+                if self.noFaceCountdown <= 0 {
+                    // Freeze spiral and stop timer
+                    DispatchQueue.main.async {
+                        self.settings.spiralFrozen = true
+                    }
+                    timer.invalidate()
+                    DispatchQueue.main.async {
+                        self.noFaceTimer = nil
+                    }
+                }
+            }
+        }
+    }
     private func calculateFaceCenterOffset(from face: VNFaceObservation) -> CGPoint {
         // Use the center of the face bounding box
         let faceCenterX = face.boundingBox.midX
@@ -166,6 +237,12 @@ class CameraManager: NSObject, ObservableObject {
                     self.isSessionRunning = false
                 }
             }
+        }
+        // Ensure timer is stopped and spiral unfrozen when session stops
+        DispatchQueue.main.async { [weak self] in
+            self?.noFaceTimer?.invalidate()
+            self?.noFaceTimer = nil
+            self?.settings.spiralFrozen = false
         }
     }
 

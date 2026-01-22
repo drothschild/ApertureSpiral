@@ -17,6 +17,7 @@ class SpiralSettings: ObservableObject {
         static let mirrorAlwaysOn = "spiral.mirrorAlwaysOn"
         static let mirrorAnimationMode = "spiral.mirrorAnimationMode"
         static let eyeCenteringEnabled = "spiral.eyeCenteringEnabled"
+        static let freezeWhenNoFace = "spiral.freezeWhenNoFace"
         static let colorPaletteId = "spiral.colorPaletteId"
         static let hasLaunchedBefore = "spiral.hasLaunchedBefore"
     }
@@ -35,44 +36,88 @@ class SpiralSettings: ObservableObject {
         // 1 = Zoom only, 2 = Zoom + Scale
         static let mirrorAnimationMode = 2
         static let eyeCenteringEnabled = true
+        static let freezeWhenNoFace = false
         static let colorPaletteId = "warm"
     }
 
     @Published var bladeCount: Int = Defaults.bladeCount {
-        didSet { userDefaults.set(bladeCount, forKey: Keys.bladeCount) }
+        didSet { if !suppressUserDefaultsWrites { userDefaults.set(bladeCount, forKey: Keys.bladeCount) } }
     }
     @Published var layerCount: Int = Defaults.layerCount {
-        didSet { userDefaults.set(layerCount, forKey: Keys.layerCount) }
+        didSet { if !suppressUserDefaultsWrites { userDefaults.set(layerCount, forKey: Keys.layerCount) } }
     }
     @Published var speed: Double = Defaults.speed {
-        didSet { userDefaults.set(speed, forKey: Keys.speed) }
+        didSet { if !suppressUserDefaultsWrites { userDefaults.set(speed, forKey: Keys.speed) } }
     }
     @Published var apertureSize: Double = Defaults.apertureSize {
-        didSet { userDefaults.set(apertureSize, forKey: Keys.apertureSize) }
+        didSet { if !suppressUserDefaultsWrites { userDefaults.set(apertureSize, forKey: Keys.apertureSize) } }
     }
     @Published var phrases: [String] = Defaults.phrases {
-        didSet { userDefaults.set(phrases, forKey: Keys.phrases) }
+        didSet { if !suppressUserDefaultsWrites { userDefaults.set(phrases, forKey: Keys.phrases) } }
     }
     @Published var captureTimerMinutes: Int = Defaults.captureTimerMinutes {
-        didSet { userDefaults.set(captureTimerMinutes, forKey: Keys.captureTimerMinutes) }
+        didSet { if !suppressUserDefaultsWrites { userDefaults.set(captureTimerMinutes, forKey: Keys.captureTimerMinutes) } }
     }
     @Published var previewOnly: Bool = Defaults.previewOnly {  // Show camera preview without capturing
-        didSet { userDefaults.set(previewOnly, forKey: Keys.previewOnly) }
+        didSet { if !suppressUserDefaultsWrites { userDefaults.set(previewOnly, forKey: Keys.previewOnly) } }
     }
     @Published var colorFlowSpeed: Double = Defaults.colorFlowSpeed {  // Speed of color flow from inside to outside
-        didSet { userDefaults.set(colorFlowSpeed, forKey: Keys.colorFlowSpeed) }
+        didSet { if !suppressUserDefaultsWrites { userDefaults.set(colorFlowSpeed, forKey: Keys.colorFlowSpeed) } }
     }
     @Published var mirrorAlwaysOn: Bool = Defaults.mirrorAlwaysOn {  // Keep camera preview always visible
-        didSet { userDefaults.set(mirrorAlwaysOn, forKey: Keys.mirrorAlwaysOn) }
+        didSet { if !suppressUserDefaultsWrites { userDefaults.set(mirrorAlwaysOn, forKey: Keys.mirrorAlwaysOn) } }
     }
     @Published var mirrorAnimationMode: Int = Defaults.mirrorAnimationMode {  // 1 = Zoom only, 2 = Zoom + Scale
-        didSet { userDefaults.set(mirrorAnimationMode, forKey: Keys.mirrorAnimationMode) }
+        didSet { if !suppressUserDefaultsWrites { userDefaults.set(mirrorAnimationMode, forKey: Keys.mirrorAnimationMode) } }
     }
     @Published var eyeCenteringEnabled: Bool = Defaults.eyeCenteringEnabled {  // Use AI to center camera on user's eyes
-        didSet { userDefaults.set(eyeCenteringEnabled, forKey: Keys.eyeCenteringEnabled) }
+        didSet { if !suppressUserDefaultsWrites { userDefaults.set(eyeCenteringEnabled, forKey: Keys.eyeCenteringEnabled) } }
     }
+    @Published var freezeWhenNoFace: Bool = Defaults.freezeWhenNoFace {
+        didSet { if !suppressUserDefaultsWrites { userDefaults.set(freezeWhenNoFace, forKey: Keys.freezeWhenNoFace) } }
+    }
+    // Runtime flag controlled by CameraManager when face is lost
+    @Published var spiralFrozen: Bool = false
     @Published var colorPaletteId: String = Defaults.colorPaletteId {
-        didSet { userDefaults.set(colorPaletteId, forKey: Keys.colorPaletteId) }
+        didSet { if !suppressUserDefaultsWrites { userDefaults.set(colorPaletteId, forKey: Keys.colorPaletteId) } }
+    }
+
+    // When true, property setters will not write to UserDefaults immediately.
+    private var suppressUserDefaultsWrites: Bool = false
+
+    /// Apply all values from a preset in a single batch to avoid many UserDefaults writes.
+    func applyPreset(_ preset: Preset) {
+        suppressUserDefaultsWrites = true
+        bladeCount = preset.bladeCount
+        layerCount = preset.layerCount
+        speed = preset.speed
+        apertureSize = preset.apertureSize
+        phrases = preset.phrases
+        captureTimerMinutes = preset.captureTimerMinutes
+        previewOnly = preset.previewOnly
+        colorFlowSpeed = preset.colorFlowSpeed
+        mirrorAlwaysOn = preset.mirrorAlwaysOn
+        mirrorAnimationMode = (preset.mirrorAnimationMode == 0 ? 1 : preset.mirrorAnimationMode)
+        colorPaletteId = preset.colorPaletteId
+        suppressUserDefaultsWrites = false
+        // Persist all values once
+        persistAllToUserDefaults()
+    }
+
+    private func persistAllToUserDefaults() {
+        userDefaults.set(bladeCount, forKey: Keys.bladeCount)
+        userDefaults.set(layerCount, forKey: Keys.layerCount)
+        userDefaults.set(speed, forKey: Keys.speed)
+        userDefaults.set(apertureSize, forKey: Keys.apertureSize)
+        userDefaults.set(phrases, forKey: Keys.phrases)
+        userDefaults.set(captureTimerMinutes, forKey: Keys.captureTimerMinutes)
+        userDefaults.set(previewOnly, forKey: Keys.previewOnly)
+        userDefaults.set(colorFlowSpeed, forKey: Keys.colorFlowSpeed)
+        userDefaults.set(mirrorAlwaysOn, forKey: Keys.mirrorAlwaysOn)
+        userDefaults.set(mirrorAnimationMode, forKey: Keys.mirrorAnimationMode)
+        userDefaults.set(eyeCenteringEnabled, forKey: Keys.eyeCenteringEnabled)
+        userDefaults.set(freezeWhenNoFace, forKey: Keys.freezeWhenNoFace)
+        userDefaults.set(colorPaletteId, forKey: Keys.colorPaletteId)
     }
 
     var colorPalette: ColorPalette {
@@ -104,6 +149,7 @@ class SpiralSettings: ObservableObject {
             }
             // Eye centering defaults to true if not set
             eyeCenteringEnabled = userDefaults.object(forKey: Keys.eyeCenteringEnabled) == nil ? Defaults.eyeCenteringEnabled : userDefaults.bool(forKey: Keys.eyeCenteringEnabled)
+            freezeWhenNoFace = userDefaults.object(forKey: Keys.freezeWhenNoFace) == nil ? Defaults.freezeWhenNoFace : userDefaults.bool(forKey: Keys.freezeWhenNoFace)
             colorPaletteId = userDefaults.string(forKey: Keys.colorPaletteId) ?? Defaults.colorPaletteId
 
             // Handle zero values that might indicate unset (use defaults instead)
@@ -125,6 +171,7 @@ class SpiralSettings: ObservableObject {
             mirrorAlwaysOn = Defaults.mirrorAlwaysOn
             mirrorAnimationMode = Defaults.mirrorAnimationMode
             eyeCenteringEnabled = Defaults.eyeCenteringEnabled
+            freezeWhenNoFace = Defaults.freezeWhenNoFace
             colorPaletteId = Defaults.colorPaletteId
 
             userDefaults.set(true, forKey: Keys.hasLaunchedBefore)
@@ -145,6 +192,7 @@ class SpiralSettings: ObservableObject {
         mirrorAlwaysOn = Defaults.mirrorAlwaysOn
         mirrorAnimationMode = Defaults.mirrorAnimationMode
         eyeCenteringEnabled = Defaults.eyeCenteringEnabled
+        freezeWhenNoFace = Defaults.freezeWhenNoFace
         colorPaletteId = Defaults.colorPaletteId
     }
 
@@ -161,6 +209,7 @@ class SpiralSettings: ObservableObject {
         mirrorAlwaysOn = Defaults.mirrorAlwaysOn
         mirrorAnimationMode = Defaults.mirrorAnimationMode
         eyeCenteringEnabled = Defaults.eyeCenteringEnabled
+        freezeWhenNoFace = Defaults.freezeWhenNoFace
         colorPaletteId = Defaults.colorPaletteId
     }
 
