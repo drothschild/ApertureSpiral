@@ -38,40 +38,40 @@ class SpiralSettings: ObservableObject {
         static let colorPaletteId = "warm"
     }
 
-    @Published var bladeCount: Int {
+    @Published var bladeCount: Int = Defaults.bladeCount {
         didSet { userDefaults.set(bladeCount, forKey: Keys.bladeCount) }
     }
-    @Published var layerCount: Int {
+    @Published var layerCount: Int = Defaults.layerCount {
         didSet { userDefaults.set(layerCount, forKey: Keys.layerCount) }
     }
-    @Published var speed: Double {
+    @Published var speed: Double = Defaults.speed {
         didSet { userDefaults.set(speed, forKey: Keys.speed) }
     }
-    @Published var apertureSize: Double {
+    @Published var apertureSize: Double = Defaults.apertureSize {
         didSet { userDefaults.set(apertureSize, forKey: Keys.apertureSize) }
     }
-    @Published var phrases: [String] {
+    @Published var phrases: [String] = Defaults.phrases {
         didSet { userDefaults.set(phrases, forKey: Keys.phrases) }
     }
-    @Published var captureTimerMinutes: Int {
+    @Published var captureTimerMinutes: Int = Defaults.captureTimerMinutes {
         didSet { userDefaults.set(captureTimerMinutes, forKey: Keys.captureTimerMinutes) }
     }
-    @Published var previewOnly: Bool {  // Show camera preview without capturing
+    @Published var previewOnly: Bool = Defaults.previewOnly {  // Show camera preview without capturing
         didSet { userDefaults.set(previewOnly, forKey: Keys.previewOnly) }
     }
-    @Published var colorFlowSpeed: Double {  // Speed of color flow from inside to outside
+    @Published var colorFlowSpeed: Double = Defaults.colorFlowSpeed {  // Speed of color flow from inside to outside
         didSet { userDefaults.set(colorFlowSpeed, forKey: Keys.colorFlowSpeed) }
     }
-    @Published var mirrorAlwaysOn: Bool {  // Keep camera preview always visible
+    @Published var mirrorAlwaysOn: Bool = Defaults.mirrorAlwaysOn {  // Keep camera preview always visible
         didSet { userDefaults.set(mirrorAlwaysOn, forKey: Keys.mirrorAlwaysOn) }
     }
-    @Published var mirrorAnimationMode: Int {  // 1 = Zoom only, 2 = Zoom + Scale
+    @Published var mirrorAnimationMode: Int = Defaults.mirrorAnimationMode {  // 1 = Zoom only, 2 = Zoom + Scale
         didSet { userDefaults.set(mirrorAnimationMode, forKey: Keys.mirrorAnimationMode) }
     }
-    @Published var eyeCenteringEnabled: Bool {  // Use AI to center camera on user's eyes
+    @Published var eyeCenteringEnabled: Bool = Defaults.eyeCenteringEnabled {  // Use AI to center camera on user's eyes
         didSet { userDefaults.set(eyeCenteringEnabled, forKey: Keys.eyeCenteringEnabled) }
     }
-    @Published var colorPaletteId: String {
+    @Published var colorPaletteId: String = Defaults.colorPaletteId {
         didSet { userDefaults.set(colorPaletteId, forKey: Keys.colorPaletteId) }
     }
 
