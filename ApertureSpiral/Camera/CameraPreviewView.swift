@@ -79,8 +79,8 @@ class CameraPreviewUIView: UIView {
         guard let layer = currentPreviewLayer else { return }
 
         // Make layer slightly larger than bounds so we have extra content to pan
-        // 1.15 = 15% larger, enough room to shift without excessive zoom
-        let scale: CGFloat = 1.15
+        // 1.08 = 8% larger, subtle zoom for face centering without excessive closeup
+        let scale: CGFloat = 1.08
         let scaledWidth = bounds.width * scale
         let scaledHeight = bounds.height * scale
 
