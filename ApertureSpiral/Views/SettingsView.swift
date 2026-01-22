@@ -6,6 +6,7 @@ struct SettingsView: View {
     @State private var phrasesText: String = ""
     @State private var newPresetName = ""
     @State private var showingSavePreset = false
+    @FocusState private var phrasesFocused: Bool
 
     var body: some View {
         NavigationStack {
@@ -42,6 +43,7 @@ struct SettingsView: View {
 
                 Section("Phrases") {
                     TextEditor(text: $phrasesText)
+                        .focused($phrasesFocused)
                         .frame(minHeight: 100)
                         .onChange(of: phrasesText) { _, newValue in
                             settings.phrasesText = newValue
@@ -216,6 +218,9 @@ struct SettingsView: View {
                     }
                 }
 
+            }
+            .onTapGesture {
+                phrasesFocused = false
             }
             .navigationTitle("Settings")
             .onAppear {
