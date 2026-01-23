@@ -224,6 +224,14 @@ struct SettingsView: View {
                         .foregroundColor(.secondary)
                 }
 
+                Section("Keyboard Shortcuts") {
+                    KeyboardShortcutRow(key: "R", description: "Randomize settings")
+                    KeyboardShortcutRow(key: "M", description: "Toggle mirror")
+                    KeyboardShortcutRow(key: "P", description: "Capture photo")
+                    KeyboardShortcutRow(key: "→", description: "Speed up")
+                    KeyboardShortcutRow(key: "←", description: "Slow down")
+                }
+
             }
             .scrollDismissesKeyboard(.interactively)
             .navigationTitle("Settings")
@@ -374,6 +382,25 @@ struct PresetSelectionView: View {
         case .failure(let error):
             importError = error.localizedDescription
             showingImportError = true
+        }
+    }
+}
+
+struct KeyboardShortcutRow: View {
+    let key: String
+    let description: String
+
+    var body: some View {
+        HStack {
+            Text(key)
+                .font(.system(.body, design: .monospaced))
+                .fontWeight(.semibold)
+                .foregroundColor(.yellow)
+                .frame(width: 36, height: 28)
+                .background(Color.secondary.opacity(0.2))
+                .cornerRadius(6)
+            Text(description)
+                .foregroundColor(.secondary)
         }
     }
 }
