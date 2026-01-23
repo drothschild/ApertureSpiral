@@ -21,6 +21,7 @@ class SpiralSettings: ObservableObject {
         static let freezeWhenNotLooking = "spiral.freezeWhenNotLooking"
         static let colorPaletteId = "spiral.colorPaletteId"
         static let colorByBlade = "spiral.colorByBlade"
+        static let lensFlareEnabled = "spiral.lensFlareEnabled"
         static let hasLaunchedBefore = "spiral.hasLaunchedBefore"
     }
 
@@ -42,6 +43,7 @@ class SpiralSettings: ObservableObject {
         static let freezeWhenNotLooking = false
         static let colorPaletteId = "warm"
         static let colorByBlade = false
+        static let lensFlareEnabled = true
     }
 
     @Published var bladeCount: Int = Defaults.bladeCount {
@@ -91,6 +93,9 @@ class SpiralSettings: ObservableObject {
     @Published var colorByBlade: Bool = Defaults.colorByBlade {
         didSet { if !suppressUserDefaultsWrites { userDefaults.set(colorByBlade, forKey: Keys.colorByBlade) } }
     }
+    @Published var lensFlareEnabled: Bool = Defaults.lensFlareEnabled {
+        didSet { if !suppressUserDefaultsWrites { userDefaults.set(lensFlareEnabled, forKey: Keys.lensFlareEnabled) } }
+    }
 
     // When true, property setters will not write to UserDefaults immediately.
     private var suppressUserDefaultsWrites: Bool = false
@@ -113,6 +118,7 @@ class SpiralSettings: ObservableObject {
         freezeWhenNotLooking = preset.freezeWhenNotLooking
         colorPaletteId = preset.colorPaletteId
         colorByBlade = preset.colorByBlade
+        lensFlareEnabled = preset.lensFlareEnabled
         suppressUserDefaultsWrites = false
         // Persist all values once
         persistAllToUserDefaults()
@@ -135,7 +141,8 @@ class SpiralSettings: ObservableObject {
             freezeWhenNoFace: freezeWhenNoFace,
             freezeWhenNotLooking: freezeWhenNotLooking,
             colorPaletteId: colorPaletteId,
-            colorByBlade: colorByBlade
+            colorByBlade: colorByBlade,
+            lensFlareEnabled: lensFlareEnabled
         )
 
         DispatchQueue.global(qos: .userInitiated).async {
@@ -155,6 +162,7 @@ class SpiralSettings: ObservableObject {
             ud.set(snapshot.freezeWhenNotLooking, forKey: Keys.freezeWhenNotLooking)
             ud.set(snapshot.colorPaletteId, forKey: Keys.colorPaletteId)
             ud.set(snapshot.colorByBlade, forKey: Keys.colorByBlade)
+            ud.set(snapshot.lensFlareEnabled, forKey: Keys.lensFlareEnabled)
         }
     }
 
@@ -191,6 +199,7 @@ class SpiralSettings: ObservableObject {
             freezeWhenNotLooking = userDefaults.object(forKey: Keys.freezeWhenNotLooking) == nil ? Defaults.freezeWhenNotLooking : userDefaults.bool(forKey: Keys.freezeWhenNotLooking)
             colorPaletteId = userDefaults.string(forKey: Keys.colorPaletteId) ?? Defaults.colorPaletteId
             colorByBlade = userDefaults.object(forKey: Keys.colorByBlade) == nil ? Defaults.colorByBlade : userDefaults.bool(forKey: Keys.colorByBlade)
+            lensFlareEnabled = userDefaults.object(forKey: Keys.lensFlareEnabled) == nil ? Defaults.lensFlareEnabled : userDefaults.bool(forKey: Keys.lensFlareEnabled)
 
             // Handle zero values that might indicate unset (use defaults instead)
             if bladeCount == 0 { bladeCount = Defaults.bladeCount }
@@ -215,6 +224,7 @@ class SpiralSettings: ObservableObject {
             freezeWhenNotLooking = Defaults.freezeWhenNotLooking
             colorPaletteId = Defaults.colorPaletteId
             colorByBlade = Defaults.colorByBlade
+            lensFlareEnabled = Defaults.lensFlareEnabled
 
             userDefaults.set(true, forKey: Keys.hasLaunchedBefore)
         }
@@ -238,6 +248,7 @@ class SpiralSettings: ObservableObject {
         freezeWhenNotLooking = Defaults.freezeWhenNotLooking
         colorPaletteId = Defaults.colorPaletteId
         colorByBlade = Defaults.colorByBlade
+        lensFlareEnabled = Defaults.lensFlareEnabled
     }
 
     /// Resets all settings to defaults
@@ -257,6 +268,7 @@ class SpiralSettings: ObservableObject {
         freezeWhenNotLooking = Defaults.freezeWhenNotLooking
         colorPaletteId = Defaults.colorPaletteId
         colorByBlade = Defaults.colorByBlade
+        lensFlareEnabled = Defaults.lensFlareEnabled
     }
 
     /// Randomizes all settings except phrases and photo capture
@@ -273,6 +285,7 @@ class SpiralSettings: ObservableObject {
         mirrorAlwaysOn = Bool.random()
         mirrorAnimationMode = Int.random(in: 1...2)
         eyeCenteringEnabled = Bool.random()
+        lensFlareEnabled = Bool.random()
     }
 
     var phrasesText: String {
