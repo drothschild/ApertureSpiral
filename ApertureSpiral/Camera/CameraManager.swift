@@ -17,12 +17,12 @@ class CameraManager: NSObject, ObservableObject {
     private let captureSession = AVCaptureSession()
     private let photoOutput = AVCapturePhotoOutput()
     private let videoDataOutput = AVCaptureVideoDataOutput()
-    private var photoCaptureCompletion: ((UIImage?) -> Void)?
+    private nonisolated(unsafe) var photoCaptureCompletion: ((UIImage?) -> Void)?
     private let sessionQueue = DispatchQueue(label: "camera.session.queue")
     private let videoDataQueue = DispatchQueue(label: "video.data.queue", qos: .utility)
 
-    private var faceDetectionRequest: VNDetectFaceLandmarksRequest?
-    private var frameCounter = 0
+    private nonisolated(unsafe) var faceDetectionRequest: VNDetectFaceLandmarksRequest?
+    private nonisolated(unsafe) var frameCounter = 0
     private var smoothedOffset: CGPoint = .zero
     private var freezeTimer: Timer?
     @Published var freezeCountdown: Int = 0
@@ -374,42 +374,41 @@ class CameraManager: NSObject, ObservableObject {
 }
 
 extension CameraManager: AVCapturePhotoCaptureDelegate {
-    func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
+    nonisolated func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
         guard let data = photo.fileDataRepresentation(),
               let image = UIImage(data: data) else {
-            DispatchQueue.main.async { [weak self] in
+            Task { @MainActor [weak self] in
                 self?.photoCaptureCompletion?(nil)
             }
             return
         }
 
-        // Get the correct orientation based on device orientation (front camera needs mirroring)
-        let deviceOrientation = UIDevice.current.orientation
-        let imageOrientation: UIImage.Orientation
+        Task { @MainActor [weak self] in
+            // Get the correct orientation based on device orientation (front camera needs mirroring)
+            let deviceOrientation = UIDevice.current.orientation
+            let imageOrientation: UIImage.Orientation
 
-        switch deviceOrientation {
-        case .portrait:
-            imageOrientation = .leftMirrored
-        case .portraitUpsideDown:
-            imageOrientation = .rightMirrored
-        case .landscapeLeft:
-            imageOrientation = .downMirrored
-        case .landscapeRight:
-            imageOrientation = .upMirrored
-        default:
-            imageOrientation = .leftMirrored
-        }
+            switch deviceOrientation {
+            case .portrait:
+                imageOrientation = .leftMirrored
+            case .portraitUpsideDown:
+                imageOrientation = .rightMirrored
+            case .landscapeLeft:
+                imageOrientation = .downMirrored
+            case .landscapeRight:
+                imageOrientation = .upMirrored
+            default:
+                imageOrientation = .leftMirrored
+            }
 
-        let correctedImage = UIImage(cgImage: image.cgImage!, scale: image.scale, orientation: imageOrientation)
-
-        DispatchQueue.main.async { [weak self] in
+            let correctedImage = UIImage(cgImage: image.cgImage!, scale: image.scale, orientation: imageOrientation)
             self?.photoCaptureCompletion?(correctedImage)
         }
     }
 }
 
 extension CameraManager: AVCaptureVideoDataOutputSampleBufferDelegate {
-    func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+    nonisolated func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         // Process every 5th frame to reduce CPU load on older devices
         frameCounter += 1
         guard frameCounter % 5 == 0 else { return }
