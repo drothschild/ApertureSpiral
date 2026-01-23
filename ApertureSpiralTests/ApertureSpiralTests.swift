@@ -306,7 +306,11 @@ struct PresetTests {
             previewOnly: false,
             colorFlowSpeed: 0.5,
             mirrorAlwaysOn: true,
-            mirrorAnimationMode: 1
+            mirrorAnimationMode: 1,
+            eyeCenteringEnabled: true,
+            freezeWhenNoFace: false,
+            freezeWhenNotLooking: false,
+            colorPaletteId: "warm"
         )
 
         let matches = preset.matchesSettings(
@@ -320,6 +324,9 @@ struct PresetTests {
             colorFlowSpeed: 0.5,
             mirrorAlwaysOn: true,
             mirrorAnimationMode: 1,
+            eyeCenteringEnabled: true,
+            freezeWhenNoFace: false,
+            freezeWhenNotLooking: false,
             colorPaletteId: "warm"
         )
 
@@ -336,7 +343,11 @@ struct PresetTests {
             apertureSize: 0.5,
             phrases: ["A"],
             mirrorAlwaysOn: true,
-            mirrorAnimationMode: 2
+            mirrorAnimationMode: 2,
+            eyeCenteringEnabled: true,
+            freezeWhenNoFace: false,
+            freezeWhenNotLooking: false,
+            colorPaletteId: "warm"
         )
 
         let matches = preset.matchesSettings(
@@ -350,6 +361,9 @@ struct PresetTests {
             colorFlowSpeed: 0.5,
             mirrorAlwaysOn: false, // Different
             mirrorAnimationMode: 2,
+            eyeCenteringEnabled: true,
+            freezeWhenNoFace: false,
+            freezeWhenNotLooking: false,
             colorPaletteId: "warm"
         )
 
@@ -366,7 +380,11 @@ struct PresetTests {
             apertureSize: 0.5,
             phrases: ["A"],
             mirrorAlwaysOn: false,
-            mirrorAnimationMode: 0 // Scale
+            mirrorAnimationMode: 1, // Zoom (changed from legacy 0)
+            eyeCenteringEnabled: true,
+            freezeWhenNoFace: false,
+            freezeWhenNotLooking: false,
+            colorPaletteId: "warm"
         )
 
         let matches = preset.matchesSettings(
@@ -380,6 +398,9 @@ struct PresetTests {
             colorFlowSpeed: 0.5,
             mirrorAlwaysOn: false,
             mirrorAnimationMode: 2, // Both (different)
+            eyeCenteringEnabled: true,
+            freezeWhenNoFace: false,
+            freezeWhenNotLooking: false,
             colorPaletteId: "warm"
         )
 
@@ -402,10 +423,11 @@ struct PresetManagerTests {
         let defaults = createTestUserDefaults()
         let manager = PresetManager(forTesting: defaults)
 
-        #expect(manager.builtInPresets.count == 3)
+        #expect(manager.builtInPresets.count == 4)
         #expect(manager.builtInPresets[0].name == "Birthday")
         #expect(manager.builtInPresets[1].name == "Calm")
         #expect(manager.builtInPresets[2].name == "Intense")
+        #expect(manager.builtInPresets[3].name == "Trippy")
     }
 
     @Test("Birthday preset has correct values")
@@ -463,17 +485,14 @@ struct PresetManagerTests {
         let defaults = createTestUserDefaults()
         let manager = PresetManager(forTesting: defaults)
 
-        #expect(manager.allPresets.count == 3) // Only built-in initially
+        #expect(manager.allPresets.count == 4) // Only built-in initially
     }
 
     @Test("Apply preset updates SpiralSettings")
     func applyPresetUpdatesSettings() {
         let defaults = createTestUserDefaults()
-        let manager = PresetManager(forTesting: defaults)
-        let settings = SpiralSettings.shared
-
-        // Reset settings to known state
-        settings.reset()
+        let settings = SpiralSettings(forTesting: defaults)
+        let manager = PresetManager(forTesting: defaults, settings: settings)
 
         let intense = manager.builtInPresets[2] // Intense preset
         manager.applyPreset(intense)
@@ -484,21 +503,15 @@ struct PresetManagerTests {
         #expect(settings.apertureSize == 0.3)
         #expect(settings.phrases == ["WOW", "AMAZING", "YES"])
         #expect(settings.previewOnly == false)
-        // Built-in presets use default Preset colorFlowSpeed of 0.5
-        #expect(settings.colorFlowSpeed == 0.5)
-
-        // Restore settings
-        settings.reset()
+        // Intense preset has colorFlowSpeed of 2.0
+        #expect(settings.colorFlowSpeed == 2.0)
     }
 
     @Test("Apply preset with previewOnly and colorFlowSpeed updates settings")
     func applyPresetWithPreviewOnlyAndColorFlow() {
         let defaults = createTestUserDefaults()
-        let manager = PresetManager(forTesting: defaults)
-        let settings = SpiralSettings.shared
-
-        // Reset settings to known state
-        settings.reset()
+        let settings = SpiralSettings(forTesting: defaults)
+        let manager = PresetManager(forTesting: defaults, settings: settings)
 
         let preset = Preset(
             name: "Preview Test",
@@ -516,19 +529,13 @@ struct PresetManagerTests {
         #expect(settings.previewOnly == true)
         #expect(settings.captureTimerMinutes == 5)
         #expect(settings.colorFlowSpeed == 1.8)
-
-        // Restore settings
-        settings.reset()
     }
 
     @Test("Apply preset with mirror settings updates SpiralSettings")
     func applyPresetWithMirrorSettings() {
         let defaults = createTestUserDefaults()
-        let manager = PresetManager(forTesting: defaults)
-        let settings = SpiralSettings.shared
-
-        // Reset settings to known state
-        settings.reset()
+        let settings = SpiralSettings(forTesting: defaults)
+        let manager = PresetManager(forTesting: defaults, settings: settings)
 
         let preset = Preset(
             name: "Mirror Test",
@@ -548,19 +555,13 @@ struct PresetManagerTests {
         #expect(settings.mirrorAlwaysOn == true)
         // legacy preset mode 0 is normalized to 1 (Zoom-only)
         #expect(settings.mirrorAnimationMode == 1)
-
-        // Restore settings
-        settings.reset()
     }
 
     @Test("Apply preset with Zoom animation mode")
     func applyPresetWithZoomMode() {
         let defaults = createTestUserDefaults()
-        let manager = PresetManager(forTesting: defaults)
-        let settings = SpiralSettings.shared
-
-        // Reset settings to known state
-        settings.reset()
+        let settings = SpiralSettings(forTesting: defaults)
+        let manager = PresetManager(forTesting: defaults, settings: settings)
 
         let preset = Preset(
             name: "Zoom Test",
@@ -575,19 +576,14 @@ struct PresetManagerTests {
         manager.applyPreset(preset)
 
         #expect(settings.mirrorAnimationMode == 1)
-
-        // Restore settings
-        settings.reset()
     }
 
     @Test("Apply preset with Both animation mode")
     func applyPresetWithBothMode() {
         let defaults = createTestUserDefaults()
-        let manager = PresetManager(forTesting: defaults)
-        let settings = SpiralSettings.shared
+        let settings = SpiralSettings(forTesting: defaults)
+        let manager = PresetManager(forTesting: defaults, settings: settings)
 
-        // Reset settings to known state
-        settings.reset()
         settings.mirrorAnimationMode = 0 // Change from default
 
         let preset = Preset(
@@ -604,9 +600,6 @@ struct PresetManagerTests {
 
         #expect(settings.mirrorAnimationMode == 2)
         #expect(settings.mirrorAlwaysOn == true)
-
-        // Restore settings
-        settings.reset()
     }
 
     @Test("Apply preset sets currentPresetId")
@@ -1777,5 +1770,1489 @@ struct GazeBasedFreezeTests {
         let shouldFreeze = shouldFreezeOnNoFace || shouldFreezeOnNotLooking
 
         #expect(shouldFreeze == false)
+    }
+}
+
+// MARK: - ColorPalette Tests
+
+@Suite("ColorPalette Tests")
+struct ColorPaletteTests {
+
+    @Test("PaletteColor initializes with RGB values")
+    func paletteColorInitialization() {
+        let color = PaletteColor(255, 128, 64)
+
+        #expect(color.r == 255)
+        #expect(color.g == 128)
+        #expect(color.b == 64)
+    }
+
+    @Test("PaletteColor is Equatable")
+    func paletteColorEquatable() {
+        let color1 = PaletteColor(100, 150, 200)
+        let color2 = PaletteColor(100, 150, 200)
+        let color3 = PaletteColor(100, 150, 201)
+
+        #expect(color1 == color2)
+        #expect(color1 != color3)
+    }
+
+    @Test("PaletteColor is Codable")
+    func paletteColorCodable() throws {
+        let original = PaletteColor(123, 45, 67)
+
+        let data = try JSONEncoder().encode(original)
+        let decoded = try JSONDecoder().decode(PaletteColor.self, from: data)
+
+        #expect(decoded == original)
+    }
+
+    @Test("ColorPalette initializes with id, name, and colors")
+    func colorPaletteInitialization() {
+        let colors = [PaletteColor(255, 0, 0), PaletteColor(0, 255, 0)]
+        let palette = ColorPalette(id: "test", name: "Test Palette", colors: colors)
+
+        #expect(palette.id == "test")
+        #expect(palette.name == "Test Palette")
+        #expect(palette.colors.count == 2)
+    }
+
+    @Test("ColorPalette is Identifiable")
+    func colorPaletteIdentifiable() {
+        let palette = ColorPalette.warm
+        let id: String = palette.id
+        #expect(id == "warm")
+    }
+
+    @Test("ColorPalette is Equatable")
+    func colorPaletteEquatable() {
+        let palette1 = ColorPalette.warm
+        let palette2 = ColorPalette.warm
+        let palette3 = ColorPalette.cool
+
+        #expect(palette1 == palette2)
+        #expect(palette1 != palette3)
+    }
+
+    @Test("ColorPalette is Codable")
+    func colorPaletteCodable() throws {
+        let original = ColorPalette.rainbow
+
+        let data = try JSONEncoder().encode(original)
+        let decoded = try JSONDecoder().decode(ColorPalette.self, from: data)
+
+        #expect(decoded.id == original.id)
+        #expect(decoded.name == original.name)
+        #expect(decoded.colors.count == original.colors.count)
+    }
+
+    @Test("colorComponents returns correct tuples")
+    func colorComponents() {
+        let colors = [PaletteColor(100, 150, 200), PaletteColor(50, 75, 100)]
+        let palette = ColorPalette(id: "test", name: "Test", colors: colors)
+
+        let components = palette.colorComponents
+        #expect(components.count == 2)
+        #expect(components[0].r == 100)
+        #expect(components[0].g == 150)
+        #expect(components[0].b == 200)
+        #expect(components[1].r == 50)
+        #expect(components[1].g == 75)
+        #expect(components[1].b == 100)
+    }
+
+    @Test("swiftUIColors returns correct number of colors")
+    func swiftUIColors() {
+        let palette = ColorPalette.warm
+        let colors = palette.swiftUIColors
+
+        #expect(colors.count == palette.colors.count)
+        #expect(colors.count == 8)
+    }
+
+    @Test("All built-in palettes exist")
+    func allBuiltInPalettes() {
+        let palettes = ColorPalette.allBuiltIn
+
+        #expect(palettes.count == 8)
+        #expect(palettes.contains(where: { $0.id == "warm" }))
+        #expect(palettes.contains(where: { $0.id == "cool" }))
+        #expect(palettes.contains(where: { $0.id == "ocean" }))
+        #expect(palettes.contains(where: { $0.id == "sunset" }))
+        #expect(palettes.contains(where: { $0.id == "rainbow" }))
+        #expect(palettes.contains(where: { $0.id == "pastel" }))
+        #expect(palettes.contains(where: { $0.id == "monochrome" }))
+        #expect(palettes.contains(where: { $0.id == "neon" }))
+    }
+
+    @Test("Warm palette has correct properties")
+    func warmPalette() {
+        let palette = ColorPalette.warm
+
+        #expect(palette.id == "warm")
+        #expect(palette.name == "Warm")
+        #expect(palette.colors.count == 8)
+    }
+
+    @Test("Cool palette has correct properties")
+    func coolPalette() {
+        let palette = ColorPalette.cool
+
+        #expect(palette.id == "cool")
+        #expect(palette.name == "Cool")
+        #expect(palette.colors.count == 8)
+    }
+
+    @Test("Ocean palette has correct properties")
+    func oceanPalette() {
+        let palette = ColorPalette.ocean
+
+        #expect(palette.id == "ocean")
+        #expect(palette.name == "Ocean")
+        #expect(palette.colors.count == 8)
+    }
+
+    @Test("Sunset palette has correct properties")
+    func sunsetPalette() {
+        let palette = ColorPalette.sunset
+
+        #expect(palette.id == "sunset")
+        #expect(palette.name == "Sunset")
+        #expect(palette.colors.count == 8)
+    }
+
+    @Test("Rainbow palette has correct properties")
+    func rainbowPalette() {
+        let palette = ColorPalette.rainbow
+
+        #expect(palette.id == "rainbow")
+        #expect(palette.name == "Rainbow")
+        #expect(palette.colors.count == 8)
+    }
+
+    @Test("Pastel palette has correct properties")
+    func pastelPalette() {
+        let palette = ColorPalette.pastel
+
+        #expect(palette.id == "pastel")
+        #expect(palette.name == "Pastel")
+        #expect(palette.colors.count == 8)
+    }
+
+    @Test("Monochrome palette has correct properties")
+    func monochromePalette() {
+        let palette = ColorPalette.monochrome
+
+        #expect(palette.id == "monochrome")
+        #expect(palette.name == "Monochrome")
+        #expect(palette.colors.count == 8)
+    }
+
+    @Test("Neon palette has correct properties")
+    func neonPalette() {
+        let palette = ColorPalette.neon
+
+        #expect(palette.id == "neon")
+        #expect(palette.name == "Neon")
+        #expect(palette.colors.count == 8)
+    }
+
+    @Test("Default palette is warm")
+    func defaultPalette() {
+        let defaultPalette = ColorPalette.default
+
+        #expect(defaultPalette.id == "warm")
+    }
+
+    @Test("find returns correct palette for valid id")
+    func findValidId() {
+        let warm = ColorPalette.find(id: "warm")
+        let cool = ColorPalette.find(id: "cool")
+        let neon = ColorPalette.find(id: "neon")
+
+        #expect(warm?.id == "warm")
+        #expect(cool?.id == "cool")
+        #expect(neon?.id == "neon")
+    }
+
+    @Test("find returns nil for invalid id")
+    func findInvalidId() {
+        let result = ColorPalette.find(id: "nonexistent")
+
+        #expect(result == nil)
+    }
+
+    @Test("find returns nil for empty id")
+    func findEmptyId() {
+        let result = ColorPalette.find(id: "")
+
+        #expect(result == nil)
+    }
+}
+
+// MARK: - Preset XML Serialization Tests
+
+@Suite("Preset XML Serialization Tests")
+struct PresetXMLSerializationTests {
+
+    @Test("toXML generates valid XML structure")
+    func toXMLValidStructure() {
+        let preset = Preset(
+            name: "Test Preset",
+            bladeCount: 10,
+            layerCount: 4,
+            speed: 1.5,
+            apertureSize: 0.6,
+            phrases: ["Hello", "World"]
+        )
+
+        let xml = preset.toXML()
+
+        #expect(xml.contains("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"))
+        #expect(xml.contains("<preset>"))
+        #expect(xml.contains("</preset>"))
+        #expect(xml.contains("<name>Test Preset</name>"))
+        #expect(xml.contains("<bladeCount>10</bladeCount>"))
+        #expect(xml.contains("<layerCount>4</layerCount>"))
+        #expect(xml.contains("<speed>1.5</speed>"))
+        #expect(xml.contains("<apertureSize>0.6</apertureSize>"))
+        #expect(xml.contains("<phrases>"))
+        #expect(xml.contains("<phrase>Hello</phrase>"))
+        #expect(xml.contains("<phrase>World</phrase>"))
+    }
+
+    @Test("toXML includes all properties")
+    func toXMLIncludesAllProperties() {
+        let preset = Preset(
+            name: "Full Preset",
+            bladeCount: 12,
+            layerCount: 6,
+            speed: 2.0,
+            apertureSize: 0.4,
+            phrases: ["A"],
+            captureTimerMinutes: 15,
+            previewOnly: true,
+            colorFlowSpeed: 1.2,
+            mirrorAlwaysOn: true,
+            mirrorAnimationMode: 1,
+            eyeCenteringEnabled: false,
+            freezeWhenNoFace: true,
+            freezeWhenNotLooking: true,
+            colorPaletteId: "cool"
+        )
+
+        let xml = preset.toXML()
+
+        #expect(xml.contains("<captureTimerMinutes>15</captureTimerMinutes>"))
+        #expect(xml.contains("<previewOnly>true</previewOnly>"))
+        #expect(xml.contains("<colorFlowSpeed>1.2</colorFlowSpeed>"))
+        #expect(xml.contains("<mirrorAlwaysOn>true</mirrorAlwaysOn>"))
+        #expect(xml.contains("<mirrorAnimationMode>1</mirrorAnimationMode>"))
+        #expect(xml.contains("<eyeCenteringEnabled>false</eyeCenteringEnabled>"))
+        #expect(xml.contains("<freezeWhenNoFace>true</freezeWhenNoFace>"))
+        #expect(xml.contains("<freezeWhenNotLooking>true</freezeWhenNotLooking>"))
+        #expect(xml.contains("<colorPaletteId>cool</colorPaletteId>"))
+    }
+
+    @Test("toXML escapes special XML characters in name")
+    func toXMLEscapesName() {
+        let preset = Preset(
+            name: "Test <>&\"' Name",
+            bladeCount: 9,
+            layerCount: 5,
+            speed: 1.0,
+            apertureSize: 0.5,
+            phrases: []
+        )
+
+        let xml = preset.toXML()
+
+        #expect(xml.contains("Test &lt;&gt;&amp;&quot;&apos; Name"))
+    }
+
+    @Test("toXML escapes special XML characters in phrases")
+    func toXMLEscapesPhrases() {
+        let preset = Preset(
+            name: "Test",
+            bladeCount: 9,
+            layerCount: 5,
+            speed: 1.0,
+            apertureSize: 0.5,
+            phrases: ["Hello <World>", "A & B"]
+        )
+
+        let xml = preset.toXML()
+
+        #expect(xml.contains("<phrase>Hello &lt;World&gt;</phrase>"))
+        #expect(xml.contains("<phrase>A &amp; B</phrase>"))
+    }
+
+    @Test("toXML includes preset ID")
+    func toXMLIncludesId() {
+        let preset = Preset(
+            name: "Test",
+            bladeCount: 9,
+            layerCount: 5,
+            speed: 1.0,
+            apertureSize: 0.5,
+            phrases: []
+        )
+
+        let xml = preset.toXML()
+
+        #expect(xml.contains("<id>\(preset.id.uuidString)</id>"))
+    }
+
+    @Test("fromXML parses valid XML")
+    func fromXMLParsesValid() {
+        let xml = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <preset>
+          <id>12345678-1234-1234-1234-123456789ABC</id>
+          <name>Parsed Preset</name>
+          <bladeCount>8</bladeCount>
+          <layerCount>3</layerCount>
+          <speed>0.75</speed>
+          <apertureSize>0.8</apertureSize>
+          <phrases>
+            <phrase>First</phrase>
+            <phrase>Second</phrase>
+          </phrases>
+          <captureTimerMinutes>10</captureTimerMinutes>
+          <previewOnly>true</previewOnly>
+          <colorFlowSpeed>0.9</colorFlowSpeed>
+          <mirrorAlwaysOn>true</mirrorAlwaysOn>
+          <mirrorAnimationMode>2</mirrorAnimationMode>
+          <eyeCenteringEnabled>false</eyeCenteringEnabled>
+          <freezeWhenNoFace>true</freezeWhenNoFace>
+          <freezeWhenNotLooking>true</freezeWhenNotLooking>
+          <colorPaletteId>ocean</colorPaletteId>
+        </preset>
+        """
+
+        let preset = Preset.fromXML(xml)
+
+        #expect(preset != nil)
+        #expect(preset?.name == "Parsed Preset")
+        #expect(preset?.bladeCount == 8)
+        #expect(preset?.layerCount == 3)
+        #expect(preset?.speed == 0.75)
+        #expect(preset?.apertureSize == 0.8)
+        #expect(preset?.phrases == ["First", "Second"])
+        #expect(preset?.captureTimerMinutes == 10)
+        #expect(preset?.previewOnly == true)
+        #expect(preset?.colorFlowSpeed == 0.9)
+        #expect(preset?.mirrorAlwaysOn == true)
+        #expect(preset?.mirrorAnimationMode == 2)
+        #expect(preset?.eyeCenteringEnabled == false)
+        #expect(preset?.freezeWhenNoFace == true)
+        #expect(preset?.freezeWhenNotLooking == true)
+        #expect(preset?.colorPaletteId == "ocean")
+    }
+
+    @Test("fromXML uses defaults for missing optional fields")
+    func fromXMLDefaultsForMissing() {
+        let xml = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <preset>
+          <name>Minimal Preset</name>
+          <bladeCount>9</bladeCount>
+          <layerCount>5</layerCount>
+          <speed>1.0</speed>
+          <apertureSize>0.5</apertureSize>
+          <phrases></phrases>
+        </preset>
+        """
+
+        let preset = Preset.fromXML(xml)
+
+        #expect(preset != nil)
+        #expect(preset?.captureTimerMinutes == 0)
+        #expect(preset?.previewOnly == false)
+        #expect(preset?.colorFlowSpeed == 0.5)
+        #expect(preset?.mirrorAlwaysOn == false)
+        #expect(preset?.mirrorAnimationMode == 2) // Defaults to 2 (Both)
+        #expect(preset?.eyeCenteringEnabled == true)
+        #expect(preset?.freezeWhenNoFace == false)
+        #expect(preset?.freezeWhenNotLooking == false)
+        #expect(preset?.colorPaletteId == "warm")
+    }
+
+    @Test("fromXML normalizes legacy mirrorAnimationMode 0 to 1")
+    func fromXMLNormalizesLegacyMode() {
+        let xml = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <preset>
+          <name>Legacy</name>
+          <bladeCount>9</bladeCount>
+          <layerCount>5</layerCount>
+          <speed>1.0</speed>
+          <apertureSize>0.5</apertureSize>
+          <phrases></phrases>
+          <mirrorAnimationMode>0</mirrorAnimationMode>
+        </preset>
+        """
+
+        let preset = Preset.fromXML(xml)
+
+        #expect(preset?.mirrorAnimationMode == 1)
+    }
+
+    @Test("fromXML returns nil for invalid XML")
+    func fromXMLInvalidXML() {
+        let xml = "This is not XML"
+
+        let preset = Preset.fromXML(xml)
+
+        #expect(preset == nil)
+    }
+
+    @Test("fromXML returns nil for missing required fields")
+    func fromXMLMissingRequired() {
+        let xml = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <preset>
+          <name>Incomplete</name>
+          <bladeCount>9</bladeCount>
+        </preset>
+        """
+
+        let preset = Preset.fromXML(xml)
+
+        #expect(preset == nil)
+    }
+
+    @Test("fromXML returns nil for empty string")
+    func fromXMLEmptyString() {
+        let preset = Preset.fromXML("")
+
+        #expect(preset == nil)
+    }
+
+    @Test("XML roundtrip preserves all data")
+    func xmlRoundtrip() {
+        let original = Preset(
+            name: "Roundtrip Test",
+            bladeCount: 11,
+            layerCount: 7,
+            speed: 1.8,
+            apertureSize: 0.45,
+            phrases: ["Alpha", "Beta", "Gamma"],
+            captureTimerMinutes: 20,
+            previewOnly: true,
+            colorFlowSpeed: 1.5,
+            mirrorAlwaysOn: true,
+            mirrorAnimationMode: 1,
+            eyeCenteringEnabled: false,
+            freezeWhenNoFace: true,
+            freezeWhenNotLooking: true,
+            colorPaletteId: "sunset"
+        )
+
+        let xml = original.toXML()
+        let parsed = Preset.fromXML(xml)
+
+        #expect(parsed != nil)
+        #expect(parsed?.id == original.id)
+        #expect(parsed?.name == original.name)
+        #expect(parsed?.bladeCount == original.bladeCount)
+        #expect(parsed?.layerCount == original.layerCount)
+        #expect(abs((parsed?.speed ?? 0) - original.speed) < 0.001)
+        #expect(abs((parsed?.apertureSize ?? 0) - original.apertureSize) < 0.001)
+        #expect(parsed?.phrases == original.phrases)
+        #expect(parsed?.captureTimerMinutes == original.captureTimerMinutes)
+        #expect(parsed?.previewOnly == original.previewOnly)
+        #expect(abs((parsed?.colorFlowSpeed ?? 0) - original.colorFlowSpeed) < 0.001)
+        #expect(parsed?.mirrorAlwaysOn == original.mirrorAlwaysOn)
+        #expect(parsed?.mirrorAnimationMode == original.mirrorAnimationMode)
+        #expect(parsed?.eyeCenteringEnabled == original.eyeCenteringEnabled)
+        #expect(parsed?.freezeWhenNoFace == original.freezeWhenNoFace)
+        #expect(parsed?.freezeWhenNotLooking == original.freezeWhenNotLooking)
+        #expect(parsed?.colorPaletteId == original.colorPaletteId)
+    }
+
+    @Test("XML roundtrip with special characters")
+    func xmlRoundtripSpecialChars() {
+        let original = Preset(
+            name: "Test <Name> & \"Quotes\"",
+            bladeCount: 9,
+            layerCount: 5,
+            speed: 1.0,
+            apertureSize: 0.5,
+            phrases: ["Hello <World>", "A & B", "\"Quoted\""]
+        )
+
+        let xml = original.toXML()
+        let parsed = Preset.fromXML(xml)
+
+        #expect(parsed?.name == original.name)
+        #expect(parsed?.phrases == original.phrases)
+    }
+
+    @Test("fromXML handles empty phrases")
+    func fromXMLEmptyPhrases() {
+        let xml = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <preset>
+          <name>No Phrases</name>
+          <bladeCount>9</bladeCount>
+          <layerCount>5</layerCount>
+          <speed>1.0</speed>
+          <apertureSize>0.5</apertureSize>
+          <phrases></phrases>
+        </preset>
+        """
+
+        let preset = Preset.fromXML(xml)
+
+        #expect(preset != nil)
+        // Empty phrases should default to [""] per implementation
+        #expect(preset?.phrases == [""])
+    }
+
+    @Test("fromXML preserves UUID when valid")
+    func fromXMLPreservesUUID() {
+        let testUUID = UUID()
+        let xml = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <preset>
+          <id>\(testUUID.uuidString)</id>
+          <name>Test</name>
+          <bladeCount>9</bladeCount>
+          <layerCount>5</layerCount>
+          <speed>1.0</speed>
+          <apertureSize>0.5</apertureSize>
+          <phrases><phrase>Test</phrase></phrases>
+        </preset>
+        """
+
+        let preset = Preset.fromXML(xml)
+
+        #expect(preset?.id == testUUID)
+    }
+
+    @Test("fromXML generates new UUID for invalid id")
+    func fromXMLGeneratesUUIDForInvalid() {
+        let xml = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <preset>
+          <id>not-a-valid-uuid</id>
+          <name>Test</name>
+          <bladeCount>9</bladeCount>
+          <layerCount>5</layerCount>
+          <speed>1.0</speed>
+          <apertureSize>0.5</apertureSize>
+          <phrases><phrase>Test</phrase></phrases>
+        </preset>
+        """
+
+        let preset = Preset.fromXML(xml)
+
+        #expect(preset != nil)
+        // Should have a valid UUID even if input was invalid
+        #expect(preset?.id != nil)
+    }
+}
+
+// MARK: - PresetManager Import/Export Tests
+
+@Suite("PresetManager Import/Export Tests")
+struct PresetManagerImportExportTests {
+
+    func createTestUserDefaults() -> UserDefaults {
+        let suiteName = "com.evelynspiral.importexporttests.\(UUID().uuidString)"
+        return UserDefaults(suiteName: suiteName)!
+    }
+
+    @Test("importPreset creates preset from valid XML")
+    func importPresetValid() {
+        let defaults = createTestUserDefaults()
+        let manager = PresetManager(forTesting: defaults)
+
+        let xml = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <preset>
+          <name>Imported Preset</name>
+          <bladeCount>10</bladeCount>
+          <layerCount>4</layerCount>
+          <speed>1.5</speed>
+          <apertureSize>0.6</apertureSize>
+          <phrases>
+            <phrase>Hello</phrase>
+          </phrases>
+        </preset>
+        """
+
+        let imported = manager.importPreset(from: xml)
+
+        #expect(imported != nil)
+        #expect(imported?.name == "Imported Preset")
+        #expect(manager.userPresets.count == 1)
+    }
+
+    @Test("importPreset generates new UUID for imported preset")
+    func importPresetGeneratesNewUUID() {
+        let defaults = createTestUserDefaults()
+        let manager = PresetManager(forTesting: defaults)
+
+        let originalUUID = UUID()
+        let xml = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <preset>
+          <id>\(originalUUID.uuidString)</id>
+          <name>Imported</name>
+          <bladeCount>9</bladeCount>
+          <layerCount>5</layerCount>
+          <speed>1.0</speed>
+          <apertureSize>0.5</apertureSize>
+          <phrases><phrase>Test</phrase></phrases>
+        </preset>
+        """
+
+        let imported = manager.importPreset(from: xml)
+
+        #expect(imported != nil)
+        #expect(imported?.id != originalUUID) // Should have new UUID
+    }
+
+    @Test("importPreset returns nil for invalid XML")
+    func importPresetInvalid() {
+        let defaults = createTestUserDefaults()
+        let manager = PresetManager(forTesting: defaults)
+
+        let imported = manager.importPreset(from: "not valid xml")
+
+        #expect(imported == nil)
+        #expect(manager.userPresets.isEmpty)
+    }
+
+    @Test("importPreset adds to existing user presets")
+    func importPresetAddsToExisting() {
+        let defaults = createTestUserDefaults()
+        let manager = PresetManager(forTesting: defaults)
+
+        // Add an existing preset
+        let existing = Preset(name: "Existing", bladeCount: 9, layerCount: 5, speed: 1.0, apertureSize: 0.5, phrases: [])
+        manager.userPresets.append(existing)
+
+        let xml = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <preset>
+          <name>New Import</name>
+          <bladeCount>10</bladeCount>
+          <layerCount>4</layerCount>
+          <speed>1.5</speed>
+          <apertureSize>0.6</apertureSize>
+          <phrases><phrase>Test</phrase></phrases>
+        </preset>
+        """
+
+        let imported = manager.importPreset(from: xml)
+
+        #expect(imported != nil)
+        #expect(manager.userPresets.count == 2)
+    }
+
+    @Test("exportPresetURL creates file with XML content")
+    func exportPresetURLCreatesFile() {
+        let defaults = createTestUserDefaults()
+        let manager = PresetManager(forTesting: defaults)
+
+        let preset = Preset(
+            name: "Export Test",
+            bladeCount: 10,
+            layerCount: 4,
+            speed: 1.5,
+            apertureSize: 0.6,
+            phrases: ["Hello"]
+        )
+
+        let url = manager.exportPresetURL(preset)
+
+        #expect(url != nil)
+        #expect(FileManager.default.fileExists(atPath: url!.path))
+
+        // Cleanup
+        try? FileManager.default.removeItem(at: url!)
+    }
+
+    @Test("exportPresetURL creates file with correct name")
+    func exportPresetURLCorrectName() {
+        let defaults = createTestUserDefaults()
+        let manager = PresetManager(forTesting: defaults)
+
+        let preset = Preset(
+            name: "My Preset",
+            bladeCount: 9,
+            layerCount: 5,
+            speed: 1.0,
+            apertureSize: 0.5,
+            phrases: []
+        )
+
+        let url = manager.exportPresetURL(preset)
+
+        #expect(url?.lastPathComponent == "My_Preset.xml")
+
+        // Cleanup
+        if let url = url {
+            try? FileManager.default.removeItem(at: url)
+        }
+    }
+
+    @Test("exportPresetURL file contains valid XML")
+    func exportPresetURLValidXML() throws {
+        let defaults = createTestUserDefaults()
+        let manager = PresetManager(forTesting: defaults)
+
+        let preset = Preset(
+            name: "Export Valid",
+            bladeCount: 10,
+            layerCount: 4,
+            speed: 1.5,
+            apertureSize: 0.6,
+            phrases: ["Test Phrase"]
+        )
+
+        let url = manager.exportPresetURL(preset)!
+        let content = try String(contentsOf: url, encoding: .utf8)
+
+        #expect(content.contains("<?xml"))
+        #expect(content.contains("<preset>"))
+        #expect(content.contains("<name>Export Valid</name>"))
+        #expect(content.contains("<phrase>Test Phrase</phrase>"))
+
+        // Cleanup
+        try? FileManager.default.removeItem(at: url)
+    }
+
+    @Test("Export then import roundtrip preserves preset")
+    func exportImportRoundtrip() throws {
+        let defaults = createTestUserDefaults()
+        let manager = PresetManager(forTesting: defaults)
+
+        let original = Preset(
+            name: "Roundtrip",
+            bladeCount: 11,
+            layerCount: 6,
+            speed: 1.8,
+            apertureSize: 0.45,
+            phrases: ["One", "Two"],
+            captureTimerMinutes: 5,
+            previewOnly: true,
+            colorFlowSpeed: 1.2,
+            mirrorAlwaysOn: true,
+            mirrorAnimationMode: 1,
+            eyeCenteringEnabled: false,
+            freezeWhenNoFace: true,
+            freezeWhenNotLooking: true,
+            colorPaletteId: "neon"
+        )
+
+        // Export
+        let url = manager.exportPresetURL(original)!
+        let xmlContent = try String(contentsOf: url, encoding: .utf8)
+
+        // Import
+        let imported = manager.importPreset(from: xmlContent)
+
+        #expect(imported != nil)
+        #expect(imported?.name == original.name)
+        #expect(imported?.bladeCount == original.bladeCount)
+        #expect(imported?.layerCount == original.layerCount)
+        #expect(abs((imported?.speed ?? 0) - original.speed) < 0.001)
+        #expect(abs((imported?.apertureSize ?? 0) - original.apertureSize) < 0.001)
+        #expect(imported?.phrases == original.phrases)
+        #expect(imported?.captureTimerMinutes == original.captureTimerMinutes)
+        #expect(imported?.previewOnly == original.previewOnly)
+        #expect(abs((imported?.colorFlowSpeed ?? 0) - original.colorFlowSpeed) < 0.001)
+        #expect(imported?.mirrorAlwaysOn == original.mirrorAlwaysOn)
+        #expect(imported?.mirrorAnimationMode == original.mirrorAnimationMode)
+        #expect(imported?.eyeCenteringEnabled == original.eyeCenteringEnabled)
+        #expect(imported?.freezeWhenNoFace == original.freezeWhenNoFace)
+        #expect(imported?.freezeWhenNotLooking == original.freezeWhenNotLooking)
+        #expect(imported?.colorPaletteId == original.colorPaletteId)
+
+        // Cleanup
+        try? FileManager.default.removeItem(at: url)
+    }
+}
+
+// MARK: - SpiralSettings Additional Tests
+
+@Suite("SpiralSettings Additional Tests")
+struct SpiralSettingsAdditionalTests {
+
+    @Test("eyeCenteringEnabled default is true")
+    func eyeCenteringEnabledDefault() {
+        let settings = SpiralSettings(forTesting: .standard)
+
+        #expect(settings.eyeCenteringEnabled == true)
+    }
+
+    @Test("eyeCenteringEnabled can be modified")
+    func eyeCenteringEnabledModification() {
+        let settings = SpiralSettings(forTesting: .standard)
+
+        settings.eyeCenteringEnabled = false
+        #expect(settings.eyeCenteringEnabled == false)
+
+        settings.eyeCenteringEnabled = true
+        #expect(settings.eyeCenteringEnabled == true)
+    }
+
+    @Test("colorPaletteId default is warm")
+    func colorPaletteIdDefault() {
+        let settings = SpiralSettings(forTesting: .standard)
+
+        #expect(settings.colorPaletteId == "warm")
+    }
+
+    @Test("colorPaletteId can be modified")
+    func colorPaletteIdModification() {
+        let settings = SpiralSettings(forTesting: .standard)
+
+        settings.colorPaletteId = "cool"
+        #expect(settings.colorPaletteId == "cool")
+
+        settings.colorPaletteId = "neon"
+        #expect(settings.colorPaletteId == "neon")
+    }
+
+    @Test("colorPalette returns correct palette for colorPaletteId")
+    func colorPaletteReturnsCorrect() {
+        let settings = SpiralSettings(forTesting: .standard)
+
+        settings.colorPaletteId = "warm"
+        #expect(settings.colorPalette.id == "warm")
+
+        settings.colorPaletteId = "cool"
+        #expect(settings.colorPalette.id == "cool")
+
+        settings.colorPaletteId = "ocean"
+        #expect(settings.colorPalette.id == "ocean")
+    }
+
+    @Test("colorPalette returns default for invalid colorPaletteId")
+    func colorPaletteReturnsDefaultForInvalid() {
+        let settings = SpiralSettings(forTesting: .standard)
+
+        settings.colorPaletteId = "nonexistent"
+        #expect(settings.colorPalette.id == "warm") // Default
+    }
+
+    @Test("spiralFrozen default is false")
+    func spiralFrozenDefault() {
+        let settings = SpiralSettings(forTesting: .standard)
+
+        #expect(settings.spiralFrozen == false)
+    }
+
+    @Test("spiralFrozen can be modified")
+    func spiralFrozenModification() {
+        let settings = SpiralSettings(forTesting: .standard)
+
+        settings.spiralFrozen = true
+        #expect(settings.spiralFrozen == true)
+
+        settings.spiralFrozen = false
+        #expect(settings.spiralFrozen == false)
+    }
+
+    @Test("applyPreset updates all properties including new ones")
+    func applyPresetUpdatesAll() {
+        let settings = SpiralSettings(forTesting: .standard)
+
+        let preset = Preset(
+            name: "Full Test",
+            bladeCount: 12,
+            layerCount: 7,
+            speed: 2.2,
+            apertureSize: 0.35,
+            phrases: ["Test", "Preset"],
+            captureTimerMinutes: 10,
+            previewOnly: true,
+            colorFlowSpeed: 1.8,
+            mirrorAlwaysOn: true,
+            mirrorAnimationMode: 1,
+            eyeCenteringEnabled: false,
+            freezeWhenNoFace: true,
+            freezeWhenNotLooking: true,
+            colorPaletteId: "sunset"
+        )
+
+        settings.applyPreset(preset)
+
+        #expect(settings.bladeCount == 12)
+        #expect(settings.layerCount == 7)
+        #expect(abs(settings.speed - 2.2) < 0.001)
+        #expect(abs(settings.apertureSize - 0.35) < 0.001)
+        #expect(settings.phrases == ["Test", "Preset"])
+        #expect(settings.captureTimerMinutes == 10)
+        #expect(settings.previewOnly == true)
+        #expect(abs(settings.colorFlowSpeed - 1.8) < 0.001)
+        #expect(settings.mirrorAlwaysOn == true)
+        #expect(settings.mirrorAnimationMode == 1)
+        #expect(settings.eyeCenteringEnabled == false)
+        #expect(settings.freezeWhenNoFace == true)
+        #expect(settings.freezeWhenNotLooking == true)
+        #expect(settings.colorPaletteId == "sunset")
+    }
+
+    @Test("applyPreset normalizes legacy mirrorAnimationMode 0 to 1")
+    func applyPresetNormalizesLegacyMode() {
+        let settings = SpiralSettings(forTesting: .standard)
+
+        let preset = Preset(
+            name: "Legacy",
+            bladeCount: 9,
+            layerCount: 5,
+            speed: 1.0,
+            apertureSize: 0.5,
+            phrases: [],
+            mirrorAnimationMode: 0 // Legacy value
+        )
+
+        settings.applyPreset(preset)
+
+        #expect(settings.mirrorAnimationMode == 1) // Should be normalized to 1
+    }
+
+    @Test("reset restores all properties including new ones")
+    func resetRestoresAll() {
+        let settings = SpiralSettings(forTesting: .standard)
+
+        // Change all properties
+        settings.bladeCount = 20
+        settings.eyeCenteringEnabled = false
+        settings.freezeWhenNoFace = true
+        settings.freezeWhenNotLooking = true
+        settings.colorPaletteId = "neon"
+
+        settings.reset()
+
+        #expect(settings.bladeCount == 9)
+        #expect(settings.eyeCenteringEnabled == true)
+        #expect(settings.freezeWhenNoFace == false)
+        #expect(settings.freezeWhenNotLooking == false)
+        #expect(settings.colorPaletteId == "warm")
+    }
+
+    @Test("phrasesText with only whitespace lines filters to non-empty")
+    func phrasesTextWhitespaceOnly() {
+        let settings = SpiralSettings(forTesting: .standard)
+
+        // phrasesText setter splits by newlines but doesn't trim individual lines
+        // Only empty strings (after splitting) are filtered
+        settings.phrasesText = "\n\n\n"
+
+        #expect(settings.phrases.isEmpty)
+    }
+
+    @Test("phrasesText preserves phrase content")
+    func phrasesTextPreservesContent() {
+        let settings = SpiralSettings(forTesting: .standard)
+
+        settings.phrasesText = "Hello World\nGoodbye World"
+
+        #expect(settings.phrases == ["Hello World", "Goodbye World"])
+    }
+}
+
+// MARK: - Preset matchesSettings Full Tests
+
+@Suite("Preset matchesSettings Full Tests")
+struct PresetMatchesSettingsFullTests {
+
+    @Test("matchesSettings returns true for exact match with all new properties")
+    func matchesSettingsExactMatch() {
+        let preset = Preset(
+            name: "Test",
+            bladeCount: 10,
+            layerCount: 5,
+            speed: 1.5,
+            apertureSize: 0.6,
+            phrases: ["Hello"],
+            captureTimerMinutes: 5,
+            previewOnly: true,
+            colorFlowSpeed: 1.2,
+            mirrorAlwaysOn: true,
+            mirrorAnimationMode: 1,
+            eyeCenteringEnabled: false,
+            freezeWhenNoFace: true,
+            freezeWhenNotLooking: true,
+            colorPaletteId: "cool"
+        )
+
+        let matches = preset.matchesSettings(
+            bladeCount: 10,
+            layerCount: 5,
+            speed: 1.5,
+            apertureSize: 0.6,
+            phrases: ["Hello"],
+            captureTimerMinutes: 5,
+            previewOnly: true,
+            colorFlowSpeed: 1.2,
+            mirrorAlwaysOn: true,
+            mirrorAnimationMode: 1,
+            eyeCenteringEnabled: false,
+            freezeWhenNoFace: true,
+            freezeWhenNotLooking: true,
+            colorPaletteId: "cool"
+        )
+
+        #expect(matches == true)
+    }
+
+    @Test("matchesSettings returns false for different eyeCenteringEnabled")
+    func matchesSettingsDifferentEyeCentering() {
+        let preset = Preset(
+            name: "Test",
+            bladeCount: 9,
+            layerCount: 5,
+            speed: 1.0,
+            apertureSize: 0.5,
+            phrases: [],
+            eyeCenteringEnabled: true
+        )
+
+        let matches = preset.matchesSettings(
+            bladeCount: 9,
+            layerCount: 5,
+            speed: 1.0,
+            apertureSize: 0.5,
+            phrases: [],
+            captureTimerMinutes: 0,
+            previewOnly: false,
+            colorFlowSpeed: 0.5,
+            mirrorAlwaysOn: false,
+            mirrorAnimationMode: 2,
+            eyeCenteringEnabled: false, // Different
+            freezeWhenNoFace: false,
+            freezeWhenNotLooking: false,
+            colorPaletteId: "warm"
+        )
+
+        #expect(matches == false)
+    }
+
+    @Test("matchesSettings returns false for different freezeWhenNoFace")
+    func matchesSettingsDifferentFreezeNoFace() {
+        let preset = Preset(
+            name: "Test",
+            bladeCount: 9,
+            layerCount: 5,
+            speed: 1.0,
+            apertureSize: 0.5,
+            phrases: [],
+            freezeWhenNoFace: true
+        )
+
+        let matches = preset.matchesSettings(
+            bladeCount: 9,
+            layerCount: 5,
+            speed: 1.0,
+            apertureSize: 0.5,
+            phrases: [],
+            captureTimerMinutes: 0,
+            previewOnly: false,
+            colorFlowSpeed: 0.5,
+            mirrorAlwaysOn: false,
+            mirrorAnimationMode: 2,
+            eyeCenteringEnabled: true,
+            freezeWhenNoFace: false, // Different
+            freezeWhenNotLooking: false,
+            colorPaletteId: "warm"
+        )
+
+        #expect(matches == false)
+    }
+
+    @Test("matchesSettings returns false for different freezeWhenNotLooking")
+    func matchesSettingsDifferentFreezeNotLooking() {
+        let preset = Preset(
+            name: "Test",
+            bladeCount: 9,
+            layerCount: 5,
+            speed: 1.0,
+            apertureSize: 0.5,
+            phrases: [],
+            freezeWhenNotLooking: true
+        )
+
+        let matches = preset.matchesSettings(
+            bladeCount: 9,
+            layerCount: 5,
+            speed: 1.0,
+            apertureSize: 0.5,
+            phrases: [],
+            captureTimerMinutes: 0,
+            previewOnly: false,
+            colorFlowSpeed: 0.5,
+            mirrorAlwaysOn: false,
+            mirrorAnimationMode: 2,
+            eyeCenteringEnabled: true,
+            freezeWhenNoFace: false,
+            freezeWhenNotLooking: false, // Different
+            colorPaletteId: "warm"
+        )
+
+        #expect(matches == false)
+    }
+
+    @Test("matchesSettings returns false for different colorPaletteId")
+    func matchesSettingsDifferentColorPalette() {
+        let preset = Preset(
+            name: "Test",
+            bladeCount: 9,
+            layerCount: 5,
+            speed: 1.0,
+            apertureSize: 0.5,
+            phrases: [],
+            colorPaletteId: "warm"
+        )
+
+        let matches = preset.matchesSettings(
+            bladeCount: 9,
+            layerCount: 5,
+            speed: 1.0,
+            apertureSize: 0.5,
+            phrases: [],
+            captureTimerMinutes: 0,
+            previewOnly: false,
+            colorFlowSpeed: 0.5,
+            mirrorAlwaysOn: false,
+            mirrorAnimationMode: 2,
+            eyeCenteringEnabled: true,
+            freezeWhenNoFace: false,
+            freezeWhenNotLooking: false,
+            colorPaletteId: "cool" // Different
+        )
+
+        #expect(matches == false)
+    }
+
+    @Test("matchesSettings uses tolerance for double comparisons")
+    func matchesSettingsDoubleTolerance() {
+        let preset = Preset(
+            name: "Test",
+            bladeCount: 9,
+            layerCount: 5,
+            speed: 1.0,
+            apertureSize: 0.5,
+            phrases: [],
+            colorFlowSpeed: 1.0
+        )
+
+        // Values within 0.01 tolerance should match
+        let matches = preset.matchesSettings(
+            bladeCount: 9,
+            layerCount: 5,
+            speed: 1.005, // Within tolerance
+            apertureSize: 0.505, // Within tolerance
+            phrases: [],
+            captureTimerMinutes: 0,
+            previewOnly: false,
+            colorFlowSpeed: 1.005, // Within tolerance
+            mirrorAlwaysOn: false,
+            mirrorAnimationMode: 2,
+            eyeCenteringEnabled: true,
+            freezeWhenNoFace: false,
+            freezeWhenNotLooking: false,
+            colorPaletteId: "warm"
+        )
+
+        #expect(matches == true)
+    }
+}
+
+// MARK: - GazeTrackerFactory Tests
+
+@Suite("GazeTrackerFactory Tests")
+struct GazeTrackerFactoryTests {
+
+    @Test("create returns VisionGazeTracker")
+    func createReturnsVisionTracker() {
+        let tracker = GazeTrackerFactory.create()
+
+        #expect(tracker is VisionGazeTracker)
+    }
+
+    @Test("isARKitSupported returns boolean")
+    func isARKitSupportedReturnsBool() {
+        // Just verify it returns a boolean without crashing
+        let supported = GazeTrackerFactory.isARKitSupported
+        _ = supported // Use the value
+    }
+
+    @Test("VisionGazeTracker starts with isLookingAtScreen true")
+    func visionTrackerInitialState() {
+        let tracker = VisionGazeTracker()
+
+        #expect(tracker.isLookingAtScreen == true)
+    }
+
+    @Test("VisionGazeTracker start resets state")
+    func visionTrackerStartResetsState() {
+        let tracker = VisionGazeTracker()
+
+        tracker.start()
+
+        #expect(tracker.isLookingAtScreen == true)
+    }
+
+    @Test("VisionGazeTracker stop resets state")
+    func visionTrackerStopResetsState() {
+        let tracker = VisionGazeTracker()
+
+        tracker.stop()
+
+        #expect(tracker.isLookingAtScreen == true)
+    }
+
+    @Test("VisionGazeTracker onGazeUpdate callback can be set")
+    func visionTrackerCallbackCanBeSet() {
+        let tracker = VisionGazeTracker()
+        var callbackCalled = false
+
+        tracker.onGazeUpdate = { _ in
+            callbackCalled = true
+        }
+
+        #expect(tracker.onGazeUpdate != nil)
+    }
+
+    @Test("ARKitGazeTracker starts with isLookingAtScreen true")
+    func arkitTrackerInitialState() {
+        let tracker = ARKitGazeTracker()
+
+        #expect(tracker.isLookingAtScreen == true)
+    }
+
+    @Test("ARKitGazeTracker stop resets state")
+    func arkitTrackerStopResetsState() {
+        let tracker = ARKitGazeTracker()
+
+        tracker.stop()
+
+        #expect(tracker.isLookingAtScreen == true)
+    }
+
+    @Test("ARKitGazeTracker onGazeUpdate callback can be set")
+    func arkitTrackerCallbackCanBeSet() {
+        let tracker = ARKitGazeTracker()
+        var callbackCalled = false
+
+        tracker.onGazeUpdate = { _ in
+            callbackCalled = true
+        }
+
+        #expect(tracker.onGazeUpdate != nil)
+    }
+}
+
+// MARK: - PresetManager detectCurrentPreset Tests
+
+@Suite("PresetManager detectCurrentPreset Tests")
+struct PresetManagerDetectCurrentPresetTests {
+
+    func createTestUserDefaults() -> UserDefaults {
+        let suiteName = "com.evelynspiral.detecttests.\(UUID().uuidString)"
+        return UserDefaults(suiteName: suiteName)!
+    }
+
+    @Test("detectCurrentPreset finds matching built-in preset")
+    func detectFindsBuiltIn() {
+        let defaults = createTestUserDefaults()
+        let settings = SpiralSettings(forTesting: defaults)
+        let manager = PresetManager(forTesting: defaults, settings: settings)
+
+        // Apply Birthday preset
+        let birthday = manager.builtInPresets[0]
+        manager.applyPreset(birthday)
+
+        manager.currentPresetId = nil // Clear for detection test
+        manager.detectCurrentPreset()
+
+        #expect(manager.currentPresetId == birthday.id)
+    }
+
+    @Test("detectCurrentPreset finds matching user preset")
+    func detectFindsUserPreset() {
+        let defaults = createTestUserDefaults()
+        let settings = SpiralSettings(forTesting: defaults)
+        let manager = PresetManager(forTesting: defaults, settings: settings)
+
+        // Create and add a user preset
+        let userPreset = Preset(
+            name: "User Preset",
+            bladeCount: 11,
+            layerCount: 6,
+            speed: 1.7,
+            apertureSize: 0.55,
+            phrases: ["Custom"],
+            captureTimerMinutes: 3,
+            previewOnly: true,
+            colorFlowSpeed: 0.8,
+            mirrorAlwaysOn: true,
+            mirrorAnimationMode: 1,
+            eyeCenteringEnabled: false,
+            freezeWhenNoFace: true,
+            freezeWhenNotLooking: false,
+            colorPaletteId: "ocean"
+        )
+        manager.userPresets.append(userPreset)
+        manager.applyPreset(userPreset)
+
+        manager.currentPresetId = nil // Clear for detection test
+        manager.detectCurrentPreset()
+
+        #expect(manager.currentPresetId == userPreset.id)
+    }
+
+    @Test("detectCurrentPreset sets nil when no match")
+    func detectSetsNilWhenNoMatch() {
+        let defaults = createTestUserDefaults()
+        let settings = SpiralSettings(forTesting: defaults)
+        let manager = PresetManager(forTesting: defaults, settings: settings)
+
+        // Set unique settings that don't match any preset
+        settings.bladeCount = 99
+        settings.layerCount = 99
+        settings.speed = 99.0
+        settings.apertureSize = 0.99
+        settings.phrases = ["Unique Phrase That Matches Nothing"]
+
+        manager.currentPresetId = UUID() // Set some value
+        manager.detectCurrentPreset()
+
+        #expect(manager.currentPresetId == nil)
+    }
+}
+
+// MARK: - PresetManager Built-in Presets Tests (Expanded)
+
+@Suite("PresetManager Built-in Presets Expanded Tests")
+struct PresetManagerBuiltInExpandedTests {
+
+    func createTestUserDefaults() -> UserDefaults {
+        let suiteName = "com.evelynspiral.builtintests.\(UUID().uuidString)"
+        return UserDefaults(suiteName: suiteName)!
+    }
+
+    @Test("Trippy preset exists and has correct values")
+    func trippyPresetValues() {
+        let defaults = createTestUserDefaults()
+        let manager = PresetManager(forTesting: defaults)
+
+        #expect(manager.builtInPresets.count == 4) // Updated count with Trippy
+
+        let trippy = manager.builtInPresets.first { $0.name == "Trippy" }
+        #expect(trippy != nil)
+        #expect(trippy?.bladeCount == 12)
+        #expect(trippy?.layerCount == 6)
+        #expect(trippy?.speed == 1.5)
+        #expect(trippy?.apertureSize == 0.4)
+        #expect(trippy?.phrases == ["Whoa", "Dude", "Vibrate", "What's Happening?", "Drift"])
+        #expect(trippy?.mirrorAnimationMode == 1)
+        #expect(trippy?.colorPaletteId == "earth")
+    }
+
+    @Test("All built-in presets have colorPaletteId set")
+    func allBuiltInHaveColorPalette() {
+        let defaults = createTestUserDefaults()
+        let manager = PresetManager(forTesting: defaults)
+
+        for preset in manager.builtInPresets {
+            #expect(!preset.colorPaletteId.isEmpty, "Preset \(preset.name) should have colorPaletteId")
+        }
+    }
+
+    @Test("allPresets includes both built-in and user presets")
+    func allPresetsIncludesBoth() {
+        let defaults = createTestUserDefaults()
+        let manager = PresetManager(forTesting: defaults)
+
+        let userPreset = Preset(name: "User", bladeCount: 9, layerCount: 5, speed: 1.0, apertureSize: 0.5, phrases: [])
+        manager.userPresets.append(userPreset)
+
+        #expect(manager.allPresets.count == 5) // 4 built-in + 1 user
+        #expect(manager.allPresets.contains(where: { $0.name == "User" }))
+        #expect(manager.allPresets.contains(where: { $0.name == "Birthday" }))
+    }
+}
+
+// MARK: - PresetManager saveCurrentAsPreset Tests
+
+@Suite("PresetManager saveCurrentAsPreset Tests")
+struct PresetManagerSaveCurrentAsPresetTests {
+
+    func createTestUserDefaults() -> UserDefaults {
+        let suiteName = "com.evelynspiral.savetests.\(UUID().uuidString)"
+        return UserDefaults(suiteName: suiteName)!
+    }
+
+    @Test("saveCurrentAsPreset creates preset with current settings")
+    @MainActor
+    func saveCreatesPreset() async {
+        let defaults = createTestUserDefaults()
+        let settings = SpiralSettings(forTesting: defaults)
+        let manager = PresetManager(forTesting: defaults, settings: settings)
+
+        settings.bladeCount = 15
+        settings.layerCount = 7
+        settings.speed = 2.0
+        settings.apertureSize = 0.4
+        settings.phrases = ["Save", "Test"]
+        settings.colorPaletteId = "neon"
+        settings.eyeCenteringEnabled = false
+
+        manager.saveCurrentAsPreset(name: "Saved Preset")
+
+        // Wait for async operation
+        try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
+
+        #expect(manager.userPresets.count == 1)
+        let saved = manager.userPresets.first
+        #expect(saved?.name == "Saved Preset")
+        #expect(saved?.bladeCount == 15)
+        #expect(saved?.layerCount == 7)
+        #expect(saved?.colorPaletteId == "neon")
+        #expect(saved?.eyeCenteringEnabled == false)
+    }
+
+    @Test("saveCurrentAsPreset sets currentPresetId")
+    @MainActor
+    func saveSetsCurrentId() async {
+        let defaults = createTestUserDefaults()
+        let settings = SpiralSettings(forTesting: defaults)
+        let manager = PresetManager(forTesting: defaults, settings: settings)
+
+        manager.saveCurrentAsPreset(name: "New Preset")
+
+        // Wait for async operation
+        try? await Task.sleep(nanoseconds: 300_000_000)
+
+        #expect(manager.currentPresetId == manager.userPresets.first?.id)
+    }
+
+    @Test("saveCurrentAsPreset normalizes mirrorAnimationMode 0 to 1")
+    @MainActor
+    func saveNormalizesLegacyMode() async {
+        let defaults = createTestUserDefaults()
+        let settings = SpiralSettings(forTesting: defaults)
+        let manager = PresetManager(forTesting: defaults, settings: settings)
+
+        // Setting mirrorAnimationMode to 0 through property - note the property setter doesn't normalize
+        // but saveCurrentAsPreset does the normalization
+        settings.mirrorAnimationMode = 0
+
+        manager.saveCurrentAsPreset(name: "Normalized Preset")
+
+        // Wait for async operation
+        try? await Task.sleep(nanoseconds: 300_000_000)
+
+        // The saved preset should have normalized value
+        #expect(manager.userPresets.first?.mirrorAnimationMode == 1)
     }
 }
