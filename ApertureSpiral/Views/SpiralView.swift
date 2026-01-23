@@ -2,6 +2,7 @@ import SwiftUI
 import Combine
 
 struct SpiralView: View {
+    @Binding var selectedTab: Int
     @StateObject private var cameraManager = CameraManager()
     @StateObject private var storageManager = PhotoStorageManager.shared
     @StateObject private var settings = SpiralSettings.shared
@@ -16,6 +17,8 @@ struct SpiralView: View {
     @State private var maxHoleDiameter: CGFloat = 150
     @State private var currentPhraseIndex: Int = -1
     @State private var showPhrase: Bool = false
+    @State private var isLoading = true
+    @State private var loadingId = UUID()
 
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     let phraseTimer = Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()
@@ -164,6 +167,13 @@ struct SpiralView: View {
                 }
                 .padding(.top, 50)
             }
+
+            // Loading overlay
+            if isLoading {
+                LoadingOverlay()
+                    .id(loadingId)
+                    .transition(.opacity)
+            }
         }
         .highPriorityGesture(
             DragGesture(minimumDistance: 30)
@@ -205,6 +215,7 @@ struct SpiralView: View {
         .onAppear {
             UIApplication.shared.isIdleTimerDisabled = true
             scheduleHideTabBar()
+            showLoadingScreen()
         }
         .onDisappear {
             UIApplication.shared.isIdleTimerDisabled = false
@@ -225,6 +236,26 @@ struct SpiralView: View {
         .animation(.easeInOut(duration: 0.3), value: hideTabBar)
         .animation(.easeInOut(duration: 0.2), value: showSpeedIndicator)
         .animation(.easeInOut(duration: 0.3), value: showPhrase)
+        .onChange(of: selectedTab) { _, newTab in
+            if newTab == 0 {
+                // Switched to spiral tab - show loading screen
+                showLoadingScreen()
+            }
+        }
+        .onKeyPress("m") {
+            settings.mirrorAlwaysOn.toggle()
+            return .handled
+        }
+    }
+
+    private func showLoadingScreen() {
+        loadingId = UUID()  // Force LoadingOverlay to recreate and restart animations
+        isLoading = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            withAnimation(.easeOut(duration: 0.5)) {
+                isLoading = false
+            }
+        }
     }
 
     private func scheduleHideTabBar() {
@@ -323,5 +354,5 @@ struct SpiralView: View {
 }
 
 #Preview {
-    SpiralView()
+    SpiralView(selectedTab: .constant(0))
 }

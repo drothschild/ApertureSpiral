@@ -8,6 +8,7 @@
 import Testing
 import Foundation
 import UIKit
+import SwiftUI
 @testable import ApertureSpiral
 
 // MARK: - SpiralSettings Tests
@@ -3317,5 +3318,32 @@ struct PresetManagerSaveCurrentAsPresetTests {
 
         // The saved preset should have normalized value
         #expect(manager.userPresets.first?.mirrorAnimationMode == 1)
+    }
+}
+
+// MARK: - LoadingOverlay Tests
+
+@Suite("LoadingOverlay Tests")
+struct LoadingOverlayTests {
+
+    @Test("LoadingOverlay can be instantiated")
+    @MainActor
+    func instantiation() {
+        let overlay = LoadingOverlay()
+        #expect(overlay.body != nil)
+    }
+
+    @Test("LoadingOverlay renders without crashing")
+    @MainActor
+    func rendering() {
+        let overlay = LoadingOverlay()
+        let controller = UIHostingController(rootView: overlay)
+        controller.view.frame = CGRect(x: 0, y: 0, width: 400, height: 800)
+        controller.view.layoutIfNeeded()
+
+        // Simply verify the view exists and has a non-zero size after layout
+        #expect(controller.view != nil)
+        #expect(controller.view.bounds.width > 0)
+        #expect(controller.view.bounds.height > 0)
     }
 }

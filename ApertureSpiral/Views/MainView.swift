@@ -5,7 +5,7 @@ struct MainView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            SpiralView()
+            SpiralView(selectedTab: $selectedTab)
                 .tabItem {
                     Label("Spiral", systemImage: "eye")
                 }
