@@ -592,7 +592,7 @@
 				C25580922F160818007ED546 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		C25580932F160818007ED546 /* Build configuration list for PBXNativeTarget "ApertureSpiral" */ = {
 			isa = XCConfigurationList;
@@ -601,7 +601,7 @@
 				C25580952F160818007ED546 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		C25580962F160818007ED546 /* Build configuration list for PBXNativeTarget "ApertureSpiralTests" */ = {
 			isa = XCConfigurationList;
@@ -610,7 +610,7 @@
 				C25580982F160818007ED546 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		C25580992F160818007ED546 /* Build configuration list for PBXNativeTarget "ApertureSpiralUITests" */ = {
 			isa = XCConfigurationList;
@@ -619,7 +619,7 @@
 				C255809B2F160818007ED546 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 	};
