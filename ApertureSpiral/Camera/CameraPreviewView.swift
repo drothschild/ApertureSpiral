@@ -8,7 +8,8 @@ struct CameraPreviewView: UIViewRepresentable {
 
     func makeUIView(context: Context) -> CameraPreviewUIView {
         let view = CameraPreviewUIView()
-        view.backgroundColor = .clear
+        // Use dark background matching the spiral to hide any camera layer gaps
+        view.backgroundColor = UIColor(red: 0.04, green: 0.04, blue: 0.07, alpha: 1.0)
         return view
     }
 
@@ -78,20 +79,27 @@ class CameraPreviewUIView: UIView {
     private func updatePreviewLayerFrame() {
         guard let layer = currentPreviewLayer else { return }
 
-        // Make layer slightly larger than bounds so we have extra content to pan
-        // 1.08 = 8% larger, subtle zoom for face centering without excessive closeup
-        let scale: CGFloat = 1.08
+        // Scale factor provides margin for eye-centering panning without excessive zoom
+        // 1.15 = 15% larger, balanced between coverage and natural framing
+        let scale: CGFloat = 1.15
         let scaledWidth = bounds.width * scale
         let scaledHeight = bounds.height * scale
+
+        // Maximum offset we can safely apply (use most of available margin)
+        let maxOffset = bounds.width * (scale - 1.0) / 2.0 * 0.9
+
+        // Calculate offset in pixels to shift the face to center
+        // Reduced multiplier (0.3) for subtler movement that stays within margin
+        let rawOffsetX = currentEyeOffset.x * bounds.width * 0.3
+        let rawOffsetY = -currentEyeOffset.y * bounds.height * 0.3  // Flip Y for UIKit
+
+        // Clamp offsets to prevent exposing camera layer edges
+        let offsetX = max(-maxOffset, min(maxOffset, rawOffsetX))
+        let offsetY = max(-maxOffset, min(maxOffset, rawOffsetY))
 
         // Center the oversized layer by default
         let baseX = (bounds.width - scaledWidth) / 2
         let baseY = (bounds.height - scaledHeight) / 2
-
-        // Calculate offset in pixels to shift the face to center
-        // Offset is normalized (-0.3 to 0.3), scale down for subtler movement
-        let offsetX = currentEyeOffset.x * bounds.width * 0.5
-        let offsetY = -currentEyeOffset.y * bounds.height * 0.5  // Flip Y for UIKit
 
         layer.frame = CGRect(
             x: baseX + offsetX,
