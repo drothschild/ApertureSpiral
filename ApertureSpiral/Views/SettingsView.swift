@@ -391,8 +391,10 @@ struct PresetSelectionView: View {
 
             do {
                 let xmlString = try String(contentsOf: url, encoding: .utf8)
-                if presetManager.importPreset(from: xmlString) != nil {
-                    // Successfully imported
+                if let preset = presetManager.importPreset(from: xmlString) {
+                    presetManager.applyPreset(preset)
+                    phrasesText = settings.phrasesText
+                    dismiss()
                 } else {
                     importError = "Invalid preset file format"
                     showingImportError = true
