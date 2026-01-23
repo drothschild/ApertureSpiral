@@ -27,6 +27,11 @@ struct SettingsView: View {
                     Button("Save Current as Preset") {
                         showingSavePreset = true
                     }
+
+                    Button("Randomize") {
+                        settings.randomize()
+                        presetManager.currentPresetId = nil
+                    }
                 }
 
                 Section("Phrases") {

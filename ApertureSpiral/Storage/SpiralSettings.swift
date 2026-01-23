@@ -259,6 +259,22 @@ class SpiralSettings: ObservableObject {
         colorByBlade = Defaults.colorByBlade
     }
 
+    /// Randomizes all settings except phrases and photo capture
+    func randomize() {
+        bladeCount = Int.random(in: 3...16)
+        layerCount = Int.random(in: 1...8)
+        speed = Double(Int.random(in: 1...30)) / 10.0  // 0.1 to 3.0 in 0.1 steps
+        apertureSize = Double(Int.random(in: 2...20)) / 20.0  // 0.1 to 1.0 in 0.05 steps
+        colorFlowSpeed = Double(Int.random(in: 0...20)) / 10.0  // 0 to 2.0 in 0.1 steps
+        colorByBlade = Bool.random()
+        colorPaletteId = ColorPalette.allBuiltIn.randomElement()?.id ?? Defaults.colorPaletteId
+        freezeWhenNoFace = Bool.random()
+        freezeWhenNotLooking = Bool.random()
+        mirrorAlwaysOn = Bool.random()
+        mirrorAnimationMode = Int.random(in: 1...2)
+        eyeCenteringEnabled = Bool.random()
+    }
+
     var phrasesText: String {
         get { phrases.joined(separator: "\n") }
         set { phrases = newValue.split(separator: "\n").map { String($0) }.filter { !$0.isEmpty } }

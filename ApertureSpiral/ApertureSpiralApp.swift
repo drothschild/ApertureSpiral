@@ -33,7 +33,8 @@ class KeyCommandViewController<Content: View>: UIHostingController<Content> {
     override var keyCommands: [UIKeyCommand]? {
         [
             UIKeyCommand(input: "m", modifierFlags: [], action: #selector(toggleMirror)),
-            UIKeyCommand(input: "p", modifierFlags: [], action: #selector(capturePhoto))
+            UIKeyCommand(input: "p", modifierFlags: [], action: #selector(capturePhoto)),
+            UIKeyCommand(input: "r", modifierFlags: [], action: #selector(randomizeSettings))
         ]
     }
 
@@ -50,6 +51,10 @@ class KeyCommandViewController<Content: View>: UIHostingController<Content> {
 
     @objc func capturePhoto() {
         NotificationCenter.default.post(name: .capturePhoto, object: nil)
+    }
+
+    @objc func randomizeSettings() {
+        SpiralSettings.shared.randomize()
     }
 }
 

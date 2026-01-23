@@ -173,6 +173,80 @@ struct SpiralSettingsTests {
         #expect(settings.mirrorAlwaysOn == true)
         #expect(settings.mirrorAnimationMode == 2)
     }
+
+    @Test("Randomize changes settings values")
+    func randomizeChangesSettings() {
+        let settings = SpiralSettings(forTesting: .standard)
+
+        // Set known values first
+        settings.bladeCount = 9
+        settings.layerCount = 5
+        settings.speed = 1.0
+        settings.apertureSize = 0.5
+        settings.colorFlowSpeed = 0.3
+        settings.colorByBlade = false
+        settings.colorPaletteId = "warm"
+
+        // Run randomize multiple times to ensure at least some values change
+        var anyChanged = false
+        for _ in 0..<10 {
+            settings.randomize()
+
+            // Check if any visual settings changed from the known values
+            if settings.bladeCount != 9 ||
+               settings.layerCount != 5 ||
+               settings.speed != 1.0 ||
+               settings.apertureSize != 0.5 ||
+               settings.colorFlowSpeed != 0.3 {
+                anyChanged = true
+                break
+            }
+        }
+
+        #expect(anyChanged, "Randomize should change at least some settings")
+    }
+
+    @Test("Randomize does not change phrases")
+    func randomizePreservesPhrases() {
+        let settings = SpiralSettings(forTesting: .standard)
+        let originalPhrases = ["Custom", "Test", "Phrases"]
+        settings.phrases = originalPhrases
+
+        settings.randomize()
+
+        #expect(settings.phrases == originalPhrases)
+    }
+
+    @Test("Randomize does not change capture timer")
+    func randomizePreservesCaptureTimer() {
+        let settings = SpiralSettings(forTesting: .standard)
+        settings.captureTimerMinutes = 15
+
+        settings.randomize()
+
+        #expect(settings.captureTimerMinutes == 15)
+    }
+
+    @Test("Randomize produces values within valid ranges")
+    func randomizeValuesInRange() {
+        let settings = SpiralSettings(forTesting: .standard)
+
+        // Run multiple times to test range constraints
+        for _ in 0..<20 {
+            settings.randomize()
+
+            #expect(settings.bladeCount >= 3 && settings.bladeCount <= 16)
+            #expect(settings.layerCount >= 1 && settings.layerCount <= 8)
+            #expect(settings.speed >= 0.1 && settings.speed <= 3.0)
+            #expect(settings.apertureSize >= 0.1 && settings.apertureSize <= 1.0)
+            #expect(settings.colorFlowSpeed >= 0.0 && settings.colorFlowSpeed <= 2.0)
+            #expect(settings.mirrorAnimationMode >= 1 && settings.mirrorAnimationMode <= 2)
+
+            // Color palette should be one of the built-in palettes
+            let validPaletteIds = ColorPalette.allBuiltIn.map { $0.id }
+            #expect(validPaletteIds.contains(settings.colorPaletteId))
+        }
+    }
 }
 
 // MARK: - Preset Tests
