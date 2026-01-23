@@ -3602,3 +3602,133 @@ struct KeyboardShortcutTests {
         #expect(hostingController.view != nil)
     }
 }
+
+// MARK: - AudioSessionManager Tests
+
+@Suite("AudioSessionManager Tests")
+struct AudioSessionManagerTests {
+
+    @Test("AudioSessionManager can be created for testing")
+    func creation() {
+        let manager = AudioSessionManager(forTesting: true)
+        #expect(manager != nil)
+    }
+
+    @Test("wasPlayingBeforePause defaults to false")
+    func wasPlayingBeforePauseDefault() {
+        let manager = AudioSessionManager(forTesting: true)
+        #expect(manager.wasPlayingBeforePause == false)
+    }
+
+    @Test("pauseOtherAudio sets wasPlayingBeforePause when audio is playing")
+    func pauseOtherAudioTracksPlayingState() {
+        let manager = AudioSessionManager(forTesting: true)
+        manager.simulateOtherAudioPlaying = true
+
+        manager.pauseOtherAudio()
+
+        #expect(manager.wasPlayingBeforePause == true)
+    }
+
+    @Test("pauseOtherAudio does not set wasPlayingBeforePause when no audio playing")
+    func pauseOtherAudioNoOpWhenNotPlaying() {
+        let manager = AudioSessionManager(forTesting: true)
+        manager.simulateOtherAudioPlaying = false
+
+        manager.pauseOtherAudio()
+
+        #expect(manager.wasPlayingBeforePause == false)
+    }
+
+    @Test("resumeOtherAudio only resumes if wasPlayingBeforePause is true")
+    func resumeOtherAudioOnlyIfWasPlaying() {
+        let manager = AudioSessionManager(forTesting: true)
+        manager.wasPlayingBeforePause = true
+
+        manager.resumeOtherAudio()
+
+        // After resuming, wasPlayingBeforePause should be reset
+        #expect(manager.wasPlayingBeforePause == false)
+    }
+
+    @Test("resumeOtherAudio does nothing if wasPlayingBeforePause is false")
+    func resumeOtherAudioNoOpIfWasNotPlaying() {
+        let manager = AudioSessionManager(forTesting: true)
+        manager.wasPlayingBeforePause = false
+
+        manager.resumeOtherAudio()
+
+        #expect(manager.wasPlayingBeforePause == false)
+    }
+
+    @Test("Full pause/resume cycle maintains correct state")
+    func fullPauseResumeCycle() {
+        let manager = AudioSessionManager(forTesting: true)
+        manager.simulateOtherAudioPlaying = true
+
+        // Initially not paused
+        #expect(manager.wasPlayingBeforePause == false)
+
+        // Pause - should track that audio was playing
+        manager.pauseOtherAudio()
+        #expect(manager.wasPlayingBeforePause == true)
+
+        // Resume - should reset state
+        manager.resumeOtherAudio()
+        #expect(manager.wasPlayingBeforePause == false)
+    }
+
+    @Test("Multiple pause calls don't override wasPlayingBeforePause if already paused")
+    func multiplePauseCalls() {
+        let manager = AudioSessionManager(forTesting: true)
+        manager.simulateOtherAudioPlaying = true
+
+        manager.pauseOtherAudio()
+        #expect(manager.wasPlayingBeforePause == true)
+
+        // Simulate audio no longer playing (because we paused it)
+        manager.simulateOtherAudioPlaying = false
+
+        // Second pause call should not override
+        manager.pauseOtherAudio()
+        #expect(manager.wasPlayingBeforePause == true)
+    }
+
+    @Test("handleSpiralFrozenChange pauses audio when spiral freezes")
+    func handleSpiralFrozenChangePauses() {
+        let manager = AudioSessionManager(forTesting: true)
+        manager.simulateOtherAudioPlaying = true
+
+        manager.handleSpiralFrozenChange(isFrozen: true)
+
+        #expect(manager.wasPlayingBeforePause == true)
+    }
+
+    @Test("handleSpiralFrozenChange resumes audio when spiral unfreezes")
+    func handleSpiralFrozenChangeResumes() {
+        let manager = AudioSessionManager(forTesting: true)
+        manager.simulateOtherAudioPlaying = true
+
+        // First freeze
+        manager.handleSpiralFrozenChange(isFrozen: true)
+        #expect(manager.wasPlayingBeforePause == true)
+
+        // Then unfreeze
+        manager.handleSpiralFrozenChange(isFrozen: false)
+        #expect(manager.wasPlayingBeforePause == false)
+    }
+
+    @Test("handleSpiralFrozenChange does not resume if audio was not playing before pause")
+    func handleSpiralFrozenChangeNoResumeIfNotPlaying() {
+        let manager = AudioSessionManager(forTesting: true)
+        manager.simulateOtherAudioPlaying = false
+
+        // Freeze when no audio playing
+        manager.handleSpiralFrozenChange(isFrozen: true)
+        #expect(manager.wasPlayingBeforePause == false)
+
+        // Unfreeze should not try to resume
+        manager.handleSpiralFrozenChange(isFrozen: false)
+        #expect(manager.wasPlayingBeforePause == false)
+    }
+}
