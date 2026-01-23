@@ -3347,3 +3347,85 @@ struct LoadingOverlayTests {
         #expect(controller.view.bounds.height > 0)
     }
 }
+
+// MARK: - Keyboard Shortcut Tests
+
+@Suite("Keyboard Shortcut Tests")
+struct KeyboardShortcutTests {
+
+    @Test("KeyCommandViewController can become first responder")
+    @MainActor
+    func canBecomeFirstResponder() {
+        let controller = KeyCommandViewController(rootView: EmptyView())
+        #expect(controller.canBecomeFirstResponder == true)
+    }
+
+    @Test("KeyCommandViewController can be instantiated")
+    @MainActor
+    func instantiation() {
+        let controller = KeyCommandViewController(rootView: EmptyView())
+        #expect(controller.view != nil)
+    }
+
+    @Test("Toggle mirror changes mirrorAlwaysOn setting")
+    @MainActor
+    func toggleMirrorSetting() {
+        let defaults = UserDefaults(suiteName: "test.keyboard.mirror.\(UUID().uuidString)")!
+        let settings = SpiralSettings(forTesting: defaults)
+        let originalValue = settings.mirrorAlwaysOn
+
+        settings.mirrorAlwaysOn.toggle()
+
+        #expect(settings.mirrorAlwaysOn == !originalValue)
+
+        // Toggle back
+        settings.mirrorAlwaysOn.toggle()
+        #expect(settings.mirrorAlwaysOn == originalValue)
+    }
+
+    @Test("Capture photo notification name is correct")
+    func capturePhotoNotificationName() {
+        let capturePhotoName = Notification.Name("capturePhoto")
+        #expect(capturePhotoName.rawValue == "capturePhoto")
+    }
+
+    @Test("Capture photo notification can be posted and received")
+    @MainActor
+    func capturePhotoNotificationPosting() async {
+        var notificationReceived = false
+        let capturePhotoName = Notification.Name("capturePhoto")
+
+        let observer = NotificationCenter.default.addObserver(
+            forName: capturePhotoName,
+            object: nil,
+            queue: .main
+        ) { _ in
+            notificationReceived = true
+        }
+
+        NotificationCenter.default.post(name: capturePhotoName, object: nil)
+
+        // Give the notification time to propagate
+        try? await Task.sleep(nanoseconds: 100_000_000)
+
+        #expect(notificationReceived == true)
+
+        NotificationCenter.default.removeObserver(observer)
+    }
+
+    @Test("KeyCommandView can wrap content")
+    @MainActor
+    func keyCommandViewWrapper() {
+        // Verify KeyCommandView can be created and renders
+        let keyCommandView = KeyCommandView {
+            Text("Test")
+        }
+
+        // Use UIHostingController to render the KeyCommandView
+        let hostingController = UIHostingController(rootView: keyCommandView)
+        hostingController.view.frame = CGRect(x: 0, y: 0, width: 400, height: 800)
+        hostingController.view.layoutIfNeeded()
+
+        #expect(hostingController.view != nil)
+    }
+}

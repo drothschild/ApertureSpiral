@@ -231,6 +231,9 @@ struct SpiralView: View {
         .onReceive(phraseTimer) { _ in
             cyclePhrase()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .capturePhoto)) { _ in
+            capturePhoto()
+        }
         .animation(.easeOut(duration: 0.3), value: showCaptureFlash)
         .animation(.easeInOut(duration: 0.3), value: showCameraPreview)
         .animation(.easeInOut(duration: 0.3), value: hideTabBar)
@@ -241,10 +244,6 @@ struct SpiralView: View {
                 // Switched to spiral tab - show loading screen
                 showLoadingScreen()
             }
-        }
-        .onKeyPress("m") {
-            settings.mirrorAlwaysOn.toggle()
-            return .handled
         }
     }
 
