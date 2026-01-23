@@ -46,7 +46,7 @@ struct PhotoDetailView: View {
                 .padding()
                 .background(Color(UIColor.secondarySystemBackground))
             }
-            .navigationTitle("Trance Photo")
+            .navigationTitle("Photo")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {

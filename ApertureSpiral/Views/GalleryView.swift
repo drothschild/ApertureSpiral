@@ -15,7 +15,7 @@ struct GalleryView: View {
             ScrollView {
                 if storageManager.photos.isEmpty {
                     ContentUnavailableView(
-                        "No Trance Photos",
+                        "No Photos",
                         systemImage: "photo.on.rectangle.angled",
                         description: Text("Photos captured during spiral sessions will appear here.\n\nSet an auto-capture timer in the spiral settings to take photos automatically.")
                     )
@@ -34,7 +34,7 @@ struct GalleryView: View {
                     .padding(4)
                 }
             }
-            .navigationTitle("Trance Photos")
+            .navigationTitle("Photos")
             .sheet(item: $selectedPhoto) { photo in
                 PhotoDetailView(photo: photo)
             }
