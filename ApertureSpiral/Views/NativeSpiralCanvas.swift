@@ -102,7 +102,9 @@ struct NativeSpiralCanvas: View {
                     drawApertureHole(context: context, cx: cx, cy: cy, radius: radius, apertureSize: apertureSize)
 
                     // Lens flare effect
-                    drawLensFlare(context: context, cx: cx, cy: cy, radius: radius, canvasSize: canvasSize)
+                    if settings.lensFlareEnabled {
+                        drawLensFlare(context: context, cx: cx, cy: cy, radius: radius, canvasSize: canvasSize)
+                    }
                 }
                 .onChange(of: timeline.date) { _, _ in
                     if !settings.spiralFrozen {

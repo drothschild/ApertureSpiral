@@ -155,6 +155,19 @@ struct SettingsView: View {
                         .foregroundColor(.secondary)
                 }
 
+                Section("Effects") {
+                    Toggle("Lens Flare", isOn: Binding(
+                        get: { settings.lensFlareEnabled },
+                        set: {
+                            settings.lensFlareEnabled = $0
+                            presetManager.currentPresetId = nil
+                        }
+                    ))
+                    Text("Adds a subtle orbiting light flare effect.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+
                 Section("Color Palette") {
                     ForEach(ColorPalette.allBuiltIn) { palette in
                         Button(action: {

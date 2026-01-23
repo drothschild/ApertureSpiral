@@ -30,6 +30,7 @@ struct SpiralSettingsTests {
         #expect(settings.colorFlowSpeed == 0.3)
         #expect(settings.mirrorAlwaysOn == true)
         #expect(settings.mirrorAnimationMode == 2)
+        #expect(settings.lensFlareEnabled == true)
     }
 
     @Test("Blade count can be modified")
@@ -146,6 +147,17 @@ struct SpiralSettingsTests {
         #expect(settings.mirrorAnimationMode == 2)
     }
 
+    @Test("Lens flare enabled can be modified")
+    func lensFlareEnabledModification() {
+        let settings = SpiralSettings(forTesting: .standard)
+
+        #expect(settings.lensFlareEnabled == true) // Default
+        settings.lensFlareEnabled = false
+        #expect(settings.lensFlareEnabled == false)
+        settings.lensFlareEnabled = true
+        #expect(settings.lensFlareEnabled == true)
+    }
+
     @Test("Reset restores default values")
     func resetRestoresDefaults() {
         let settings = SpiralSettings(forTesting: .standard)
@@ -159,6 +171,7 @@ struct SpiralSettingsTests {
         settings.colorFlowSpeed = 2.0
         settings.mirrorAlwaysOn = false
         settings.mirrorAnimationMode = 0
+        settings.lensFlareEnabled = false
 
         settings.reset()
 
@@ -172,6 +185,7 @@ struct SpiralSettingsTests {
         #expect(settings.colorFlowSpeed == 0.3)
         #expect(settings.mirrorAlwaysOn == true)
         #expect(settings.mirrorAnimationMode == 2)
+        #expect(settings.lensFlareEnabled == true)
     }
 
     @Test("Randomize changes settings values")
@@ -443,7 +457,8 @@ struct PresetTests {
             freezeWhenNoFace: false,
             freezeWhenNotLooking: false,
             colorPaletteId: "warm",
-            colorByBlade: false
+            colorByBlade: false,
+            lensFlareEnabled: true
         )
 
         #expect(matches == true)
@@ -481,7 +496,8 @@ struct PresetTests {
             freezeWhenNoFace: false,
             freezeWhenNotLooking: false,
             colorPaletteId: "warm",
-            colorByBlade: false
+            colorByBlade: false,
+            lensFlareEnabled: true
         )
 
         #expect(matches == false)
@@ -519,7 +535,8 @@ struct PresetTests {
             freezeWhenNoFace: false,
             freezeWhenNotLooking: false,
             colorPaletteId: "warm",
-            colorByBlade: false
+            colorByBlade: false,
+            lensFlareEnabled: true
         )
 
         #expect(matches == false)
@@ -2920,7 +2937,8 @@ struct PresetMatchesSettingsFullTests {
             freezeWhenNoFace: true,
             freezeWhenNotLooking: true,
             colorPaletteId: "cool",
-            colorByBlade: true
+            colorByBlade: true,
+            lensFlareEnabled: false
         )
 
         let matches = preset.matchesSettings(
@@ -2938,7 +2956,8 @@ struct PresetMatchesSettingsFullTests {
             freezeWhenNoFace: true,
             freezeWhenNotLooking: true,
             colorPaletteId: "cool",
-            colorByBlade: true
+            colorByBlade: true,
+            lensFlareEnabled: false
         )
 
         #expect(matches == true)
@@ -2971,7 +2990,8 @@ struct PresetMatchesSettingsFullTests {
             freezeWhenNoFace: false,
             freezeWhenNotLooking: false,
             colorPaletteId: "warm",
-            colorByBlade: false
+            colorByBlade: false,
+            lensFlareEnabled: true
         )
 
         #expect(matches == false)
@@ -3004,7 +3024,8 @@ struct PresetMatchesSettingsFullTests {
             freezeWhenNoFace: false, // Different
             freezeWhenNotLooking: false,
             colorPaletteId: "warm",
-            colorByBlade: false
+            colorByBlade: false,
+            lensFlareEnabled: true
         )
 
         #expect(matches == false)
@@ -3037,7 +3058,8 @@ struct PresetMatchesSettingsFullTests {
             freezeWhenNoFace: false,
             freezeWhenNotLooking: false, // Different
             colorPaletteId: "warm",
-            colorByBlade: false
+            colorByBlade: false,
+            lensFlareEnabled: true
         )
 
         #expect(matches == false)
@@ -3070,7 +3092,8 @@ struct PresetMatchesSettingsFullTests {
             freezeWhenNoFace: false,
             freezeWhenNotLooking: false,
             colorPaletteId: "cool", // Different
-            colorByBlade: false
+            colorByBlade: false,
+            lensFlareEnabled: true
         )
 
         #expect(matches == false)
@@ -3103,7 +3126,42 @@ struct PresetMatchesSettingsFullTests {
             freezeWhenNoFace: false,
             freezeWhenNotLooking: false,
             colorPaletteId: "warm",
-            colorByBlade: false // Different
+            colorByBlade: false, // Different
+            lensFlareEnabled: true
+        )
+
+        #expect(matches == false)
+    }
+
+    @Test("matchesSettings returns false for different lensFlareEnabled")
+    func matchesSettingsDifferentLensFlare() {
+        let preset = Preset(
+            name: "Test",
+            bladeCount: 9,
+            layerCount: 5,
+            speed: 1.0,
+            apertureSize: 0.5,
+            phrases: [],
+            lensFlareEnabled: true
+        )
+
+        let matches = preset.matchesSettings(
+            bladeCount: 9,
+            layerCount: 5,
+            speed: 1.0,
+            apertureSize: 0.5,
+            phrases: [],
+            captureTimerMinutes: 0,
+            previewOnly: false,
+            colorFlowSpeed: 0.5,
+            mirrorAlwaysOn: false,
+            mirrorAnimationMode: 2,
+            eyeCenteringEnabled: true,
+            freezeWhenNoFace: false,
+            freezeWhenNotLooking: false,
+            colorPaletteId: "warm",
+            colorByBlade: false,
+            lensFlareEnabled: false // Different
         )
 
         #expect(matches == false)
@@ -3137,7 +3195,8 @@ struct PresetMatchesSettingsFullTests {
             freezeWhenNoFace: false,
             freezeWhenNotLooking: false,
             colorPaletteId: "warm",
-            colorByBlade: false
+            colorByBlade: false,
+            lensFlareEnabled: true
         )
 
         #expect(matches == true)

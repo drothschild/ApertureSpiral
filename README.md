@@ -11,7 +11,7 @@ A mesmerizing iOS app featuring an animated camera aperture spiral with integrat
 - Color flow animation from center outward with adjustable speed
 - Color by blade or by layer modes
 - 8 built-in color palettes: Warm, Cool, Ocean, Sunset, Rainbow, Pastel, Monochrome, Neon
-- Lens flare effects and inner glow ring
+- Optional lens flare effect (toggleable in Settings > Effects)
 - Tap to reverse rotation direction
 
 ### Mirror View
