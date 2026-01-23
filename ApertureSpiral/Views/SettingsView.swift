@@ -183,6 +183,9 @@ struct SettingsView: View {
 
                 Section("Mirror View") {
                     Toggle("Always On", isOn: $settings.mirrorAlwaysOn)
+                    Text("Keep camera preview visible at all times.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
 
                     Toggle("Center on Face", isOn: $settings.eyeCenteringEnabled)
                     Text("Uses AI face detection to keep your face centered in the preview.")
@@ -196,39 +199,24 @@ struct SettingsView: View {
                             presetManager.currentPresetId = nil
                         }
                     ))
+                }
 
-                    if settings.mirrorAlwaysOn {
-                        Text("Camera preview stays visible.")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    } else {
-                        HStack {
-                            Text(settings.captureTimerMinutes == 0 ? "Off" : "\(settings.captureTimerMinutes) min")
-                                .font(.headline)
-                                .foregroundColor(.yellow)
-                                .frame(width: 60)
-                            Slider(value: Binding(
-                                get: { Double(settings.captureTimerMinutes) },
-                                set: { settings.captureTimerMinutes = Int($0) }
-                            ), in: 0...30, step: 1)
-                        }
-
-                        if settings.captureTimerMinutes > 0 {
-                            Toggle("Save Picture", isOn: Binding(
-                                get: { !settings.previewOnly },
-                                set: { settings.previewOnly = !$0 }
-                            ))
-                            Text(settings.previewOnly
-                                ? "Camera preview will appear but no photo will be taken."
-                                : "Automatically capture a photo after the specified time.")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        } else {
-                            Text("Set a timer to enable camera preview or auto-capture.")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
+                Section("Photo Capture") {
+                    HStack {
+                        Text(settings.captureTimerMinutes == 0 ? "Off" : "\(settings.captureTimerMinutes) min")
+                            .font(.headline)
+                            .foregroundColor(.yellow)
+                            .frame(width: 60)
+                        Slider(value: Binding(
+                            get: { Double(settings.captureTimerMinutes) },
+                            set: { settings.captureTimerMinutes = Int($0) }
+                        ), in: 0...30, step: 1)
                     }
+                    Text(settings.captureTimerMinutes > 0
+                        ? "A photo will be captured every \(settings.captureTimerMinutes) minute\(settings.captureTimerMinutes == 1 ? "" : "s")."
+                        : "Set a timer to periodically capture photos.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
 
             }

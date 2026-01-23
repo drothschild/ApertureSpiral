@@ -149,6 +149,21 @@ struct SpiralView: View {
                         showTabBarTemporarily()
                     }
             }
+
+            // Camera icon indicator when capture timer is active
+            if settings.captureTimerMinutes > 0 {
+                VStack {
+                    HStack {
+                        Spacer()
+                        Image(systemName: "camera.fill")
+                            .font(.system(size: 20))
+                            .foregroundColor(.white.opacity(0.6))
+                            .padding(12)
+                    }
+                    Spacer()
+                }
+                .padding(.top, 50)
+            }
         }
         .highPriorityGesture(
             DragGesture(minimumDistance: 30)
@@ -281,24 +296,22 @@ struct SpiralView: View {
     }
 
     private func capturePhoto() {
-        showCameraPreview = true
-
-        // If preview only mode, just show the preview for a while then hide it
-        if settings.previewOnly {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-                showCameraPreview = false
-            }
-            return
+        // Only toggle showCameraPreview if mirror isn't already always on
+        let needsTemporaryPreview = !settings.mirrorAlwaysOn
+        if needsTemporaryPreview {
+            showCameraPreview = true
         }
 
-        // Normal capture mode
+        // Show preview briefly, then capture
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             showCaptureFlash = true
 
             cameraManager.capturePhoto { image in
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     showCaptureFlash = false
-                    showCameraPreview = false
+                    if needsTemporaryPreview {
+                        showCameraPreview = false
+                    }
                 }
 
                 if let image = image {
