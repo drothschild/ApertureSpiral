@@ -49,14 +49,15 @@ struct NativeSpiralCanvas: View {
                     let apertureSize = settings.apertureSize * (1 - breathDepth * breathAmount)
 
                     // Update hole diameter for camera preview sync
-                    let holeRadius = radius * apertureSize * 0.43
-                    let currentHoleDiameter = holeRadius * 2
-                    let maxHoleRadius = radius * settings.apertureSize * 0.43
-                    let currentMaxHoleDiameter = maxHoleRadius * 2
+                    // Use 0.40 (vs 0.43 for visual aperture) to ensure preview stays within aperture bounds
+                    let cameraHoleRadius = radius * apertureSize * 0.40
+                    let currentCameraHoleDiameter = cameraHoleRadius * 2
+                    let maxCameraHoleRadius = radius * settings.apertureSize * 0.40
+                    let currentMaxCameraHoleDiameter = maxCameraHoleRadius * 2
 
                     DispatchQueue.main.async {
-                        holeDiameter = currentHoleDiameter
-                        maxHoleDiameter = currentMaxHoleDiameter
+                        holeDiameter = currentCameraHoleDiameter
+                        maxHoleDiameter = currentMaxCameraHoleDiameter
                     }
 
                     // Background
