@@ -234,6 +234,9 @@ struct SpiralView: View {
         .onReceive(NotificationCenter.default.publisher(for: .capturePhoto)) { _ in
             capturePhoto()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .showSpeedIndicator)) { _ in
+            showSpeedIndicatorBriefly()
+        }
         .animation(.easeOut(duration: 0.3), value: showCaptureFlash)
         .animation(.easeInOut(duration: 0.3), value: showCameraPreview)
         .animation(.easeInOut(duration: 0.3), value: hideTabBar)

@@ -247,6 +247,46 @@ struct SpiralSettingsTests {
             #expect(validPaletteIds.contains(settings.colorPaletteId))
         }
     }
+
+    @Test("Speed up increases speed by 0.4")
+    func speedUpIncreasesSpeed() {
+        let settings = SpiralSettings(forTesting: .standard)
+        settings.speed = 1.0
+
+        settings.speed = min(3.0, settings.speed + 0.4)
+
+        #expect(abs(settings.speed - 1.4) < 0.001)
+    }
+
+    @Test("Speed up respects maximum of 3.0")
+    func speedUpRespectsMaximum() {
+        let settings = SpiralSettings(forTesting: .standard)
+        settings.speed = 2.8
+
+        settings.speed = min(3.0, settings.speed + 0.4)
+
+        #expect(settings.speed == 3.0)
+    }
+
+    @Test("Slow down decreases speed by 0.4")
+    func slowDownDecreasesSpeed() {
+        let settings = SpiralSettings(forTesting: .standard)
+        settings.speed = 1.0
+
+        settings.speed = max(0.1, settings.speed - 0.4)
+
+        #expect(abs(settings.speed - 0.6) < 0.001)
+    }
+
+    @Test("Slow down respects minimum of 0.1")
+    func slowDownRespectsMinimum() {
+        let settings = SpiralSettings(forTesting: .standard)
+        settings.speed = 0.3
+
+        settings.speed = max(0.1, settings.speed - 0.4)
+
+        #expect(settings.speed == 0.1)
+    }
 }
 
 // MARK: - Preset Tests
