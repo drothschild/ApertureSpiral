@@ -42,6 +42,19 @@ struct SettingsView: View {
                             settings.phrasesText = newValue
                             presetManager.currentPresetId = nil
                         }
+                        .onChange(of: phrasesFocused) { _, isFocused in
+                            if !isFocused {
+                                let lines = phrasesText
+                                    .components(separatedBy: .newlines)
+                                    .map { $0.trimmingCharacters(in: .whitespaces) }
+                                    .filter { !$0.isEmpty }
+                                let uniqueSorted = Array(Set(lines)).sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+                                let newText = uniqueSorted.joined(separator: "\n")
+                                if newText != phrasesText {
+                                    phrasesText = newText
+                                }
+                            }
+                        }
                     Text("One phrase per line. Cycles randomly in the center.")
                         .font(.caption)
                         .foregroundColor(.secondary)
@@ -237,6 +250,15 @@ struct SettingsView: View {
             .navigationTitle("Settings")
             .onAppear {
                 phrasesText = settings.phrasesText
+            }
+            .onDisappear {
+                let lines = phrasesText
+                    .components(separatedBy: .newlines)
+                    .map { $0.trimmingCharacters(in: .whitespaces) }
+                    .filter { !$0.isEmpty }
+                let uniqueSorted = Array(Set(lines)).sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+                phrasesText = uniqueSorted.joined(separator: "\n")
+                settings.phrasesText = phrasesText
             }
             .alert("Save Preset", isPresented: $showingSavePreset) {
                 TextField("Preset name", text: $newPresetName)
