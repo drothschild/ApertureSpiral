@@ -176,7 +176,7 @@ struct SettingsView: View {
 
                 Section("Face Detection") {
                     Toggle("Freeze spiral when no face detected", isOn: $settings.freezeWhenNoFace)
-                    Text("Freeze the spiral after 5 seconds without a detected face.")
+                    Text("Freeze the spiral without a detected face.")
                         .font(.caption)
                         .foregroundColor(.secondary)
 
@@ -187,13 +187,13 @@ struct SettingsView: View {
                 }
 
                 Section("Mirror View") {
-                    Toggle("Always On", isOn: $settings.mirrorAlwaysOn)
-                    Text("Keep camera preview visible at all times.")
+                    Toggle("On", isOn: $settings.mirrorAlwaysOn)
+                    Text("Show camera preview at center of spiral.")
                         .font(.caption)
                         .foregroundColor(.secondary)
 
                     Toggle("Center on Face", isOn: $settings.eyeCenteringEnabled)
-                    Text("Uses AI face detection to keep your face centered in the preview.")
+                    Text("Uses AI face detection to keep your face centered in the spiral.")
                         .font(.caption)
                         .foregroundColor(.secondary)
 
