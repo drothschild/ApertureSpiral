@@ -373,7 +373,7 @@ class CameraManager: NSObject, ObservableObject {
     }
 }
 
-extension CameraManager: @preconcurrency AVCapturePhotoCaptureDelegate {
+extension CameraManager: AVCapturePhotoCaptureDelegate {
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
         guard let data = photo.fileDataRepresentation(),
               let image = UIImage(data: data) else {
@@ -408,7 +408,7 @@ extension CameraManager: @preconcurrency AVCapturePhotoCaptureDelegate {
     }
 }
 
-extension CameraManager: @preconcurrency AVCaptureVideoDataOutputSampleBufferDelegate {
+extension CameraManager: AVCaptureVideoDataOutputSampleBufferDelegate {
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         // Process every 5th frame to reduce CPU load on older devices
         frameCounter += 1
