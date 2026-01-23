@@ -33,8 +33,7 @@ struct SpiralView: View {
             NativeSpiralCanvas(
                 settings: settings,
                 holeDiameter: $holeDiameter,
-                maxHoleDiameter: $maxHoleDiameter,
-                hideWords: cameraVisible
+                maxHoleDiameter: $maxHoleDiameter
             )
 
             // Camera preview overlay (center) - shown during capture or when always on
@@ -93,29 +92,30 @@ struct SpiralView: View {
                 .ignoresSafeArea()
             }
 
-            // Phrase overlay - shows when camera visible with phrases, or when spiral is frozen
-            if (cameraVisible && showPhrase) || settings.spiralFrozen {
-                GeometryReader { geometry in
-                    let displayText: String =
-                        settings.spiralFrozen
-                        ? "LOOK AT THE SPIRAL"
-                        : (!settings.phrases.isEmpty && currentPhraseIndex >= 0 && currentPhraseIndex < settings.phrases.count
-                           ? settings.phrases[currentPhraseIndex].trimmingCharacters(in: .whitespaces)
-                           : "")
+            // Phrase overlay - shows phrases or frozen message
+            if showPhrase || settings.spiralFrozen {
+                let displayText: String =
+                    settings.spiralFrozen
+                    ? "LOOK AT THE SPIRAL"
+                    : (!settings.phrases.isEmpty && currentPhraseIndex >= 0 && currentPhraseIndex < settings.phrases.count
+                       ? settings.phrases[currentPhraseIndex].trimmingCharacters(in: .whitespaces)
+                       : "")
 
-                    if !displayText.isEmpty {
-                        Text(displayText)
-                            .font(.custom("Bebas Neue", size: settings.spiralFrozen ? 72 : 48))
-                            .foregroundColor(settings.spiralFrozen ? .yellow : .white)
-                            .shadow(color: .black, radius: settings.spiralFrozen ? 8 : 4, x: 0, y: 2)
-                            .shadow(color: .black.opacity(0.7), radius: settings.spiralFrozen ? 16 : 8, x: 0, y: 4)
-                            .shadow(color: settings.spiralFrozen ? .yellow.opacity(0.5) : .clear, radius: 20)
-                            .transition(.opacity)
-                            .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
-                            .animation(.easeInOut(duration: 0.3), value: settings.spiralFrozen)
-                    }
+                if !displayText.isEmpty {
+                    Text(displayText)
+                        .font(.custom("Bebas Neue", size: settings.spiralFrozen ? 72 : 48))
+                        .minimumScaleFactor(0.4)
+                        .lineLimit(1)
+                        .foregroundColor(settings.spiralFrozen ? .yellow : .white)
+                        .shadow(color: .black, radius: settings.spiralFrozen ? 8 : 4, x: 0, y: 2)
+                        .shadow(color: .black.opacity(0.7), radius: settings.spiralFrozen ? 16 : 8, x: 0, y: 4)
+                        .shadow(color: settings.spiralFrozen ? .yellow.opacity(0.5) : .clear, radius: 20)
+                        .transition(.opacity)
+                        .padding(.horizontal, 20)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .animation(.easeInOut(duration: 0.3), value: settings.spiralFrozen)
+                        .ignoresSafeArea()
                 }
-                .ignoresSafeArea()
             }
 
             // Capture flash effect
@@ -286,7 +286,7 @@ struct SpiralView: View {
 
     private func cyclePhrase() {
         // Don't cycle phrases when spiral is frozen - only show "LOOK AT THE SPIRAL"
-        guard !settings.spiralFrozen, cameraVisible, !settings.phrases.isEmpty else {
+        guard !settings.spiralFrozen, !settings.phrases.isEmpty else {
             showPhrase = false
             return
         }

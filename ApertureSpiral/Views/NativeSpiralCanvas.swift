@@ -4,22 +4,14 @@ struct NativeSpiralCanvas: View {
     @ObservedObject var settings: SpiralSettings
     @Binding var holeDiameter: CGFloat
     @Binding var maxHoleDiameter: CGFloat
-    var hideWords: Bool = false
 
     // Animation state
     @State private var time: Double = 0
-    @State private var frameCount: Int = 0
-    @State private var currentWordIndex: Int = -1
     @State private var direction: Double = 1
 
     // Breathing parameters
     private let breathCycleSeconds: Double = 8.0
     private let breathDepth: Double = 1.0
-
-    // Word cycling parameters
-    private let showFrames: Int = 15
-    private let pauseFrames: Int = 30
-    private var cycleLength: Int { showFrames + pauseFrames }
 
     // Color palette from settings
     private var colors: [Color] {
@@ -109,17 +101,12 @@ struct NativeSpiralCanvas: View {
                     // Draw center hole
                     drawApertureHole(context: context, cx: cx, cy: cy, radius: radius, apertureSize: apertureSize)
 
-                    // Draw centered words
-                    drawCenterWords(context: context, cx: cx, cy: cy, radius: radius)
-
                     // Lens flare effect
                     drawLensFlare(context: context, cx: cx, cy: cy, radius: radius, canvasSize: canvasSize)
                 }
                 .onChange(of: timeline.date) { _, _ in
                     if !settings.spiralFrozen {
                         time += 0.016 * settings.speed
-                        frameCount += 1
-                        updateWordCycle()
                     }
                 }
             }
@@ -130,24 +117,6 @@ struct NativeSpiralCanvas: View {
         .ignoresSafeArea()
         .onTapGesture {
             direction *= -1
-        }
-    }
-
-    private func updateWordCycle() {
-        guard !settings.phrases.isEmpty else { return }
-
-        let cyclePosition = frameCount % cycleLength
-
-        if cyclePosition == 0 {
-            if settings.phrases.count > 1 {
-                var newIndex: Int
-                repeat {
-                    newIndex = Int.random(in: 0..<settings.phrases.count)
-                } while newIndex == currentWordIndex
-                currentWordIndex = newIndex
-            } else {
-                currentWordIndex = 0
-            }
         }
     }
 
@@ -338,53 +307,6 @@ struct NativeSpiralCanvas: View {
         )
     }
 
-    private func drawCenterWords(
-        context: GraphicsContext,
-        cx: CGFloat,
-        cy: CGFloat,
-        radius: CGFloat
-    ) {
-        // Hide words when camera preview is visible
-        guard !hideWords else { return }
-        guard !settings.phrases.isEmpty else { return }
-
-        let cyclePosition = frameCount % cycleLength
-
-        // Only show word during the first showFrames of the cycle
-        guard cyclePosition < showFrames else { return }
-        guard currentWordIndex >= 0 && currentWordIndex < settings.phrases.count else { return }
-
-        let word = settings.phrases[currentWordIndex].trimmingCharacters(in: .whitespaces)
-        guard !word.isEmpty else { return }
-
-        // Calculate alpha for fade in/out
-        var alpha: Double = 1
-        if cyclePosition < 3 {
-            alpha = Double(cyclePosition) / 3
-        } else if cyclePosition > showFrames - 3 {
-            alpha = Double(showFrames - cyclePosition) / 3
-        }
-
-        let fontSize = min(radius * 0.35, 80)
-
-        // Draw text with outline
-        let textContext = context
-
-        // Black outline (stroke)
-        let outlineText = Text(word)
-            .font(.custom("Bebas Neue", size: fontSize))
-            .foregroundColor(.black.opacity(alpha))
-
-        textContext.draw(outlineText, at: CGPoint(x: cx, y: cy), anchor: .center)
-
-        // White fill
-        let fillText = Text(word)
-            .font(.custom("Bebas Neue", size: fontSize))
-            .foregroundColor(.white.opacity(alpha))
-
-        textContext.draw(fillText, at: CGPoint(x: cx, y: cy), anchor: .center)
-    }
-
     private func drawOuterGlow(
         context: GraphicsContext,
         cx: CGFloat,
@@ -435,7 +357,6 @@ struct NativeSpiralCanvas: View {
     NativeSpiralCanvas(
         settings: SpiralSettings.shared,
         holeDiameter: .constant(100),
-        maxHoleDiameter: .constant(150),
-        hideWords: false
+        maxHoleDiameter: .constant(150)
     )
 }
