@@ -1,116 +1,121 @@
 # ApertureSpiral
 
-An immersive, meditative iOS app featuring an animated spiral aperture visualization with integrated front-facing camera preview and AI-powered face centering. 
+A mesmerizing iOS app featuring an animated camera aperture spiral with integrated mirror view and AI-powered face tracking.
 
 ## Features
 
-
 ### Spiral Visualization
-- Dynamic animated spiral mimicking a camera iris opening/closing
+- Animated spiral mimicking a camera iris with breathing expansion/contraction
 - Customizable blade count (3-16) and layer depth (1-8)
-- Breathing animation creating natural expansion/contraction
-- Warm amber-to-magenta gradient color palette with outward flow
-- Lens flare effects for visual richness
-- Adjustable speed (0.1x-3.0x) and aperture depth (f/1.4 to f/15.4)
+- Adjustable speed (0.1x-3.0x) and aperture size (f/1.4 to f/15.4)
+- Color flow animation from center outward with adjustable speed
+- Color by blade or by layer modes
+- 8 built-in color palettes: Warm, Cool, Ocean, Sunset, Rainbow, Pastel, Monochrome, Neon
+- Lens flare effects and inner glow ring
+- Tap to reverse rotation direction
 
-### Camera Mirror
+### Mirror View
 - Front-facing camera preview in the aperture center
-- AI face detection using Vision framework for automatic eye centering
-- Three animation modes: Scale, Zoom, or Both
-- Always-on mirror option for continuous viewing
+- AI face detection keeps your face centered using Vision framework
+- Two animation modes: Zoom only or Zoom + Scale
+- Always-on mirror option
 
-### Auto-Capture Photography
-- Configurable capture timer (0-30 minutes)
-- Flash effect feedback during capture
-- Preset association for tracking capture settings
+### Face Detection
+- Freeze spiral when no face detected (after 5 seconds)
+- Freeze spiral when not looking at screen (eye tracking)
+- "LOOK AT THE SPIRAL" message displays when frozen
 
 ### Text Overlays
-- Customizable phrases displayed in the spiral center
-- Smooth fade animations with phrase cycling
+- Custom phrases displayed in the spiral center
+- Random phrase cycling with fade animations
+- One phrase per line in settings
+
+### Auto-Capture Photography
+- Timer-based photo capture (1-30 minute intervals)
+- Flash effect feedback
+- Photos saved to in-app gallery
 
 ### Photo Gallery
-- 3-column grid gallery of captured photos
-- Detail view with metadata, sharing, and deletion
+- 3-column grid gallery
+- Detail view with sharing and deletion
 
 ### Presets
-- Built-in presets: Birthday, Calm, Intense
-- Create and save custom presets
+- 4 built-in presets: Birthday, Calm, Intense, Trippy
+- Save and load custom presets
+- Import/export presets as XML files
+- Randomize all settings with one tap
+
+### Keyboard Shortcuts
+When using with an external keyboard:
+- `R` - Randomize settings
+- `M` - Toggle mirror view
+- `P` - Capture photo
+- `→` - Speed up
+- `←` - Slow down
 
 ## Requirements
 
 - iOS 17.0+
 - Xcode 15.0+
 - Swift 5.9+
-- Camera access permission
+- Camera permission
 
 ## Installation
 
 1. Clone the repository
 2. Open `ApertureSpiral.xcodeproj` in Xcode
-3. Select your target device or simulator
-4. Build and run (Cmd+R)
+3. Build and run (Cmd+R)
 
 ## Usage
 
 ### Gestures
-- **Tap** the spiral to reverse rotation direction
-- **Swipe right** to increase speed
-- **Swipe left** to decrease speed
+- **Tap** spiral to reverse rotation
+- **Swipe right** to speed up
+- **Swipe left** to slow down
 - **Tap** when tab bar is hidden to reveal it
 
 ### Navigation
-- **Spiral tab**: Main visualization experience
-- **Settings tab**: Customize all parameters
-- **Photos tab**: View captured images
+- **Spiral** - Main visualization
+- **Settings** - Customize parameters
+- **Photos** - View captured images
 
 ## Architecture
 
 ```
 ApertureSpiral/
-├── ApertureSpiral.xcodeproj         # Xcode project
-├── ApertureSpiral/                  # Main app source
-│   ├── ApertureSpiralApp.swift      # App entry point
-│   ├── Camera/
-│   │   ├── CameraManager.swift      # Camera & face detection
-│   │   └── CameraPreviewView.swift  # Camera preview component
-│   ├── Storage/
-│   │   ├── TrancePhoto.swift        # Photo data model
-│   │   ├── SpiralSettings.swift     # Settings persistence
-│   │   └── PhotoStorageManager.swift# Photo storage
-│   └── Views/
-│       ├── MainView.swift           # Tab navigation
-│       ├── SpiralView.swift         # Main visualization
-│       ├── SettingsView.swift       # Configuration
-│       ├── GalleryView.swift        # Photo gallery
-│       ├── PhotoDetailView.swift    # Photo viewer
-│       ├── NativeSpiralCanvas.swift # Spiral rendering
-│       └── PresetsView.swift        # Preset management
-├── ApertureSpiralTests/             # Unit tests
-│   └── ApertureSpiralTests.swift    # Swift Testing suite
-└── ApertureSpiralUITests/           # UI tests
-    ├── ApertureSpiralUITests.swift  # XCTest UI tests
-    └── ApertureSpiralUITestsLaunchTests.swift
+├── ApertureSpiralApp.swift        # App entry, keyboard command handling
+├── Camera/
+│   ├── CameraManager.swift        # Camera session, face detection, eye tracking
+│   ├── CameraPreviewView.swift    # Camera preview with face centering
+│   └── GazeTracker.swift          # Eye gaze tracking
+├── Storage/
+│   ├── ColorPalette.swift         # Color palette definitions
+│   ├── PhotoStorageManager.swift  # Photo persistence
+│   ├── SpiralSettings.swift       # Settings with UserDefaults persistence
+│   └── TrancePhoto.swift          # Photo data model
+└── Views/
+    ├── GalleryView.swift          # Photo gallery grid
+    ├── LoadingOverlay.swift       # Loading screen
+    ├── MainView.swift             # Tab navigation
+    ├── NativeSpiralCanvas.swift   # SwiftUI Canvas spiral rendering
+    ├── PhotoDetailView.swift      # Photo viewer with sharing
+    ├── PresetsView.swift          # Preset model and manager
+    ├── SettingsView.swift         # Settings UI
+    └── SpiralView.swift           # Main spiral view with camera overlay
 ```
 
 ## Technologies
 
-- **SwiftUI** - UI components and layouts
-- **AVFoundation** - Camera capture and preview
-- **Vision** - AI face detection
-- **Core Data** - Data management
+- **SwiftUI** - UI and Canvas-based spiral rendering
+- **AVFoundation** - Camera capture
+- **Vision** - Face detection and eye tracking
 - **Combine** - Reactive state management
 
 ## Testing
 
-Run tests in Xcode with Cmd+U or via command line:
-
 ```bash
 xcodebuild test -scheme ApertureSpiral -destination 'platform=iOS Simulator,name=iPhone 16'
 ```
-
-**Unit Tests** - Swift Testing framework covering SpiralSettings, Presets, PresetManager, TrancePhoto, PhotoStorageManager, and CameraManager.
-
-**UI Tests** - XCTest UI tests for tab navigation, settings interactions, and performance metrics.
 
 ## License
 
