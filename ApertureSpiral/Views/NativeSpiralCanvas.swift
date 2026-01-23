@@ -74,10 +74,16 @@ struct NativeSpiralCanvas: View {
                         let rotationOffset = time * (0.8 + Double(layer) * 0.5) * direction
                         let layerAlpha = 0.15 + (Double(layer) / Double(settings.layerCount)) * 0.25
 
-                        let colorIndex = ((layer - colorOffset) % colors.count + colors.count) % colors.count
-                        let color = colorComponents[colorIndex]
+                        // Color by layer: calculate once per layer
+                        let layerColorIndex = ((layer - colorOffset) % colors.count + colors.count) % colors.count
 
                         for i in 0..<settings.bladeCount {
+                            // Color by blade or by layer based on setting
+                            let colorIndex = settings.colorByBlade
+                                ? ((i - colorOffset) % colors.count + colors.count) % colors.count
+                                : layerColorIndex
+                            let color = colorComponents[colorIndex]
+
                             let baseAngle = (Double(i) / Double(settings.bladeCount)) * .pi * 2
                             let angle = baseAngle + rotationOffset + Double(layer) * 0.1
                             let pulseAlpha = layerAlpha + sin(time * 1.5 + Double(i) * 0.5 + Double(layer)) * 0.05

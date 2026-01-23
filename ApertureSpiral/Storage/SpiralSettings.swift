@@ -20,6 +20,7 @@ class SpiralSettings: ObservableObject {
         static let freezeWhenNoFace = "spiral.freezeWhenNoFace"
         static let freezeWhenNotLooking = "spiral.freezeWhenNotLooking"
         static let colorPaletteId = "spiral.colorPaletteId"
+        static let colorByBlade = "spiral.colorByBlade"
         static let hasLaunchedBefore = "spiral.hasLaunchedBefore"
     }
 
@@ -40,6 +41,7 @@ class SpiralSettings: ObservableObject {
         static let freezeWhenNoFace = false
         static let freezeWhenNotLooking = false
         static let colorPaletteId = "warm"
+        static let colorByBlade = false
     }
 
     @Published var bladeCount: Int = Defaults.bladeCount {
@@ -86,6 +88,9 @@ class SpiralSettings: ObservableObject {
     @Published var colorPaletteId: String = Defaults.colorPaletteId {
         didSet { if !suppressUserDefaultsWrites { userDefaults.set(colorPaletteId, forKey: Keys.colorPaletteId) } }
     }
+    @Published var colorByBlade: Bool = Defaults.colorByBlade {
+        didSet { if !suppressUserDefaultsWrites { userDefaults.set(colorByBlade, forKey: Keys.colorByBlade) } }
+    }
 
     // When true, property setters will not write to UserDefaults immediately.
     private var suppressUserDefaultsWrites: Bool = false
@@ -107,6 +112,7 @@ class SpiralSettings: ObservableObject {
         freezeWhenNoFace = preset.freezeWhenNoFace
         freezeWhenNotLooking = preset.freezeWhenNotLooking
         colorPaletteId = preset.colorPaletteId
+        colorByBlade = preset.colorByBlade
         suppressUserDefaultsWrites = false
         // Persist all values once
         persistAllToUserDefaults()
@@ -128,7 +134,8 @@ class SpiralSettings: ObservableObject {
             eyeCenteringEnabled: eyeCenteringEnabled,
             freezeWhenNoFace: freezeWhenNoFace,
             freezeWhenNotLooking: freezeWhenNotLooking,
-            colorPaletteId: colorPaletteId
+            colorPaletteId: colorPaletteId,
+            colorByBlade: colorByBlade
         )
 
         DispatchQueue.global(qos: .userInitiated).async {
@@ -147,6 +154,7 @@ class SpiralSettings: ObservableObject {
             ud.set(snapshot.freezeWhenNoFace, forKey: Keys.freezeWhenNoFace)
             ud.set(snapshot.freezeWhenNotLooking, forKey: Keys.freezeWhenNotLooking)
             ud.set(snapshot.colorPaletteId, forKey: Keys.colorPaletteId)
+            ud.set(snapshot.colorByBlade, forKey: Keys.colorByBlade)
         }
     }
 
@@ -182,6 +190,7 @@ class SpiralSettings: ObservableObject {
             freezeWhenNoFace = userDefaults.object(forKey: Keys.freezeWhenNoFace) == nil ? Defaults.freezeWhenNoFace : userDefaults.bool(forKey: Keys.freezeWhenNoFace)
             freezeWhenNotLooking = userDefaults.object(forKey: Keys.freezeWhenNotLooking) == nil ? Defaults.freezeWhenNotLooking : userDefaults.bool(forKey: Keys.freezeWhenNotLooking)
             colorPaletteId = userDefaults.string(forKey: Keys.colorPaletteId) ?? Defaults.colorPaletteId
+            colorByBlade = userDefaults.object(forKey: Keys.colorByBlade) == nil ? Defaults.colorByBlade : userDefaults.bool(forKey: Keys.colorByBlade)
 
             // Handle zero values that might indicate unset (use defaults instead)
             if bladeCount == 0 { bladeCount = Defaults.bladeCount }
@@ -205,6 +214,7 @@ class SpiralSettings: ObservableObject {
             freezeWhenNoFace = Defaults.freezeWhenNoFace
             freezeWhenNotLooking = Defaults.freezeWhenNotLooking
             colorPaletteId = Defaults.colorPaletteId
+            colorByBlade = Defaults.colorByBlade
 
             userDefaults.set(true, forKey: Keys.hasLaunchedBefore)
         }
@@ -227,6 +237,7 @@ class SpiralSettings: ObservableObject {
         freezeWhenNoFace = Defaults.freezeWhenNoFace
         freezeWhenNotLooking = Defaults.freezeWhenNotLooking
         colorPaletteId = Defaults.colorPaletteId
+        colorByBlade = Defaults.colorByBlade
     }
 
     /// Resets all settings to defaults
@@ -245,6 +256,7 @@ class SpiralSettings: ObservableObject {
         freezeWhenNoFace = Defaults.freezeWhenNoFace
         freezeWhenNotLooking = Defaults.freezeWhenNotLooking
         colorPaletteId = Defaults.colorPaletteId
+        colorByBlade = Defaults.colorByBlade
     }
 
     var phrasesText: String {

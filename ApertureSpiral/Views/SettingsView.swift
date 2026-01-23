@@ -124,6 +124,17 @@ struct SettingsView: View {
                     Text("Speed of colors flowing from center outward. Set to 0 to disable.")
                         .font(.caption)
                         .foregroundColor(.secondary)
+
+                    Toggle("Color by Blade", isOn: Binding(
+                        get: { settings.colorByBlade },
+                        set: {
+                            settings.colorByBlade = $0
+                            presetManager.currentPresetId = nil
+                        }
+                    ))
+                    Text(settings.colorByBlade ? "Each blade has its own color." : "Each layer has its own color.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
 
                 Section("Color Palette") {
