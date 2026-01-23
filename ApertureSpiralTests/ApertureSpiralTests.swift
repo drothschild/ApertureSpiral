@@ -327,7 +327,8 @@ struct PresetTests {
             eyeCenteringEnabled: true,
             freezeWhenNoFace: false,
             freezeWhenNotLooking: false,
-            colorPaletteId: "warm"
+            colorPaletteId: "warm",
+            colorByBlade: false
         )
 
         #expect(matches == true)
@@ -364,7 +365,8 @@ struct PresetTests {
             eyeCenteringEnabled: true,
             freezeWhenNoFace: false,
             freezeWhenNotLooking: false,
-            colorPaletteId: "warm"
+            colorPaletteId: "warm",
+            colorByBlade: false
         )
 
         #expect(matches == false)
@@ -401,7 +403,8 @@ struct PresetTests {
             eyeCenteringEnabled: true,
             freezeWhenNoFace: false,
             freezeWhenNotLooking: false,
-            colorPaletteId: "warm"
+            colorPaletteId: "warm",
+            colorByBlade: false
         )
 
         #expect(matches == false)
@@ -2728,6 +2731,7 @@ struct SpiralSettingsAdditionalTests {
         settings.freezeWhenNoFace = true
         settings.freezeWhenNotLooking = true
         settings.colorPaletteId = "neon"
+        settings.colorByBlade = true
 
         settings.reset()
 
@@ -2736,6 +2740,25 @@ struct SpiralSettingsAdditionalTests {
         #expect(settings.freezeWhenNoFace == false)
         #expect(settings.freezeWhenNotLooking == false)
         #expect(settings.colorPaletteId == "warm")
+        #expect(settings.colorByBlade == false)
+    }
+
+    @Test("colorByBlade default is false")
+    func colorByBladeDefault() {
+        let settings = SpiralSettings(forTesting: .standard)
+
+        #expect(settings.colorByBlade == false)
+    }
+
+    @Test("colorByBlade can be modified")
+    func colorByBladeModification() {
+        let settings = SpiralSettings(forTesting: .standard)
+
+        settings.colorByBlade = true
+        #expect(settings.colorByBlade == true)
+
+        settings.colorByBlade = false
+        #expect(settings.colorByBlade == false)
     }
 
     @Test("phrasesText with only whitespace lines filters to non-empty")
@@ -2781,7 +2804,8 @@ struct PresetMatchesSettingsFullTests {
             eyeCenteringEnabled: false,
             freezeWhenNoFace: true,
             freezeWhenNotLooking: true,
-            colorPaletteId: "cool"
+            colorPaletteId: "cool",
+            colorByBlade: true
         )
 
         let matches = preset.matchesSettings(
@@ -2798,7 +2822,8 @@ struct PresetMatchesSettingsFullTests {
             eyeCenteringEnabled: false,
             freezeWhenNoFace: true,
             freezeWhenNotLooking: true,
-            colorPaletteId: "cool"
+            colorPaletteId: "cool",
+            colorByBlade: true
         )
 
         #expect(matches == true)
@@ -2830,7 +2855,8 @@ struct PresetMatchesSettingsFullTests {
             eyeCenteringEnabled: false, // Different
             freezeWhenNoFace: false,
             freezeWhenNotLooking: false,
-            colorPaletteId: "warm"
+            colorPaletteId: "warm",
+            colorByBlade: false
         )
 
         #expect(matches == false)
@@ -2862,7 +2888,8 @@ struct PresetMatchesSettingsFullTests {
             eyeCenteringEnabled: true,
             freezeWhenNoFace: false, // Different
             freezeWhenNotLooking: false,
-            colorPaletteId: "warm"
+            colorPaletteId: "warm",
+            colorByBlade: false
         )
 
         #expect(matches == false)
@@ -2894,7 +2921,8 @@ struct PresetMatchesSettingsFullTests {
             eyeCenteringEnabled: true,
             freezeWhenNoFace: false,
             freezeWhenNotLooking: false, // Different
-            colorPaletteId: "warm"
+            colorPaletteId: "warm",
+            colorByBlade: false
         )
 
         #expect(matches == false)
@@ -2926,7 +2954,41 @@ struct PresetMatchesSettingsFullTests {
             eyeCenteringEnabled: true,
             freezeWhenNoFace: false,
             freezeWhenNotLooking: false,
-            colorPaletteId: "cool" // Different
+            colorPaletteId: "cool", // Different
+            colorByBlade: false
+        )
+
+        #expect(matches == false)
+    }
+
+    @Test("matchesSettings returns false for different colorByBlade")
+    func matchesSettingsDifferentColorByBlade() {
+        let preset = Preset(
+            name: "Test",
+            bladeCount: 9,
+            layerCount: 5,
+            speed: 1.0,
+            apertureSize: 0.5,
+            phrases: [],
+            colorByBlade: true
+        )
+
+        let matches = preset.matchesSettings(
+            bladeCount: 9,
+            layerCount: 5,
+            speed: 1.0,
+            apertureSize: 0.5,
+            phrases: [],
+            captureTimerMinutes: 0,
+            previewOnly: false,
+            colorFlowSpeed: 0.5,
+            mirrorAlwaysOn: false,
+            mirrorAnimationMode: 2,
+            eyeCenteringEnabled: true,
+            freezeWhenNoFace: false,
+            freezeWhenNotLooking: false,
+            colorPaletteId: "warm",
+            colorByBlade: false // Different
         )
 
         #expect(matches == false)
@@ -2959,7 +3021,8 @@ struct PresetMatchesSettingsFullTests {
             eyeCenteringEnabled: true,
             freezeWhenNoFace: false,
             freezeWhenNotLooking: false,
-            colorPaletteId: "warm"
+            colorPaletteId: "warm",
+            colorByBlade: false
         )
 
         #expect(matches == true)

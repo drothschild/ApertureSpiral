@@ -14,42 +14,69 @@ final class ApertureSpiralUITests: XCTestCase {
     override func setUpWithError() throws {
         continueAfterFailure = false
         app = XCUIApplication()
+        // Set launch argument to disable tab bar auto-hide for testing
+        app.launchArguments.append("--uitesting")
         app.launch()
+
+        // Wait for app to fully load
+        Thread.sleep(forTimeInterval: 1.0)
     }
 
     override func tearDownWithError() throws {
         app = nil
     }
 
+    // MARK: - Helper Methods
+
+    /// Ensures the tab bar is visible by tapping the screen if needed
+    @MainActor
+    private func ensureTabBarVisible() {
+        let tabBar = app.tabBars.firstMatch
+        if !tabBar.isHittable {
+            // Tap the screen to show the tab bar
+            app.windows.firstMatch.tap()
+            Thread.sleep(forTimeInterval: 0.5)
+        }
+    }
+
+    /// Gets a tab button, ensuring tab bar is visible first
+    @MainActor
+    private func getTabButton(_ name: String) -> XCUIElement {
+        ensureTabBarVisible()
+        return app.tabBars.buttons[name]
+    }
+
     // MARK: - Tab Navigation Tests
 
     @MainActor
     func testTabBarExists() throws {
+        ensureTabBarVisible()
         let tabBar = app.tabBars.firstMatch
         XCTAssertTrue(tabBar.waitForExistence(timeout: 5))
     }
 
     @MainActor
     func testSpiralTabExists() throws {
-        let spiralTab = app.tabBars.buttons["Spiral"]
+        let spiralTab = getTabButton("Spiral")
         XCTAssertTrue(spiralTab.waitForExistence(timeout: 5))
     }
 
     @MainActor
     func testSettingsTabExists() throws {
-        let settingsTab = app.tabBars.buttons["Settings"]
+        let settingsTab = getTabButton("Settings")
         XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
     }
 
     @MainActor
     func testPhotosTabExists() throws {
-        let photosTab = app.tabBars.buttons["Photos"]
+        let photosTab = getTabButton("Photos")
         XCTAssertTrue(photosTab.waitForExistence(timeout: 5))
     }
 
     @MainActor
     func testNavigateToSettings() throws {
-        let settingsTab = app.tabBars.buttons["Settings"]
+        let settingsTab = getTabButton("Settings")
+        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
         settingsTab.tap()
 
         let settingsTitle = app.navigationBars["Settings"]
@@ -58,7 +85,8 @@ final class ApertureSpiralUITests: XCTestCase {
 
     @MainActor
     func testNavigateToPhotos() throws {
-        let photosTab = app.tabBars.buttons["Photos"]
+        let photosTab = getTabButton("Photos")
+        XCTAssertTrue(photosTab.waitForExistence(timeout: 5))
         photosTab.tap()
 
         let galleryTitle = app.navigationBars["Gallery"]
@@ -68,14 +96,16 @@ final class ApertureSpiralUITests: XCTestCase {
     @MainActor
     func testNavigateBackToSpiral() throws {
         // Go to settings first
-        let settingsTab = app.tabBars.buttons["Settings"]
+        let settingsTab = getTabButton("Settings")
+        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
         settingsTab.tap()
 
         // Navigate back to spiral
-        let spiralTab = app.tabBars.buttons["Spiral"]
+        let spiralTab = getTabButton("Spiral")
         spiralTab.tap()
 
         // Tab bar should still be visible initially
+        ensureTabBarVisible()
         XCTAssertTrue(app.tabBars.firstMatch.exists)
     }
 
@@ -83,7 +113,9 @@ final class ApertureSpiralUITests: XCTestCase {
 
     @MainActor
     func testSettingsHasPresetSection() throws {
-        app.tabBars.buttons["Settings"].tap()
+        let settingsTab = getTabButton("Settings")
+        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
+        settingsTab.tap()
 
         let presetSection = app.staticTexts["Preset"]
         XCTAssertTrue(presetSection.waitForExistence(timeout: 5))
@@ -91,7 +123,9 @@ final class ApertureSpiralUITests: XCTestCase {
 
     @MainActor
     func testSettingsHasPhrasesSection() throws {
-        app.tabBars.buttons["Settings"].tap()
+        let settingsTab = getTabButton("Settings")
+        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
+        settingsTab.tap()
 
         let phrasesSection = app.staticTexts["Phrases"]
         XCTAssertTrue(phrasesSection.waitForExistence(timeout: 5))
@@ -99,7 +133,9 @@ final class ApertureSpiralUITests: XCTestCase {
 
     @MainActor
     func testSettingsHasBladesSection() throws {
-        app.tabBars.buttons["Settings"].tap()
+        let settingsTab = getTabButton("Settings")
+        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
+        settingsTab.tap()
 
         let bladesSection = app.staticTexts["Blades"]
         XCTAssertTrue(bladesSection.waitForExistence(timeout: 5))
@@ -107,7 +143,9 @@ final class ApertureSpiralUITests: XCTestCase {
 
     @MainActor
     func testSettingsHasLayersSection() throws {
-        app.tabBars.buttons["Settings"].tap()
+        let settingsTab = getTabButton("Settings")
+        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
+        settingsTab.tap()
 
         let layersSection = app.staticTexts["Layers"]
         XCTAssertTrue(layersSection.waitForExistence(timeout: 5))
@@ -115,7 +153,9 @@ final class ApertureSpiralUITests: XCTestCase {
 
     @MainActor
     func testSettingsHasSpeedSection() throws {
-        app.tabBars.buttons["Settings"].tap()
+        let settingsTab = getTabButton("Settings")
+        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
+        settingsTab.tap()
 
         let speedSection = app.staticTexts["Speed"]
         XCTAssertTrue(speedSection.waitForExistence(timeout: 5))
@@ -123,7 +163,9 @@ final class ApertureSpiralUITests: XCTestCase {
 
     @MainActor
     func testSettingsHasApertureSection() throws {
-        app.tabBars.buttons["Settings"].tap()
+        let settingsTab = getTabButton("Settings")
+        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
+        settingsTab.tap()
 
         let apertureSection = app.staticTexts["Aperture"]
         XCTAssertTrue(apertureSection.waitForExistence(timeout: 5))
@@ -131,7 +173,9 @@ final class ApertureSpiralUITests: XCTestCase {
 
     @MainActor
     func testSettingsHasAutoCaptureSection() throws {
-        app.tabBars.buttons["Settings"].tap()
+        let settingsTab = getTabButton("Settings")
+        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
+        settingsTab.tap()
 
         // Scroll to find Auto-Capture
         let autoCaptureSection = app.staticTexts["Auto-Capture"]
@@ -140,7 +184,9 @@ final class ApertureSpiralUITests: XCTestCase {
 
     @MainActor
     func testSettingsHasSavePresetButton() throws {
-        app.tabBars.buttons["Settings"].tap()
+        let settingsTab = getTabButton("Settings")
+        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
+        settingsTab.tap()
 
         let saveButton = app.buttons["Save Current as Preset"]
         XCTAssertTrue(saveButton.waitForExistence(timeout: 5))
@@ -148,9 +194,12 @@ final class ApertureSpiralUITests: XCTestCase {
 
     @MainActor
     func testSavePresetButtonShowsAlert() throws {
-        app.tabBars.buttons["Settings"].tap()
+        let settingsTab = getTabButton("Settings")
+        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
+        settingsTab.tap()
 
         let saveButton = app.buttons["Save Current as Preset"]
+        XCTAssertTrue(saveButton.waitForExistence(timeout: 5))
         saveButton.tap()
 
         let alert = app.alerts["Save Preset"]
@@ -159,9 +208,12 @@ final class ApertureSpiralUITests: XCTestCase {
 
     @MainActor
     func testSavePresetAlertHasCancelButton() throws {
-        app.tabBars.buttons["Settings"].tap()
+        let settingsTab = getTabButton("Settings")
+        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
+        settingsTab.tap()
 
         let saveButton = app.buttons["Save Current as Preset"]
+        XCTAssertTrue(saveButton.waitForExistence(timeout: 5))
         saveButton.tap()
 
         let cancelButton = app.alerts.buttons["Cancel"]
@@ -170,9 +222,12 @@ final class ApertureSpiralUITests: XCTestCase {
 
     @MainActor
     func testSavePresetAlertHasSaveButton() throws {
-        app.tabBars.buttons["Settings"].tap()
+        let settingsTab = getTabButton("Settings")
+        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
+        settingsTab.tap()
 
         let saveButton = app.buttons["Save Current as Preset"]
+        XCTAssertTrue(saveButton.waitForExistence(timeout: 5))
         saveButton.tap()
 
         let alertSaveButton = app.alerts.buttons["Save"]
@@ -181,15 +236,20 @@ final class ApertureSpiralUITests: XCTestCase {
 
     @MainActor
     func testSavePresetAlertCanBeDismissed() throws {
-        app.tabBars.buttons["Settings"].tap()
+        let settingsTab = getTabButton("Settings")
+        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
+        settingsTab.tap()
 
         let saveButton = app.buttons["Save Current as Preset"]
+        XCTAssertTrue(saveButton.waitForExistence(timeout: 5))
         saveButton.tap()
 
         let cancelButton = app.alerts.buttons["Cancel"]
+        XCTAssertTrue(cancelButton.waitForExistence(timeout: 5))
         cancelButton.tap()
 
         // Alert should be dismissed
+        Thread.sleep(forTimeInterval: 0.5)
         XCTAssertFalse(app.alerts["Save Preset"].exists)
     }
 
@@ -197,7 +257,9 @@ final class ApertureSpiralUITests: XCTestCase {
 
     @MainActor
     func testGalleryShowsEmptyState() throws {
-        app.tabBars.buttons["Photos"].tap()
+        let photosTab = getTabButton("Photos")
+        XCTAssertTrue(photosTab.waitForExistence(timeout: 5))
+        photosTab.tap()
 
         // Wait for the gallery to load
         let galleryTitle = app.navigationBars["Gallery"]
@@ -212,7 +274,7 @@ final class ApertureSpiralUITests: XCTestCase {
     @MainActor
     func testTabBarHidesAfterTimeout() throws {
         // Start on spiral tab
-        let spiralTab = app.tabBars.buttons["Spiral"]
+        let spiralTab = getTabButton("Spiral")
         XCTAssertTrue(spiralTab.waitForExistence(timeout: 5))
 
         // Wait for 12 seconds (10 second timeout + buffer)
@@ -243,7 +305,9 @@ final class ApertureSpiralUITests: XCTestCase {
 
     @MainActor
     func testBladecountSliderExists() throws {
-        app.tabBars.buttons["Settings"].tap()
+        let settingsTab = getTabButton("Settings")
+        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
+        settingsTab.tap()
 
         // There should be sliders in settings
         let sliders = app.sliders
@@ -254,7 +318,9 @@ final class ApertureSpiralUITests: XCTestCase {
 
     @MainActor
     func testPresetPickerExists() throws {
-        app.tabBars.buttons["Settings"].tap()
+        let settingsTab = getTabButton("Settings")
+        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
+        settingsTab.tap()
 
         let presetPicker = app.buttons["Load Preset"]
         XCTAssertTrue(presetPicker.waitForExistence(timeout: 5))
@@ -265,7 +331,7 @@ final class ApertureSpiralUITests: XCTestCase {
     @MainActor
     func testSpiralViewTapChangesDirection() throws {
         // Start on spiral tab
-        let spiralTab = app.tabBars.buttons["Spiral"]
+        let spiralTab = getTabButton("Spiral")
         XCTAssertTrue(spiralTab.waitForExistence(timeout: 5))
 
         // Tap the center of the screen to toggle direction
@@ -280,7 +346,7 @@ final class ApertureSpiralUITests: XCTestCase {
     @MainActor
     func testSpiralViewMultipleTaps() throws {
         // Start on spiral tab
-        let spiralTab = app.tabBars.buttons["Spiral"]
+        let spiralTab = getTabButton("Spiral")
         XCTAssertTrue(spiralTab.waitForExistence(timeout: 5))
 
         let screenCenter = app.windows.firstMatch
@@ -298,7 +364,9 @@ final class ApertureSpiralUITests: XCTestCase {
 
     @MainActor
     func testBladesSliderCanBeAdjusted() throws {
-        app.tabBars.buttons["Settings"].tap()
+        let settingsTab = getTabButton("Settings")
+        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
+        settingsTab.tap()
 
         let sliders = app.sliders
         XCTAssertTrue(sliders.count > 0)
@@ -316,7 +384,9 @@ final class ApertureSpiralUITests: XCTestCase {
 
     @MainActor
     func testSpeedSliderCanBeAdjusted() throws {
-        app.tabBars.buttons["Settings"].tap()
+        let settingsTab = getTabButton("Settings")
+        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
+        settingsTab.tap()
 
         // Scroll to find more sliders if needed
         let scrollView = app.scrollViews.firstMatch
@@ -340,7 +410,9 @@ final class ApertureSpiralUITests: XCTestCase {
 
     @MainActor
     func testApertureSliderCanBeAdjusted() throws {
-        app.tabBars.buttons["Settings"].tap()
+        let settingsTab = getTabButton("Settings")
+        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
+        settingsTab.tap()
 
         let sliders = app.sliders
         guard sliders.count >= 4 else {
@@ -359,7 +431,9 @@ final class ApertureSpiralUITests: XCTestCase {
 
     @MainActor
     func testPresetPickerCanBeOpened() throws {
-        app.tabBars.buttons["Settings"].tap()
+        let settingsTab = getTabButton("Settings")
+        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
+        settingsTab.tap()
 
         let presetPicker = app.buttons["Load Preset"]
         XCTAssertTrue(presetPicker.waitForExistence(timeout: 5))
@@ -375,7 +449,9 @@ final class ApertureSpiralUITests: XCTestCase {
 
     @MainActor
     func testCalmPresetCanBeSelected() throws {
-        app.tabBars.buttons["Settings"].tap()
+        let settingsTab = getTabButton("Settings")
+        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
+        settingsTab.tap()
 
         let presetPicker = app.buttons["Load Preset"]
         XCTAssertTrue(presetPicker.waitForExistence(timeout: 5))
@@ -397,7 +473,9 @@ final class ApertureSpiralUITests: XCTestCase {
 
     @MainActor
     func testPhrasesTextEditorExists() throws {
-        app.tabBars.buttons["Settings"].tap()
+        let settingsTab = getTabButton("Settings")
+        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
+        settingsTab.tap()
 
         // Look for text editor in Phrases section
         let phrasesSection = app.staticTexts["Phrases"]
@@ -410,7 +488,9 @@ final class ApertureSpiralUITests: XCTestCase {
 
     @MainActor
     func testPhrasesCanBeEdited() throws {
-        app.tabBars.buttons["Settings"].tap()
+        let settingsTab = getTabButton("Settings")
+        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
+        settingsTab.tap()
 
         let textViews = app.textViews
         guard textViews.count > 0 else {
@@ -434,7 +514,9 @@ final class ApertureSpiralUITests: XCTestCase {
 
     @MainActor
     func testGalleryNavigationBarExists() throws {
-        app.tabBars.buttons["Photos"].tap()
+        let photosTab = getTabButton("Photos")
+        XCTAssertTrue(photosTab.waitForExistence(timeout: 5))
+        photosTab.tap()
 
         let galleryNav = app.navigationBars["Gallery"]
         XCTAssertTrue(galleryNav.waitForExistence(timeout: 5))
@@ -442,7 +524,9 @@ final class ApertureSpiralUITests: XCTestCase {
 
     @MainActor
     func testGalleryScrollsIfPhotosExist() throws {
-        app.tabBars.buttons["Photos"].tap()
+        let photosTab = getTabButton("Photos")
+        XCTAssertTrue(photosTab.waitForExistence(timeout: 5))
+        photosTab.tap()
 
         let galleryNav = app.navigationBars["Gallery"]
         XCTAssertTrue(galleryNav.waitForExistence(timeout: 5))
@@ -462,7 +546,9 @@ final class ApertureSpiralUITests: XCTestCase {
 
     @MainActor
     func testSettingsScrollsToRevealAllSections() throws {
-        app.tabBars.buttons["Settings"].tap()
+        let settingsTab = getTabButton("Settings")
+        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
+        settingsTab.tap()
 
         let settingsNav = app.navigationBars["Settings"]
         XCTAssertTrue(settingsNav.waitForExistence(timeout: 5))
@@ -480,7 +566,9 @@ final class ApertureSpiralUITests: XCTestCase {
 
     @MainActor
     func testMirrorSectionExists() throws {
-        app.tabBars.buttons["Settings"].tap()
+        let settingsTab = getTabButton("Settings")
+        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
+        settingsTab.tap()
 
         // Scroll to find Mirror section
         let scrollViews = app.scrollViews
@@ -500,7 +588,9 @@ final class ApertureSpiralUITests: XCTestCase {
     @MainActor
     func testSettingsChangesPersistAfterTabSwitch() throws {
         // Go to settings
-        app.tabBars.buttons["Settings"].tap()
+        let settingsTab = getTabButton("Settings")
+        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
+        settingsTab.tap()
 
         let sliders = app.sliders
         guard sliders.count > 0 else { return }
@@ -510,9 +600,11 @@ final class ApertureSpiralUITests: XCTestCase {
         bladesSlider.adjust(toNormalizedSliderPosition: 0.9)
 
         // Switch to spiral and back
-        app.tabBars.buttons["Spiral"].tap()
+        let spiralTab = getTabButton("Spiral")
+        spiralTab.tap()
         Thread.sleep(forTimeInterval: 0.5)
-        app.tabBars.buttons["Settings"].tap()
+        let settingsTab2 = getTabButton("Settings")
+        settingsTab2.tap()
 
         // Settings view should still be accessible
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
@@ -521,18 +613,20 @@ final class ApertureSpiralUITests: XCTestCase {
     @MainActor
     func testRoundTripNavigationAllTabs() throws {
         // Spiral -> Settings -> Photos -> Spiral
-        let spiralTab = app.tabBars.buttons["Spiral"]
-        let settingsTab = app.tabBars.buttons["Settings"]
-        let photosTab = app.tabBars.buttons["Photos"]
+        let spiralTab = getTabButton("Spiral")
+        let settingsTab = getTabButton("Settings")
+        let photosTab = getTabButton("Photos")
 
         XCTAssertTrue(spiralTab.waitForExistence(timeout: 5))
 
         settingsTab.tap()
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 3))
 
+        ensureTabBarVisible()
         photosTab.tap()
         XCTAssertTrue(app.navigationBars["Gallery"].waitForExistence(timeout: 3))
 
+        ensureTabBarVisible()
         spiralTab.tap()
         XCTAssertTrue(spiralTab.isSelected)
     }
@@ -548,15 +642,19 @@ final class ApertureSpiralUITests: XCTestCase {
 
     @MainActor
     func testSettingsNavigationPerformance() throws {
+        ensureTabBarVisible()
         measure {
-            app.tabBars.buttons["Settings"].tap()
-            app.tabBars.buttons["Spiral"].tap()
+            self.app.tabBars.buttons["Settings"].tap()
+            self.ensureTabBarVisible()
+            self.app.tabBars.buttons["Spiral"].tap()
         }
     }
 
     @MainActor
     func testSliderAdjustmentPerformance() throws {
-        app.tabBars.buttons["Settings"].tap()
+        let settingsTab = getTabButton("Settings")
+        XCTAssertTrue(settingsTab.waitForExistence(timeout: 5))
+        settingsTab.tap()
 
         let sliders = app.sliders
         guard sliders.count > 0 else { return }
