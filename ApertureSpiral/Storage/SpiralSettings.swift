@@ -4,6 +4,8 @@ import Combine
 class SpiralSettings: ObservableObject {
     static let shared = SpiralSettings()
 
+    private var cancellables = Set<AnyCancellable>()
+
     // UserDefaults keys
     private enum Keys {
         static let bladeCount = "spiral.bladeCount"
@@ -86,7 +88,11 @@ class SpiralSettings: ObservableObject {
         didSet { if !suppressUserDefaultsWrites { userDefaults.set(freezeWhenNotLooking, forKey: Keys.freezeWhenNotLooking) } }
     }
     // Runtime flag controlled by CameraManager when face is lost or not looking
-    @Published var spiralFrozen: Bool = false
+    @Published var spiralFrozen: Bool = false {
+        didSet {
+            AudioSessionManager.shared.handleSpiralFrozenChange(isFrozen: spiralFrozen)
+        }
+    }
     @Published var colorPaletteId: String = Defaults.colorPaletteId {
         didSet { if !suppressUserDefaultsWrites { userDefaults.set(colorPaletteId, forKey: Keys.colorPaletteId) } }
     }
