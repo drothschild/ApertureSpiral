@@ -1,6 +1,6 @@
 # ApertureSpiral
 
-A mesmerizing iOS app featuring an animated camera aperture spiral with integrated mirror view and AI-powered face tracking.
+An iOS app featuring an animated camera aperture spiral with integrated mirror view and AI-powered face tracking.
 
 ## Features
 
