@@ -246,8 +246,9 @@ struct NativeSpiralCanvas: View {
         apertureSize: Double
     ) {
         // Fill the center gap when aperture is closing
-        // The fill grows as aperture shrinks to cover blade gaps
-        let maxFillRadius = radius * 0.15
+        // The fill grows as aperture shrinks to cover the photo/blade gaps
+        // maxFillRadius should be large enough to cover the photo area
+        let maxFillRadius = radius * settings.apertureSize * 0.43
         let fillRadius = maxFillRadius * (1 - apertureSize)
 
         guard fillRadius > 1 else { return }
@@ -256,9 +257,10 @@ struct NativeSpiralCanvas: View {
         let colorIndex = Int(time * settings.colorFlowSpeed) % colorComponents.count
         let color = colorComponents[colorIndex]
 
+        // Solid color in center, fading at edges
         let gradient = Gradient(stops: [
-            .init(color: Color(red: color.r/255, green: color.g/255, blue: color.b/255).opacity(0.6), location: 0),
-            .init(color: Color(red: color.r/255, green: color.g/255, blue: color.b/255).opacity(0.3), location: 0.7),
+            .init(color: Color(red: color.r/255, green: color.g/255, blue: color.b/255).opacity(1.0), location: 0),
+            .init(color: Color(red: color.r/255, green: color.g/255, blue: color.b/255).opacity(0.9), location: 0.8),
             .init(color: Color(red: color.r/255, green: color.g/255, blue: color.b/255).opacity(0), location: 1),
         ])
 
