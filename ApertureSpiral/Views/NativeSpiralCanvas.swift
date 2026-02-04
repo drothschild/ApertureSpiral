@@ -282,6 +282,9 @@ struct NativeSpiralCanvas: View {
                 layerContext.blendMode = .destinationOut
                 layerContext.fill(innerPath, with: .color(.white))
             }
+
+            // Debug: draw RED border around fill outer edge
+            context.stroke(outerPath, with: .color(.red), lineWidth: 3)
         } else {
             // Without photo: small fill for blade gaps (original behavior)
             let maxFillRadius = radius * 0.15
@@ -461,8 +464,8 @@ struct NativeSpiralCanvas: View {
             layerContext.draw(Image(decorative: croppedImage, scale: 1.0), in: destRect)
         }
 
-        // Debug: draw border around photo to see exact size
-        context.stroke(circlePath, with: .color(.red), lineWidth: 2)
+        // Debug: draw GREEN border around photo to see exact size
+        context.stroke(circlePath, with: .color(.green), lineWidth: 3)
     }
 }
 
