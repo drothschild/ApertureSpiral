@@ -10,6 +10,7 @@ struct SpiralView: View {
     @State private var hideTask: Task<Void, Never>?
     @State private var dragStartLocation: CGFloat = 0
     @State private var showSpeedIndicator = false
+    @State private var showRandomizeFlash = false
     @State private var holeDiameter: CGFloat = 100
     @State private var maxHoleDiameter: CGFloat = 150
     @State private var currentPhraseIndex: Int = -1
@@ -138,6 +139,15 @@ struct SpiralView: View {
                 }
             }
 
+            // Randomize flash overlay
+            if showRandomizeFlash {
+                Color.yellow
+                    .opacity(0.4)
+                    .ignoresSafeArea()
+                    .allowsHitTesting(false)
+                    .transition(.opacity)
+            }
+
             // Tap overlay to show tab bar (only when hidden)
             if hideTabBar {
                 Color.clear
@@ -210,9 +220,13 @@ struct SpiralView: View {
         .onReceive(NotificationCenter.default.publisher(for: .showSpeedIndicator)) { _ in
             showSpeedIndicatorBriefly()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .showRandomizeFlash)) { _ in
+            showRandomizeFlashBriefly()
+        }
         .animation(.easeInOut(duration: 0.3), value: showCameraPreview)
         .animation(.easeInOut(duration: 0.3), value: hideTabBar)
         .animation(.easeInOut(duration: 0.2), value: showSpeedIndicator)
+        .animation(.easeOut(duration: 0.3), value: showRandomizeFlash)
         .animation(.easeInOut(duration: 0.3), value: showPhrase)
         .onChange(of: selectedTab) { _, newTab in
             if newTab == 0 {
@@ -262,6 +276,13 @@ struct SpiralView: View {
         showSpeedIndicator = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
             showSpeedIndicator = false
+        }
+    }
+
+    private func showRandomizeFlashBriefly() {
+        showRandomizeFlash = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            showRandomizeFlash = false
         }
     }
 

@@ -33,6 +33,7 @@ struct SettingsView: View {
                     Button {
                         settings.randomize()
                         presetManager.currentPresetId = nil
+                        NotificationCenter.default.post(name: .showRandomizeFlash, object: nil)
                         withAnimation(.easeInOut(duration: 0.2)) {
                             showRandomizedFeedback = true
                         }

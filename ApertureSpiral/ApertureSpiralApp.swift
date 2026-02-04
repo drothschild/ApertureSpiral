@@ -91,6 +91,7 @@ class KeyCommandViewController<Content: View>: UIHostingController<Content> {
 
     @objc func randomizeSettings() {
         SpiralSettings.shared.randomize()
+        NotificationCenter.default.post(name: .showRandomizeFlash, object: nil)
     }
 
     @objc func speedUp() {
@@ -106,4 +107,5 @@ class KeyCommandViewController<Content: View>: UIHostingController<Content> {
 
 extension Notification.Name {
     static let showSpeedIndicator = Notification.Name("showSpeedIndicator")
+    static let showRandomizeFlash = Notification.Name("showRandomizeFlash")
 }
