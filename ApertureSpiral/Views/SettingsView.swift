@@ -238,6 +238,10 @@ struct SettingsView: View {
                         set: { newMode in
                             settings.spiralCenterMode = newMode
                             presetManager.currentPresetId = nil
+                            // Open photo picker immediately when selecting Photo mode without a photo
+                            if newMode == .photo && settings.selectedPhotoData == nil {
+                                showingPhotoPickerSheet = true
+                            }
                         }
                     )) {
                         ForEach(SpiralCenterMode.allCases, id: \.self) { mode in
