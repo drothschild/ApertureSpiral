@@ -107,13 +107,9 @@ struct NativeSpiralCanvas: View {
                             radius: radius,
                             apertureSize: apertureSize
                         )
-                        // Draw fill AFTER photo to cover it from edges inward
-                        drawCenterFill(context: context, cx: cx, cy: cy, radius: radius, apertureSize: apertureSize)
                     } else {
                         // Draw center hole only when no photo is selected
                         drawApertureHole(context: context, cx: cx, cy: cy, radius: radius, apertureSize: apertureSize)
-                        // Draw fill for blade gaps
-                        drawCenterFill(context: context, cx: cx, cy: cy, radius: radius, apertureSize: apertureSize)
                     }
 
                     // Lens flare effect
@@ -150,9 +146,11 @@ struct NativeSpiralCanvas: View {
     ) {
         let bladeRadius = radius * (0.4 + Double(layerIndex) * 0.12)
 
-        // Blade parameters - arcCenterX moves inward as aperture closes
-        let arcCenterX = bladeRadius * (0.05 + 0.30 * apertureSize)
-        let arcRadius = bladeRadius * (0.85 + apertureSize * 0.4)
+        // Blade parameters - blades converge to center when aperture closes
+        // When apertureSize = 0 (closed), inner edge should reach center
+        // When apertureSize = 1 (open), create a clear opening
+        let arcCenterX = bladeRadius * (0.42 * apertureSize)
+        let arcRadius = bladeRadius * (0.42 * apertureSize)
         let thickness = radius * (0.12 + Double(layerIndex) * 0.02)
 
         // Arc sweep
