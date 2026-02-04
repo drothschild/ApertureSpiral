@@ -95,7 +95,7 @@ struct NativeSpiralCanvas: View {
                         }
                     }
 
-                    // Draw photo texture if available
+                    // Draw photo texture if available, otherwise draw aperture hole
                     if let photoData = settings.selectedPhotoData,
                        let uiImage = UIImage(data: photoData),
                        let cgImage = uiImage.cgImage {
@@ -107,13 +107,13 @@ struct NativeSpiralCanvas: View {
                             radius: radius,
                             apertureSize: apertureSize
                         )
+                    } else {
+                        // Draw center hole only when no photo is selected
+                        drawApertureHole(context: context, cx: cx, cy: cy, radius: radius, apertureSize: apertureSize)
                     }
 
-                    // Fill center gap when aperture is closing
+                    // Fill center gap when aperture is closing (drawn on top of photo/hole)
                     drawCenterFill(context: context, cx: cx, cy: cy, radius: radius, apertureSize: apertureSize)
-
-                    // Draw center hole
-                    drawApertureHole(context: context, cx: cx, cy: cy, radius: radius, apertureSize: apertureSize)
 
                     // Lens flare effect
                     if settings.lensFlareEnabled {
