@@ -95,7 +95,10 @@ struct NativeSpiralCanvas: View {
                         }
                     }
 
-                    // Draw photo texture if available, otherwise draw aperture hole
+                    // Fill center gap when aperture is closing
+                    drawCenterFill(context: context, cx: cx, cy: cy, radius: radius, apertureSize: apertureSize)
+
+                    // Draw photo texture ON TOP of fill if available, otherwise draw aperture hole
                     if let photoData = settings.selectedPhotoData,
                        let uiImage = UIImage(data: photoData),
                        let cgImage = uiImage.cgImage {
@@ -111,9 +114,6 @@ struct NativeSpiralCanvas: View {
                         // Draw center hole only when no photo is selected
                         drawApertureHole(context: context, cx: cx, cy: cy, radius: radius, apertureSize: apertureSize)
                     }
-
-                    // Fill center gap when aperture is closing (drawn on top of photo/hole)
-                    drawCenterFill(context: context, cx: cx, cy: cy, radius: radius, apertureSize: apertureSize)
 
                     // Lens flare effect
                     if settings.lensFlareEnabled {
@@ -282,9 +282,6 @@ struct NativeSpiralCanvas: View {
                 layerContext.blendMode = .destinationOut
                 layerContext.fill(innerPath, with: .color(.white))
             }
-
-            // Debug: draw RED border around fill outer edge
-            context.stroke(outerPath, with: .color(.red), lineWidth: 3)
         } else {
             // Without photo: small fill for blade gaps (original behavior)
             let maxFillRadius = radius * 0.15
@@ -463,9 +460,6 @@ struct NativeSpiralCanvas: View {
             layerContext.clip(to: circlePath)
             layerContext.draw(Image(decorative: croppedImage, scale: 1.0), in: destRect)
         }
-
-        // Debug: draw GREEN border around photo to see exact size
-        context.stroke(circlePath, with: .color(.green), lineWidth: 3)
     }
 }
 
