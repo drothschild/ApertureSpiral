@@ -253,10 +253,12 @@ struct NativeSpiralCanvas: View {
         // Different behavior depending on whether photo is present
         if settings.selectedPhotoData != nil {
             // With photo: fill comes from photo edges inward, constrained to photo area
+            // MUST match the exact photoRadius calculation from drawPhotoTexture
             let photoRadius = radius * settings.apertureSize * 0.43
+            // innerRadius shrinks with breathing animation
             let innerRadius = photoRadius * apertureSize
 
-            guard photoRadius > 1 else { return }
+            guard photoRadius > 1 && innerRadius >= 0 else { return }
 
             // Draw outer circle (full photo area)
             let outerPath = Path(ellipseIn: CGRect(
@@ -458,6 +460,9 @@ struct NativeSpiralCanvas: View {
             layerContext.clip(to: circlePath)
             layerContext.draw(Image(decorative: croppedImage, scale: 1.0), in: destRect)
         }
+
+        // Debug: draw border around photo to see exact size
+        context.stroke(circlePath, with: .color(.red), lineWidth: 2)
     }
 }
 
