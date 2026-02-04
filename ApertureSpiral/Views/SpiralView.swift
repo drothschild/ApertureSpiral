@@ -69,15 +69,22 @@ struct SpiralView: View {
                                 .overlay(Circle().stroke(cameraManager.faceDetected ? Color.blue.opacity(0.8) : Color.yellow.opacity(0.8), lineWidth: 3))
                                 .shadow(color: .black.opacity(0.7), radius: 10)
                                 .transition(.scale.combined(with: .opacity))
-                        default: // Scale mode (0): frame changes size only
+                        default: // Clip mode (0): fixed size, clipped to shrinking circle (like photo)
                             CameraPreviewView(
                                 previewLayer: cameraManager.previewLayer,
                                 eyeCenterOffset: cameraManager.eyeCenterOffset,
                                 eyeCenteringEnabled: settings.eyeCenteringEnabled
                             )
-                                .frame(width: holeDiameter, height: holeDiameter)
-                                .clipShape(Circle())
-                                .overlay(Circle().stroke(cameraManager.faceDetected ? Color.blue.opacity(0.8) : Color.yellow.opacity(0.8), lineWidth: 3))
+                                .frame(width: fixedCameraSize, height: fixedCameraSize)
+                                .mask(
+                                    Circle()
+                                        .frame(width: holeDiameter, height: holeDiameter)
+                                )
+                                .overlay(
+                                    Circle()
+                                        .stroke(cameraManager.faceDetected ? Color.blue.opacity(0.8) : Color.yellow.opacity(0.8), lineWidth: 3)
+                                        .frame(width: holeDiameter, height: holeDiameter)
+                                )
                                 .shadow(color: .black.opacity(0.7), radius: 10)
                                 .transition(.scale.combined(with: .opacity))
                         }

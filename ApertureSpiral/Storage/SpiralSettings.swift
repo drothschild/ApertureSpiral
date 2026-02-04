@@ -1,6 +1,20 @@
 import Foundation
 import Combine
 
+enum SpiralCenterMode: Int, CaseIterable {
+    case none = 0
+    case mirror = 1
+    case photo = 2
+
+    var displayName: String {
+        switch self {
+        case .none: return "None"
+        case .mirror: return "Mirror"
+        case .photo: return "Photo"
+        }
+    }
+}
+
 class SpiralSettings: ObservableObject {
     static let shared = SpiralSettings()
 
@@ -28,6 +42,7 @@ class SpiralSettings: ObservableObject {
         static let selectedPhotoData = "spiral.selectedPhotoData"
         static let photoCenterX = "spiral.photoCenterX"
         static let photoCenterY = "spiral.photoCenterY"
+        static let spiralCenterModeRaw = "spiral.spiralCenterModeRaw"
     }
 
     // Default values
@@ -115,6 +130,27 @@ class SpiralSettings: ObservableObject {
     }
     @Published var photoCenterY: Double = Defaults.photoCenterY {
         didSet { if !suppressUserDefaultsWrites { userDefaults.set(photoCenterY, forKey: Keys.photoCenterY) } }
+    }
+
+    /// Raw stored value for spiral center mode (0=none, 1=mirror, 2=photo)
+    @Published var spiralCenterModeRaw: Int = SpiralCenterMode.mirror.rawValue {
+        didSet { if !suppressUserDefaultsWrites { userDefaults.set(spiralCenterModeRaw, forKey: Keys.spiralCenterModeRaw) } }
+    }
+
+    /// Computed property for the spiral center mode
+    var spiralCenterMode: SpiralCenterMode {
+        get {
+            SpiralCenterMode(rawValue: spiralCenterModeRaw) ?? .mirror
+        }
+        set {
+            spiralCenterModeRaw = newValue.rawValue
+            // Update mirrorAlwaysOn to match mode for compatibility
+            mirrorAlwaysOn = (newValue == .mirror)
+            // Always use scale-only mode for mirror (frame shrinks with aperture)
+            if newValue == .mirror {
+                mirrorAnimationMode = 0
+            }
+        }
     }
 
     // When true, property setters will not write to UserDefaults immediately.
@@ -224,6 +260,20 @@ class SpiralSettings: ObservableObject {
             photoCenterX = userDefaults.object(forKey: Keys.photoCenterX) == nil ? Defaults.photoCenterX : userDefaults.double(forKey: Keys.photoCenterX)
             photoCenterY = userDefaults.object(forKey: Keys.photoCenterY) == nil ? Defaults.photoCenterY : userDefaults.double(forKey: Keys.photoCenterY)
 
+            // Load or migrate spiral center mode
+            if userDefaults.object(forKey: Keys.spiralCenterModeRaw) != nil {
+                spiralCenterModeRaw = userDefaults.integer(forKey: Keys.spiralCenterModeRaw)
+            } else {
+                // Migrate from old settings: photo takes priority, then mirror, then none
+                if selectedPhotoData != nil {
+                    spiralCenterModeRaw = SpiralCenterMode.photo.rawValue
+                } else if mirrorAlwaysOn {
+                    spiralCenterModeRaw = SpiralCenterMode.mirror.rawValue
+                } else {
+                    spiralCenterModeRaw = SpiralCenterMode.none.rawValue
+                }
+            }
+
             // Handle zero values that might indicate unset (use defaults instead)
             if bladeCount == 0 { bladeCount = Defaults.bladeCount }
             if layerCount == 0 { layerCount = Defaults.layerCount }
@@ -252,6 +302,7 @@ class SpiralSettings: ObservableObject {
             selectedPhotoData = nil
             photoCenterX = Defaults.photoCenterX
             photoCenterY = Defaults.photoCenterY
+            spiralCenterModeRaw = SpiralCenterMode.mirror.rawValue
 
             userDefaults.set(true, forKey: Keys.hasLaunchedBefore)
         }
@@ -279,6 +330,7 @@ class SpiralSettings: ObservableObject {
         selectedPhotoData = nil
         photoCenterX = Defaults.photoCenterX
         photoCenterY = Defaults.photoCenterY
+        spiralCenterModeRaw = SpiralCenterMode.mirror.rawValue
     }
 
     /// Resets all settings to defaults
@@ -302,6 +354,7 @@ class SpiralSettings: ObservableObject {
         selectedPhotoData = nil
         photoCenterX = Defaults.photoCenterX
         photoCenterY = Defaults.photoCenterY
+        spiralCenterModeRaw = SpiralCenterMode.mirror.rawValue
     }
 
     /// Randomizes all settings except phrases and photo capture
@@ -315,7 +368,11 @@ class SpiralSettings: ObservableObject {
         colorPaletteId = ColorPalette.allBuiltIn.randomElement()?.id ?? Defaults.colorPaletteId
         freezeWhenNoFace = Bool.random()
         freezeWhenNotLooking = Bool.random()
-        mirrorAlwaysOn = Bool.random()
+        // Only randomize spiral center mode if photo is not selected
+        // Randomize between mirror and none (not photo)
+        if spiralCenterMode != .photo {
+            spiralCenterMode = Bool.random() ? .mirror : .none
+        }
         mirrorAnimationMode = Int.random(in: 1...2)
         eyeCenteringEnabled = Bool.random()
         lensFlareEnabled = Bool.random()
