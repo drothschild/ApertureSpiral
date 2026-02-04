@@ -14,11 +14,19 @@ An iOS app featuring an animated camera aperture spiral with integrated mirror v
 - Optional lens flare effect (toggleable in Settings > Effects)
 - Tap to reverse rotation direction
 
+### Spiral Center Photo
+- Select any photo from your device's photo library
+- Interactive center point selection with draggable circle tool
+- Photo displays in the spiral center aperture area
+- Photo gets progressively covered by fill color as aperture closes
+- Cannot be used simultaneously with mirror view
+
 ### Mirror View
 - Front-facing camera preview in the aperture center
 - AI face detection keeps your face centered using Vision framework
 - Two animation modes: Zoom only or Zoom + Scale
 - Always-on mirror option
+- Cannot be used simultaneously with photo mode
 
 ### Face Detection
 - Freeze spiral when no face detected (after 5 seconds)
@@ -94,11 +102,13 @@ ApertureSpiral/
 │   ├── SpiralSettings.swift       # Settings with UserDefaults persistence
 │   └── TrancePhoto.swift          # Photo data model
 └── Views/
+    ├── CenterSelectorView.swift   # Photo center point selection with draggable circle
     ├── GalleryView.swift          # Photo gallery grid
     ├── LoadingOverlay.swift       # Loading screen
     ├── MainView.swift             # Tab navigation
     ├── NativeSpiralCanvas.swift   # SwiftUI Canvas spiral rendering
     ├── PhotoDetailView.swift      # Photo viewer with sharing
+    ├── PhotoPickerView.swift      # Device photo library picker
     ├── PresetsView.swift          # Preset model and manager
     ├── SettingsView.swift         # Settings UI
     └── SpiralView.swift           # Main spiral view with camera overlay
