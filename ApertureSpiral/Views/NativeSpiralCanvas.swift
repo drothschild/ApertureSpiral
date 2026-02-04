@@ -95,10 +95,7 @@ struct NativeSpiralCanvas: View {
                         }
                     }
 
-                    // Fill center gap when aperture is closing
-                    drawCenterFill(context: context, cx: cx, cy: cy, radius: radius, apertureSize: apertureSize)
-
-                    // Draw photo texture ON TOP of fill if available, otherwise draw aperture hole
+                    // Draw photo texture if available, otherwise draw aperture hole
                     if let photoData = settings.selectedPhotoData,
                        let uiImage = UIImage(data: photoData),
                        let cgImage = uiImage.cgImage {
@@ -110,9 +107,13 @@ struct NativeSpiralCanvas: View {
                             radius: radius,
                             apertureSize: apertureSize
                         )
+                        // Draw fill AFTER photo to cover it from edges inward
+                        drawCenterFill(context: context, cx: cx, cy: cy, radius: radius, apertureSize: apertureSize)
                     } else {
                         // Draw center hole only when no photo is selected
                         drawApertureHole(context: context, cx: cx, cy: cy, radius: radius, apertureSize: apertureSize)
+                        // Draw fill for blade gaps
+                        drawCenterFill(context: context, cx: cx, cy: cy, radius: radius, apertureSize: apertureSize)
                     }
 
                     // Lens flare effect
@@ -252,40 +253,60 @@ struct NativeSpiralCanvas: View {
 
         // Different behavior depending on whether photo is present
         if settings.selectedPhotoData != nil {
-            // With photo: draw ring that covers from photo edge inward
+            // With photo: draw thin ring that covers from photo edge inward
             // MUST match the exact photoRadius calculation from drawPhotoTexture
             let photoRadius = radius * settings.apertureSize * 0.43
-            // innerRadius shrinks with breathing animation - this is what's visible of the photo
-            let innerRadius = photoRadius * apertureSize
+
+            // Calculate how much of the photo to cover based on aperture closing
+            // When aperture is fully open (apertureSize = 1.0), no fill
+            // When aperture is fully closed (apertureSize = 0.0), fill covers entire photo
+            // Use cubed falloff so fill stays very thin and grows slowly from edge
+            let fillAmount = 1.0 - apertureSize  // 0.0 = no fill, 1.0 = full fill
+            let fillDepth = fillAmount * fillAmount * fillAmount  // Cube it for very slow growth
+            let innerRadius = photoRadius * (1.0 - fillDepth)
 
             guard photoRadius > 1 && innerRadius >= 0 else { return }
 
             // Only draw if there's actually a ring to show (innerRadius < photoRadius)
-            if innerRadius < photoRadius {
-                // Use radial gradient from transparent at inner radius to solid at photo radius
-                let gradient = Gradient(stops: [
-                    .init(color: .clear, location: 0),
-                    .init(color: .clear, location: innerRadius / photoRadius),
-                    .init(color: solidColor, location: innerRadius / photoRadius),
-                    .init(color: solidColor, location: 1.0),
-                ])
-
-                let fillPath = Path(ellipseIn: CGRect(
+            if fillAmount > 0.01 {
+                // Create circular clipping path that matches photo boundary exactly
+                let clipPath = Path(ellipseIn: CGRect(
                     x: cx - photoRadius,
                     y: cy - photoRadius,
                     width: photoRadius * 2,
                     height: photoRadius * 2
                 ))
 
-                context.fill(
-                    fillPath,
-                    with: .radialGradient(
-                        gradient,
-                        center: CGPoint(x: cx, y: cy),
-                        startRadius: 0,
-                        endRadius: photoRadius
+                // Draw fill within clipping region
+                context.drawLayer { layerContext in
+                    // Clip to photo circle
+                    layerContext.clip(to: clipPath)
+
+                    // Use radial gradient from transparent at inner radius to solid
+                    let gradient = Gradient(stops: [
+                        .init(color: .clear, location: 0),
+                        .init(color: .clear, location: innerRadius / photoRadius),
+                        .init(color: solidColor, location: innerRadius / photoRadius + 0.01),
+                        .init(color: solidColor, location: 1.0),
+                    ])
+
+                    let fillPath = Path(ellipseIn: CGRect(
+                        x: cx - photoRadius,
+                        y: cy - photoRadius,
+                        width: photoRadius * 2,
+                        height: photoRadius * 2
+                    ))
+
+                    layerContext.fill(
+                        fillPath,
+                        with: .radialGradient(
+                            gradient,
+                            center: CGPoint(x: cx, y: cy),
+                            startRadius: 0,
+                            endRadius: photoRadius
+                        )
                     )
-                )
+                }
             }
         } else {
             // Without photo: small fill for blade gaps (original behavior)
