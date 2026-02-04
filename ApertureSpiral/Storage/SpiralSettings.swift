@@ -14,7 +14,6 @@ class SpiralSettings: ObservableObject {
         static let apertureSize = "spiral.apertureSize"
         static let phrases = "spiral.phrases"
         static let phraseDisplayDuration = "spiral.phraseDisplayDuration"
-        static let captureTimerMinutes = "spiral.captureTimerMinutes"
         static let previewOnly = "spiral.previewOnly"
         static let colorFlowSpeed = "spiral.colorFlowSpeed"
         static let mirrorAlwaysOn = "spiral.mirrorAlwaysOn"
@@ -39,7 +38,6 @@ class SpiralSettings: ObservableObject {
         static let apertureSize = 0.5
         static let phrases = ["Happy", "Birthday", "We Love You"]
         static let phraseDisplayDuration = 2.0  // Seconds to show each phrase
-        static let captureTimerMinutes = 0
         static let previewOnly = true
         static let colorFlowSpeed = 0.3
         static let mirrorAlwaysOn = true
@@ -72,9 +70,6 @@ class SpiralSettings: ObservableObject {
     }
     @Published var phraseDisplayDuration: Double = Defaults.phraseDisplayDuration {
         didSet { if !suppressUserDefaultsWrites { userDefaults.set(phraseDisplayDuration, forKey: Keys.phraseDisplayDuration) } }
-    }
-    @Published var captureTimerMinutes: Int = Defaults.captureTimerMinutes {
-        didSet { if !suppressUserDefaultsWrites { userDefaults.set(captureTimerMinutes, forKey: Keys.captureTimerMinutes) } }
     }
     @Published var previewOnly: Bool = Defaults.previewOnly {  // Show camera preview without capturing
         didSet { if !suppressUserDefaultsWrites { userDefaults.set(previewOnly, forKey: Keys.previewOnly) } }
@@ -134,7 +129,6 @@ class SpiralSettings: ObservableObject {
         apertureSize = preset.apertureSize
         phrases = preset.phrases
         phraseDisplayDuration = preset.phraseDisplayDuration
-        captureTimerMinutes = preset.captureTimerMinutes
         previewOnly = preset.previewOnly
         colorFlowSpeed = preset.colorFlowSpeed
         mirrorAlwaysOn = preset.mirrorAlwaysOn
@@ -159,7 +153,6 @@ class SpiralSettings: ObservableObject {
             apertureSize: apertureSize,
             phrases: phrases,
             phraseDisplayDuration: phraseDisplayDuration,
-            captureTimerMinutes: captureTimerMinutes,
             previewOnly: previewOnly,
             colorFlowSpeed: colorFlowSpeed,
             mirrorAlwaysOn: mirrorAlwaysOn,
@@ -180,7 +173,6 @@ class SpiralSettings: ObservableObject {
             ud.set(snapshot.apertureSize, forKey: Keys.apertureSize)
             ud.set(snapshot.phrases, forKey: Keys.phrases)
             ud.set(snapshot.phraseDisplayDuration, forKey: Keys.phraseDisplayDuration)
-            ud.set(snapshot.captureTimerMinutes, forKey: Keys.captureTimerMinutes)
             ud.set(snapshot.previewOnly, forKey: Keys.previewOnly)
             ud.set(snapshot.colorFlowSpeed, forKey: Keys.colorFlowSpeed)
             ud.set(snapshot.mirrorAlwaysOn, forKey: Keys.mirrorAlwaysOn)
@@ -213,7 +205,6 @@ class SpiralSettings: ObservableObject {
             apertureSize = userDefaults.double(forKey: Keys.apertureSize)
             phrases = userDefaults.stringArray(forKey: Keys.phrases) ?? Defaults.phrases
             phraseDisplayDuration = userDefaults.object(forKey: Keys.phraseDisplayDuration) == nil ? Defaults.phraseDisplayDuration : userDefaults.double(forKey: Keys.phraseDisplayDuration)
-            captureTimerMinutes = userDefaults.integer(forKey: Keys.captureTimerMinutes)
             previewOnly = userDefaults.bool(forKey: Keys.previewOnly)
             colorFlowSpeed = userDefaults.double(forKey: Keys.colorFlowSpeed)
             mirrorAlwaysOn = userDefaults.bool(forKey: Keys.mirrorAlwaysOn)
@@ -248,7 +239,6 @@ class SpiralSettings: ObservableObject {
             apertureSize = Defaults.apertureSize
             phrases = Defaults.phrases
             phraseDisplayDuration = Defaults.phraseDisplayDuration
-            captureTimerMinutes = Defaults.captureTimerMinutes
             previewOnly = Defaults.previewOnly
             colorFlowSpeed = Defaults.colorFlowSpeed
             mirrorAlwaysOn = Defaults.mirrorAlwaysOn
@@ -276,7 +266,6 @@ class SpiralSettings: ObservableObject {
         apertureSize = Defaults.apertureSize
         phrases = Defaults.phrases
         phraseDisplayDuration = Defaults.phraseDisplayDuration
-        captureTimerMinutes = Defaults.captureTimerMinutes
         previewOnly = Defaults.previewOnly
         colorFlowSpeed = Defaults.colorFlowSpeed
         mirrorAlwaysOn = Defaults.mirrorAlwaysOn
@@ -300,7 +289,6 @@ class SpiralSettings: ObservableObject {
         apertureSize = Defaults.apertureSize
         phrases = Defaults.phrases
         phraseDisplayDuration = Defaults.phraseDisplayDuration
-        captureTimerMinutes = Defaults.captureTimerMinutes
         previewOnly = Defaults.previewOnly
         colorFlowSpeed = Defaults.colorFlowSpeed
         mirrorAlwaysOn = Defaults.mirrorAlwaysOn

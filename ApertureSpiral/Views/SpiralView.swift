@@ -4,10 +4,7 @@ import Combine
 struct SpiralView: View {
     @Binding var selectedTab: Int
     @StateObject private var cameraManager = CameraManager()
-    @StateObject private var storageManager = PhotoStorageManager.shared
     @StateObject private var settings = SpiralSettings.shared
-    @State private var timerEndDate: Date?
-    @State private var showCaptureFlash = false
     @State private var showCameraPreview = false
     @State private var hideTabBar = false
     @State private var hideTask: Task<Void, Never>?
@@ -19,8 +16,6 @@ struct SpiralView: View {
     @State private var showPhrase: Bool = false
     @State private var isLoading = true
     @State private var loadingId = UUID()
-
-    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     @State private var phraseTimerSubscription: AnyCancellable?
 
     private var cameraVisible: Bool {
@@ -118,13 +113,6 @@ struct SpiralView: View {
                 }
             }
 
-            // Capture flash effect
-            if showCaptureFlash {
-                Color.white
-                    .ignoresSafeArea()
-                    .opacity(0.8)
-            }
-
             // Speed indicator overlay
             if showSpeedIndicator {
                 VStack {
@@ -151,21 +139,6 @@ struct SpiralView: View {
                     .onTapGesture {
                         showTabBarTemporarily()
                     }
-            }
-
-            // Camera icon indicator when capture timer is active
-            if settings.captureTimerMinutes > 0 {
-                VStack {
-                    HStack {
-                        Spacer()
-                        Image(systemName: "camera.fill")
-                            .font(.system(size: 20))
-                            .foregroundColor(.white.opacity(0.6))
-                            .padding(12)
-                    }
-                    Spacer()
-                }
-                .padding(.top, 50)
             }
 
             // Loading overlay
@@ -224,22 +197,12 @@ struct SpiralView: View {
             hideTabBar = false
             phraseTimerSubscription?.cancel()
         }
-        .onReceive(timer) { _ in
-            checkCaptureTimer()
-        }
-        .onReceive(settings.$captureTimerMinutes) { minutes in
-            updateCaptureTimer(minutes: minutes)
-        }
         .onReceive(settings.$phraseDisplayDuration) { _ in
             setupPhraseTimer()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .capturePhoto)) { _ in
-            capturePhoto()
         }
         .onReceive(NotificationCenter.default.publisher(for: .showSpeedIndicator)) { _ in
             showSpeedIndicatorBriefly()
         }
-        .animation(.easeOut(duration: 0.3), value: showCaptureFlash)
         .animation(.easeInOut(duration: 0.3), value: showCameraPreview)
         .animation(.easeInOut(duration: 0.3), value: hideTabBar)
         .animation(.easeInOut(duration: 0.2), value: showSpeedIndicator)
@@ -320,50 +283,6 @@ struct SpiralView: View {
         }
     }
 
-    private func updateCaptureTimer(minutes: Int) {
-        if minutes > 0 {
-            timerEndDate = Date().addingTimeInterval(TimeInterval(minutes * 60))
-        } else {
-            timerEndDate = nil
-        }
-    }
-
-    private func checkCaptureTimer() {
-        guard let endDate = timerEndDate, Date() >= endDate else { return }
-        capturePhoto()
-        // Reset timer for another capture at the same interval
-        if settings.captureTimerMinutes > 0 {
-            timerEndDate = Date().addingTimeInterval(TimeInterval(settings.captureTimerMinutes * 60))
-        } else {
-            timerEndDate = nil
-        }
-    }
-
-    private func capturePhoto() {
-        // Only toggle showCameraPreview if mirror isn't already always on
-        let needsTemporaryPreview = !settings.mirrorAlwaysOn
-        if needsTemporaryPreview {
-            showCameraPreview = true
-        }
-
-        // Show preview briefly, then capture
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            showCaptureFlash = true
-
-            cameraManager.capturePhoto { image in
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    showCaptureFlash = false
-                    if needsTemporaryPreview {
-                        showCameraPreview = false
-                    }
-                }
-
-                if let image = image {
-                    _ = storageManager.savePhoto(image, presetName: nil)
-                }
-            }
-        }
-    }
 }
 
 #Preview {

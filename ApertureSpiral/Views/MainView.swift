@@ -16,12 +16,6 @@ struct MainView: View {
                     Label("Settings", systemImage: "slider.horizontal.3")
                 }
                 .tag(1)
-
-            GalleryView()
-                .tabItem {
-                    Label("Photos", systemImage: "photo.on.rectangle")
-                }
-                .tag(2)
         }
         .tint(.yellow)
     }

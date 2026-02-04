@@ -33,7 +33,6 @@ class KeyCommandViewController<Content: View>: UIHostingController<Content> {
     override var keyCommands: [UIKeyCommand]? {
         let commands = [
             UIKeyCommand(input: "m", modifierFlags: [], action: #selector(toggleMirror)),
-            UIKeyCommand(input: "p", modifierFlags: [], action: #selector(capturePhoto)),
             UIKeyCommand(input: "r", modifierFlags: [], action: #selector(randomizeSettings)),
             UIKeyCommand(input: UIKeyCommand.inputRightArrow, modifierFlags: [], action: #selector(speedUp)),
             UIKeyCommand(input: UIKeyCommand.inputLeftArrow, modifierFlags: [], action: #selector(slowDown))
@@ -66,9 +65,6 @@ class KeyCommandViewController<Content: View>: UIHostingController<Content> {
             case "m":
                 toggleMirror()
                 didHandleEvent = true
-            case "p":
-                capturePhoto()
-                didHandleEvent = true
             default:
                 break
             }
@@ -93,10 +89,6 @@ class KeyCommandViewController<Content: View>: UIHostingController<Content> {
         SpiralSettings.shared.mirrorAlwaysOn.toggle()
     }
 
-    @objc func capturePhoto() {
-        NotificationCenter.default.post(name: .capturePhoto, object: nil)
-    }
-
     @objc func randomizeSettings() {
         SpiralSettings.shared.randomize()
     }
@@ -113,6 +105,5 @@ class KeyCommandViewController<Content: View>: UIHostingController<Content> {
 }
 
 extension Notification.Name {
-    static let capturePhoto = Notification.Name("capturePhoto")
     static let showSpeedIndicator = Notification.Name("showSpeedIndicator")
 }

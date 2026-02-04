@@ -15,9 +15,7 @@ class CameraManager: NSObject, ObservableObject {
     }
 
     private let captureSession = AVCaptureSession()
-    private let photoOutput = AVCapturePhotoOutput()
     private let videoDataOutput = AVCaptureVideoDataOutput()
-    private nonisolated(unsafe) var photoCaptureCompletion: ((UIImage?) -> Void)?
     private let sessionQueue = DispatchQueue(label: "camera.session.queue")
     private let videoDataQueue = DispatchQueue(label: "video.data.queue", qos: .utility)
 
@@ -307,10 +305,6 @@ class CameraManager: NSObject, ObservableObject {
             captureSession.addInput(input)
         }
 
-        if captureSession.canAddOutput(photoOutput) {
-            captureSession.addOutput(photoOutput)
-        }
-
         // Add video data output for face detection
         videoDataOutput.alwaysDiscardsLateVideoFrames = true
         videoDataOutput.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA]
@@ -357,52 +351,6 @@ class CameraManager: NSObject, ObservableObject {
             self?.gazeHistory.removeAll()
             self?.isLookingAtScreen = true
             self?.settings.spiralFrozen = false
-        }
-    }
-
-    func capturePhoto(completion: @escaping (UIImage?) -> Void) {
-        photoCaptureCompletion = completion
-        sessionQueue.async { [weak self] in
-            guard let self = self else {
-                DispatchQueue.main.async { completion(nil) }
-                return
-            }
-            let settings = AVCapturePhotoSettings()
-            self.photoOutput.capturePhoto(with: settings, delegate: self)
-        }
-    }
-}
-
-extension CameraManager: AVCapturePhotoCaptureDelegate {
-    nonisolated func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
-        guard let data = photo.fileDataRepresentation(),
-              let image = UIImage(data: data) else {
-            Task { @MainActor [weak self] in
-                self?.photoCaptureCompletion?(nil)
-            }
-            return
-        }
-
-        Task { @MainActor [weak self] in
-            // Get the correct orientation based on device orientation (front camera needs mirroring)
-            let deviceOrientation = UIDevice.current.orientation
-            let imageOrientation: UIImage.Orientation
-
-            switch deviceOrientation {
-            case .portrait:
-                imageOrientation = .leftMirrored
-            case .portraitUpsideDown:
-                imageOrientation = .rightMirrored
-            case .landscapeLeft:
-                imageOrientation = .downMirrored
-            case .landscapeRight:
-                imageOrientation = .upMirrored
-            default:
-                imageOrientation = .leftMirrored
-            }
-
-            let correctedImage = UIImage(cgImage: image.cgImage!, scale: image.scale, orientation: imageOrientation)
-            self?.photoCaptureCompletion?(correctedImage)
         }
     }
 }

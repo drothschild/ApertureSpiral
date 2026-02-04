@@ -38,15 +38,6 @@ An iOS app featuring an animated camera aperture spiral with integrated mirror v
 - Random phrase cycling with fade animations
 - One phrase per line in settings
 
-### Auto-Capture Photography
-- Timer-based photo capture (1-30 minute intervals)
-- Flash effect feedback
-- Photos saved to in-app gallery
-
-### Photo Gallery
-- 3-column grid gallery
-- Detail view with sharing and deletion
-
 ### Presets
 - 4 built-in presets: Birthday, Calm, Intense, Trippy
 - Save and load custom presets
@@ -57,7 +48,6 @@ An iOS app featuring an animated camera aperture spiral with integrated mirror v
 When using with an external keyboard:
 - `R` - Randomize settings
 - `M` - Toggle mirror view
-- `P` - Capture photo
 - `→` - Speed up
 - `←` - Slow down
 
@@ -85,7 +75,6 @@ When using with an external keyboard:
 ### Navigation
 - **Spiral** - Main visualization
 - **Settings** - Customize parameters
-- **Photos** - View captured images
 
 ## Architecture
 

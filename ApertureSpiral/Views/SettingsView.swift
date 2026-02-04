@@ -306,28 +306,9 @@ struct SettingsView: View {
                     .disabled(settings.selectedPhotoData != nil)
                 }
 
-                Section("Photo Capture") {
-                    HStack {
-                        Text(settings.captureTimerMinutes == 0 ? "Off" : "\(settings.captureTimerMinutes) min")
-                            .font(.headline)
-                            .foregroundColor(.yellow)
-                            .frame(width: 60)
-                        Slider(value: Binding(
-                            get: { Double(settings.captureTimerMinutes) },
-                            set: { settings.captureTimerMinutes = Int($0) }
-                        ), in: 0...30, step: 1)
-                    }
-                    Text(settings.captureTimerMinutes > 0
-                        ? "A photo will be captured every \(settings.captureTimerMinutes) minute\(settings.captureTimerMinutes == 1 ? "" : "s")."
-                        : "Set a timer to periodically capture photos.")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-
                 Section("Keyboard Shortcuts") {
                     KeyboardShortcutRow(key: "R", description: "Randomize settings")
                     KeyboardShortcutRow(key: "M", description: "Toggle mirror")
-                    KeyboardShortcutRow(key: "P", description: "Capture photo")
                     KeyboardShortcutRow(key: "→", description: "Speed up")
                     KeyboardShortcutRow(key: "←", description: "Slow down")
                 }
