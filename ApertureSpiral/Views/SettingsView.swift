@@ -61,6 +61,25 @@ struct SettingsView: View {
                         .foregroundColor(.secondary)
                 }
 
+                Section("Text Display Duration") {
+                    HStack {
+                        Text(String(format: "%.1fs", settings.phraseDisplayDuration))
+                            .font(.headline)
+                            .foregroundColor(.yellow)
+                            .frame(width: 50)
+                        Slider(value: Binding(
+                            get: { settings.phraseDisplayDuration },
+                            set: {
+                                settings.phraseDisplayDuration = $0
+                                presetManager.currentPresetId = nil
+                            }
+                        ), in: 0.5...5.0, step: 0.5)
+                    }
+                    Text("How long each phrase appears on screen.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+
                 Section("Blades") {
                     HStack {
                         Text("\(settings.bladeCount)")
