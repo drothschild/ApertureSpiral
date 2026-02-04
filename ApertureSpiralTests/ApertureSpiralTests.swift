@@ -255,6 +255,7 @@ struct SpiralSettingsTests {
             #expect(settings.apertureSize >= 0.1 && settings.apertureSize <= 1.0)
             #expect(settings.colorFlowSpeed >= 0.0 && settings.colorFlowSpeed <= 2.0)
             #expect(settings.mirrorAnimationMode >= 1 && settings.mirrorAnimationMode <= 2)
+            #expect(settings.phraseDisplayDuration >= 0.5 && settings.phraseDisplayDuration <= 5.0)
 
             // Color palette should be one of the built-in palettes
             let validPaletteIds = ColorPalette.allBuiltIn.map { $0.id }
