@@ -22,6 +22,38 @@ struct NativeSpiralCanvas: View {
         settings.colorPalette.colorComponents
     }
 
+    // Interpolate between two colors for smooth transitions
+    private func lerpColor(
+        from: (r: Double, g: Double, b: Double),
+        to: (r: Double, g: Double, b: Double),
+        t: Double
+    ) -> (r: Double, g: Double, b: Double) {
+        let clampedT = max(0, min(1, t))
+        return (
+            r: from.r + (to.r - from.r) * clampedT,
+            g: from.g + (to.g - from.g) * clampedT,
+            b: from.b + (to.b - from.b) * clampedT
+        )
+    }
+
+    // Get interpolated color at a fractional position in the palette
+    private func getInterpolatedColor(at position: Double) -> (r: Double, g: Double, b: Double) {
+        let count = colorComponents.count
+        guard count > 0 else { return (r: 255, g: 255, b: 255) }
+
+        // Normalize position to [0, count) range
+        var normalizedPos = position.truncatingRemainder(dividingBy: Double(count))
+        if normalizedPos < 0 { normalizedPos += Double(count) }
+
+        let index = Int(normalizedPos)
+        let fraction = normalizedPos - Double(index)
+
+        let currentColor = colorComponents[index % count]
+        let nextColor = colorComponents[(index + 1) % count]
+
+        return lerpColor(from: currentColor, to: nextColor, t: fraction)
+    }
+
     var body: some View {
         GeometryReader { geometry in
             // Use screen bounds to ensure full coverage regardless of safe areas
@@ -60,22 +92,23 @@ struct NativeSpiralCanvas: View {
                     drawOuterGlow(context: context, cx: cx, cy: cy, radius: radius, canvasSize: canvasSize)
 
                     // Draw layers from back to front
-                    let colorOffset = Int(time * settings.colorFlowSpeed)
+                    // Use fractional offset for smooth color transitions
+                    let colorOffset = time * settings.colorFlowSpeed
 
                     for layer in stride(from: settings.layerCount - 1, through: 0, by: -1) {
                         let layerRadius = radius * (0.5 + Double(layer) * 0.1)
                         let rotationOffset = time * (0.8 + Double(layer) * 0.5) * direction
                         let layerAlpha = 0.15 + (Double(layer) / Double(settings.layerCount)) * 0.25
 
-                        // Color by layer: calculate once per layer
-                        let layerColorIndex = ((layer - colorOffset) % colors.count + colors.count) % colors.count
+                        // Color by layer: calculate once per layer using interpolation
+                        let layerColorPosition = Double(layer) - colorOffset
 
                         for i in 0..<settings.bladeCount {
-                            // Color by blade or by layer based on setting
-                            let colorIndex = settings.colorByBlade
-                                ? ((i - colorOffset) % colors.count + colors.count) % colors.count
-                                : layerColorIndex
-                            let color = colorComponents[colorIndex]
+                            // Color by blade or by layer based on setting, with smooth interpolation
+                            let colorPosition = settings.colorByBlade
+                                ? Double(i) - colorOffset
+                                : layerColorPosition
+                            let color = getInterpolatedColor(at: colorPosition)
 
                             let baseAngle = (Double(i) / Double(settings.bladeCount)) * .pi * 2
                             let angle = baseAngle + rotationOffset + Double(layer) * 0.1
@@ -251,9 +284,9 @@ struct NativeSpiralCanvas: View {
         radius: CGFloat,
         apertureSize: Double
     ) {
-        // Use a color that blends with the blades
-        let colorIndex = Int(time * settings.colorFlowSpeed) % colorComponents.count
-        let color = colorComponents[colorIndex]
+        // Use a color that blends with the blades (with smooth interpolation)
+        let colorPosition = time * settings.colorFlowSpeed
+        let color = getInterpolatedColor(at: colorPosition)
         let solidColor = Color(red: color.r/255, green: color.g/255, blue: color.b/255)
 
         // Different behavior depending on whether photo is present
