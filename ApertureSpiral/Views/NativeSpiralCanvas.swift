@@ -262,27 +262,30 @@ struct NativeSpiralCanvas: View {
 
             // Only draw if there's actually a ring to show (innerRadius < photoRadius)
             if innerRadius < photoRadius {
-                // Create a ring path using even-odd fill rule
-                var ringPath = Path()
+                // Use radial gradient from transparent at inner radius to solid at photo radius
+                let gradient = Gradient(stops: [
+                    .init(color: .clear, location: 0),
+                    .init(color: .clear, location: innerRadius / photoRadius),
+                    .init(color: solidColor, location: innerRadius / photoRadius),
+                    .init(color: solidColor, location: 1.0),
+                ])
 
-                // Outer circle
-                ringPath.addEllipse(in: CGRect(
+                let fillPath = Path(ellipseIn: CGRect(
                     x: cx - photoRadius,
                     y: cy - photoRadius,
                     width: photoRadius * 2,
                     height: photoRadius * 2
                 ))
 
-                // Inner circle (will be subtracted with even-odd rule)
-                ringPath.addEllipse(in: CGRect(
-                    x: cx - innerRadius,
-                    y: cy - innerRadius,
-                    width: innerRadius * 2,
-                    height: innerRadius * 2
-                ))
-
-                // Fill using even-odd rule to create ring
-                context.fill(ringPath, with: .color(solidColor), style: FillStyle(eoFill: true))
+                context.fill(
+                    fillPath,
+                    with: .radialGradient(
+                        gradient,
+                        center: CGPoint(x: cx, y: cy),
+                        startRadius: 0,
+                        endRadius: photoRadius
+                    )
+                )
             }
         } else {
             // Without photo: small fill for blade gaps (original behavior)
