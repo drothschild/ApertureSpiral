@@ -274,14 +274,6 @@ struct SettingsView: View {
                         Text("Uses AI face detection to keep your face centered in the spiral.")
                             .font(.caption)
                             .foregroundColor(.secondary)
-
-                        Toggle("Scale", isOn: Binding(
-                            get: { settings.mirrorAnimationMode == 2 },
-                            set: {
-                                settings.mirrorAnimationMode = $0 ? 2 : 1
-                                presetManager.currentPresetId = nil
-                            }
-                        ))
                     }
                 }
 
