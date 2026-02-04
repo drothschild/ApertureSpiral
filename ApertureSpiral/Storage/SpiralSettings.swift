@@ -25,6 +25,9 @@ class SpiralSettings: ObservableObject {
         static let colorByBlade = "spiral.colorByBlade"
         static let lensFlareEnabled = "spiral.lensFlareEnabled"
         static let hasLaunchedBefore = "spiral.hasLaunchedBefore"
+        static let selectedPhotoData = "spiral.selectedPhotoData"
+        static let photoCenterX = "spiral.photoCenterX"
+        static let photoCenterY = "spiral.photoCenterY"
     }
 
     // Default values
@@ -46,6 +49,8 @@ class SpiralSettings: ObservableObject {
         static let colorPaletteId = "warm"
         static let colorByBlade = false
         static let lensFlareEnabled = true
+        static let photoCenterX = 0.5  // Center of image (normalized 0-1)
+        static let photoCenterY = 0.5  // Center of image (normalized 0-1)
     }
 
     @Published var bladeCount: Int = Defaults.bladeCount {
@@ -101,6 +106,15 @@ class SpiralSettings: ObservableObject {
     }
     @Published var lensFlareEnabled: Bool = Defaults.lensFlareEnabled {
         didSet { if !suppressUserDefaultsWrites { userDefaults.set(lensFlareEnabled, forKey: Keys.lensFlareEnabled) } }
+    }
+    @Published var selectedPhotoData: Data? = nil {
+        didSet { if !suppressUserDefaultsWrites { userDefaults.set(selectedPhotoData, forKey: Keys.selectedPhotoData) } }
+    }
+    @Published var photoCenterX: Double = Defaults.photoCenterX {
+        didSet { if !suppressUserDefaultsWrites { userDefaults.set(photoCenterX, forKey: Keys.photoCenterX) } }
+    }
+    @Published var photoCenterY: Double = Defaults.photoCenterY {
+        didSet { if !suppressUserDefaultsWrites { userDefaults.set(photoCenterY, forKey: Keys.photoCenterY) } }
     }
 
     // When true, property setters will not write to UserDefaults immediately.
@@ -206,6 +220,9 @@ class SpiralSettings: ObservableObject {
             colorPaletteId = userDefaults.string(forKey: Keys.colorPaletteId) ?? Defaults.colorPaletteId
             colorByBlade = userDefaults.object(forKey: Keys.colorByBlade) == nil ? Defaults.colorByBlade : userDefaults.bool(forKey: Keys.colorByBlade)
             lensFlareEnabled = userDefaults.object(forKey: Keys.lensFlareEnabled) == nil ? Defaults.lensFlareEnabled : userDefaults.bool(forKey: Keys.lensFlareEnabled)
+            selectedPhotoData = userDefaults.data(forKey: Keys.selectedPhotoData)
+            photoCenterX = userDefaults.object(forKey: Keys.photoCenterX) == nil ? Defaults.photoCenterX : userDefaults.double(forKey: Keys.photoCenterX)
+            photoCenterY = userDefaults.object(forKey: Keys.photoCenterY) == nil ? Defaults.photoCenterY : userDefaults.double(forKey: Keys.photoCenterY)
 
             // Handle zero values that might indicate unset (use defaults instead)
             if bladeCount == 0 { bladeCount = Defaults.bladeCount }
@@ -231,6 +248,9 @@ class SpiralSettings: ObservableObject {
             colorPaletteId = Defaults.colorPaletteId
             colorByBlade = Defaults.colorByBlade
             lensFlareEnabled = Defaults.lensFlareEnabled
+            selectedPhotoData = nil
+            photoCenterX = Defaults.photoCenterX
+            photoCenterY = Defaults.photoCenterY
 
             userDefaults.set(true, forKey: Keys.hasLaunchedBefore)
         }
@@ -255,6 +275,9 @@ class SpiralSettings: ObservableObject {
         colorPaletteId = Defaults.colorPaletteId
         colorByBlade = Defaults.colorByBlade
         lensFlareEnabled = Defaults.lensFlareEnabled
+        selectedPhotoData = nil
+        photoCenterX = Defaults.photoCenterX
+        photoCenterY = Defaults.photoCenterY
     }
 
     /// Resets all settings to defaults
@@ -275,6 +298,9 @@ class SpiralSettings: ObservableObject {
         colorPaletteId = Defaults.colorPaletteId
         colorByBlade = Defaults.colorByBlade
         lensFlareEnabled = Defaults.lensFlareEnabled
+        selectedPhotoData = nil
+        photoCenterX = Defaults.photoCenterX
+        photoCenterY = Defaults.photoCenterY
     }
 
     /// Randomizes all settings except phrases and photo capture
