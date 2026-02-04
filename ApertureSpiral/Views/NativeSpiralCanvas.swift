@@ -245,36 +245,47 @@ struct NativeSpiralCanvas: View {
         radius: CGFloat,
         apertureSize: Double
     ) {
-        // Fill the center gap when aperture is closing
-        // The fill grows as aperture shrinks to cover the photo/blade gaps
-        // maxFillRadius should be large enough to cover the photo area
-        let maxFillRadius = radius * settings.apertureSize * 0.43
-        let fillRadius = maxFillRadius * (1 - apertureSize)
+        // Fill comes from edges inward as aperture closes
+        // Photo area is covered progressively from outside to center
+        let photoRadius = radius * settings.apertureSize * 0.43
 
-        guard fillRadius > 1 else { return }
+        // Calculate inner radius - starts at photo edge, shrinks to 0
+        let innerRadius = photoRadius * apertureSize
+
+        guard photoRadius > 1 else { return }
 
         // Use a color that blends with the blades
         let colorIndex = Int(time * settings.colorFlowSpeed) % colorComponents.count
         let color = colorComponents[colorIndex]
 
-        // Solid color in center, fading at edges
-        let gradient = Gradient(stops: [
-            .init(color: Color(red: color.r/255, green: color.g/255, blue: color.b/255).opacity(1.0), location: 0),
-            .init(color: Color(red: color.r/255, green: color.g/255, blue: color.b/255).opacity(0.9), location: 0.8),
-            .init(color: Color(red: color.r/255, green: color.g/255, blue: color.b/255).opacity(0), location: 1),
-        ])
+        // Create solid ring from edge inward
+        let solidColor = Color(red: color.r/255, green: color.g/255, blue: color.b/255)
 
-        let fillPath = Path(ellipseIn: CGRect(
-            x: cx - fillRadius,
-            y: cy - fillRadius,
-            width: fillRadius * 2,
-            height: fillRadius * 2
+        // Draw outer circle (full photo area)
+        let outerPath = Path(ellipseIn: CGRect(
+            x: cx - photoRadius,
+            y: cy - photoRadius,
+            width: photoRadius * 2,
+            height: photoRadius * 2
         ))
 
-        context.fill(
-            fillPath,
-            with: .radialGradient(gradient, center: CGPoint(x: cx, y: cy), startRadius: 0, endRadius: fillRadius)
-        )
+        // Draw inner circle (uncovered area that shrinks)
+        let innerPath = Path(ellipseIn: CGRect(
+            x: cx - innerRadius,
+            y: cy - innerRadius,
+            width: innerRadius * 2,
+            height: innerRadius * 2
+        ))
+
+        // Use layer to create ring by subtracting inner from outer
+        context.drawLayer { layerContext in
+            // Fill outer circle with solid color
+            layerContext.fill(outerPath, with: .color(solidColor))
+
+            // Cut out inner circle using blend mode
+            layerContext.blendMode = .destinationOut
+            layerContext.fill(innerPath, with: .color(.white))
+        }
     }
 
     private func drawApertureHole(
