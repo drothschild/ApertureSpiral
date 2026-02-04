@@ -232,78 +232,57 @@ struct SettingsView: View {
                         .foregroundColor(.secondary)
                 }
 
-                Section("Spiral Center Photo") {
-                    Button {
-                        // Turn off mirror view when selecting a photo
-                        if settings.mirrorAlwaysOn {
-                            settings.mirrorAlwaysOn = false
-                        }
-                        showingPhotoPickerSheet = true
-                    } label: {
-                        HStack {
-                            Image(systemName: "photo.circle.fill")
-                                .foregroundColor(.yellow)
-                            Text(settings.selectedPhotoData == nil ? "Select Photo" : "Change Photo")
-                                .foregroundColor(.primary)
-                            Spacer()
-                            if settings.selectedPhotoData != nil {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.green)
-                            }
-                        }
-                    }
-                    .buttonStyle(.plain)
-
-                    if settings.selectedPhotoData != nil {
-                        Button(role: .destructive) {
-                            settings.selectedPhotoData = nil
-                            settings.photoCenterX = 0.5
-                            settings.photoCenterY = 0.5
-                        } label: {
-                            HStack {
-                                Image(systemName: "trash")
-                                Text("Remove Photo")
-                            }
-                        }
-                    }
-
-                    Text("Choose a photo to display in the spiral center aperture. The photo will be covered by the filled color as the aperture closes. Cannot be used with mirror view.")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-
-                Section("Mirror View") {
-                    Toggle("On", isOn: Binding(
-                        get: { settings.mirrorAlwaysOn },
-                        set: { isOn in
-                            settings.mirrorAlwaysOn = isOn
-                            // Turn off photo when mirror is turned on
-                            if isOn && settings.selectedPhotoData != nil {
-                                settings.selectedPhotoData = nil
-                                settings.photoCenterX = 0.5
-                                settings.photoCenterY = 0.5
-                            }
-                        }
-                    ))
-                    .disabled(settings.selectedPhotoData != nil)
-                    Text("Show camera preview at center of spiral. Cannot be used with photo.")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-
-                    Toggle("Center on Face", isOn: $settings.eyeCenteringEnabled)
-                        .disabled(settings.selectedPhotoData != nil)
-                    Text("Uses AI face detection to keep your face centered in the spiral.")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-
-                    Toggle("Scale", isOn: Binding(
-                        get: { settings.mirrorAnimationMode == 2 },
-                        set: {
-                            settings.mirrorAnimationMode = $0 ? 2 : 1
+                Section("Spiral Center") {
+                    Picker("Mode", selection: Binding(
+                        get: { settings.spiralCenterMode },
+                        set: { newMode in
+                            settings.spiralCenterMode = newMode
                             presetManager.currentPresetId = nil
                         }
-                    ))
-                    .disabled(settings.selectedPhotoData != nil)
+                    )) {
+                        ForEach(SpiralCenterMode.allCases, id: \.self) { mode in
+                            Text(mode.displayName).tag(mode)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+
+                    if settings.spiralCenterMode == .photo {
+                        Button {
+                            showingPhotoPickerSheet = true
+                        } label: {
+                            HStack {
+                                Image(systemName: "photo.circle.fill")
+                                    .foregroundColor(.yellow)
+                                Text(settings.selectedPhotoData == nil ? "Select Photo" : "Change Photo")
+                                    .foregroundColor(.primary)
+                                Spacer()
+                                if settings.selectedPhotoData != nil {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(.green)
+                                }
+                            }
+                        }
+                        .buttonStyle(.plain)
+
+                        Text("Choose a photo to display in the spiral center aperture.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+
+                    if settings.spiralCenterMode == .mirror {
+                        Toggle("Center on Face", isOn: $settings.eyeCenteringEnabled)
+                        Text("Uses AI face detection to keep your face centered in the spiral.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+
+                        Toggle("Scale", isOn: Binding(
+                            get: { settings.mirrorAnimationMode == 2 },
+                            set: {
+                                settings.mirrorAnimationMode = $0 ? 2 : 1
+                                presetManager.currentPresetId = nil
+                            }
+                        ))
+                    }
                 }
 
                 Section("Keyboard Shortcuts") {

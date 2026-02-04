@@ -1,6 +1,20 @@
 import Foundation
 import Combine
 
+enum SpiralCenterMode: Int, CaseIterable {
+    case none = 0
+    case mirror = 1
+    case photo = 2
+
+    var displayName: String {
+        switch self {
+        case .none: return "None"
+        case .mirror: return "Mirror"
+        case .photo: return "Photo"
+        }
+    }
+}
+
 class SpiralSettings: ObservableObject {
     static let shared = SpiralSettings()
 
@@ -115,6 +129,36 @@ class SpiralSettings: ObservableObject {
     }
     @Published var photoCenterY: Double = Defaults.photoCenterY {
         didSet { if !suppressUserDefaultsWrites { userDefaults.set(photoCenterY, forKey: Keys.photoCenterY) } }
+    }
+
+    /// Computed property for the spiral center mode based on existing settings
+    var spiralCenterMode: SpiralCenterMode {
+        get {
+            if selectedPhotoData != nil {
+                return .photo
+            } else if mirrorAlwaysOn {
+                return .mirror
+            } else {
+                return .none
+            }
+        }
+        set {
+            switch newValue {
+            case .none:
+                mirrorAlwaysOn = false
+                selectedPhotoData = nil
+                photoCenterX = 0.5
+                photoCenterY = 0.5
+            case .mirror:
+                mirrorAlwaysOn = true
+                selectedPhotoData = nil
+                photoCenterX = 0.5
+                photoCenterY = 0.5
+            case .photo:
+                mirrorAlwaysOn = false
+                // Photo data will be set separately via photo picker
+            }
+        }
     }
 
     // When true, property setters will not write to UserDefaults immediately.
@@ -315,7 +359,11 @@ class SpiralSettings: ObservableObject {
         colorPaletteId = ColorPalette.allBuiltIn.randomElement()?.id ?? Defaults.colorPaletteId
         freezeWhenNoFace = Bool.random()
         freezeWhenNotLooking = Bool.random()
-        mirrorAlwaysOn = Bool.random()
+        // Only randomize spiral center mode if photo is not selected
+        // Randomize between mirror and none (not photo)
+        if spiralCenterMode != .photo {
+            mirrorAlwaysOn = Bool.random()
+        }
         mirrorAnimationMode = Int.random(in: 1...2)
         eyeCenteringEnabled = Bool.random()
         lensFlareEnabled = Bool.random()
