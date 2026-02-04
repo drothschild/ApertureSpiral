@@ -95,6 +95,20 @@ struct NativeSpiralCanvas: View {
                         }
                     }
 
+                    // Draw photo texture if available
+                    if let photoData = settings.selectedPhotoData,
+                       let uiImage = UIImage(data: photoData),
+                       let cgImage = uiImage.cgImage {
+                        drawPhotoTexture(
+                            context: context,
+                            image: cgImage,
+                            cx: cx,
+                            cy: cy,
+                            radius: radius,
+                            apertureSize: apertureSize
+                        )
+                    }
+
                     // Fill center gap when aperture is closing
                     drawCenterFill(context: context, cx: cx, cy: cy, radius: radius, apertureSize: apertureSize)
 
@@ -352,6 +366,68 @@ struct NativeSpiralCanvas: View {
             Path(rect),
             with: .radialGradient(gradient, center: CGPoint(x: flareX, y: flareY), startRadius: 0, endRadius: radius * 0.3)
         )
+    }
+
+    private func drawPhotoTexture(
+        context: GraphicsContext,
+        image: CGImage,
+        cx: CGFloat,
+        cy: CGFloat,
+        radius: CGFloat,
+        apertureSize: Double
+    ) {
+        // Calculate the visible radius based on aperture size (same as camera preview)
+        let visibleRadius = radius * apertureSize * 0.43
+
+        guard visibleRadius > 1 else { return }
+
+        // Get image dimensions
+        let imageWidth = CGFloat(image.width)
+        let imageHeight = CGFloat(image.height)
+
+        // Calculate the center point in pixels
+        let centerXPixels = imageWidth * settings.photoCenterX
+        let centerYPixels = imageHeight * settings.photoCenterY
+
+        // Calculate the size we need to display (we'll scale the image so it fills the circle)
+        // We want the selected center to map to the aperture center
+        let displayDiameter = visibleRadius * 2
+
+        // Scale factor: how much of the image should be visible
+        // We'll use a conservative scale that shows enough context
+        let scaleToFit = displayDiameter / min(imageWidth, imageHeight)
+        let displayWidth = imageWidth * scaleToFit
+        let displayHeight = imageHeight * scaleToFit
+
+        // Calculate source rect: the portion of the image to sample
+        // We want to sample around the center point
+        let sourceWidth = displayDiameter / scaleToFit
+        let sourceHeight = displayDiameter / scaleToFit
+
+        let sourceX = max(0, min(imageWidth - sourceWidth, centerXPixels - sourceWidth / 2))
+        let sourceY = max(0, min(imageHeight - sourceHeight, centerYPixels - sourceHeight / 2))
+
+        let sourceRect = CGRect(x: sourceX, y: sourceY, width: sourceWidth, height: sourceHeight)
+
+        // Destination rect: where to draw on the canvas (centered on aperture)
+        let destRect = CGRect(
+            x: cx - visibleRadius,
+            y: cy - visibleRadius,
+            width: displayDiameter,
+            height: displayDiameter
+        )
+
+        // Crop the image to the source rect
+        guard let croppedImage = image.cropping(to: sourceRect) else { return }
+
+        // Create a circular clipping path
+        let circlePath = Path(ellipseIn: destRect)
+
+        // Apply clipping and draw
+        context.drawLayer { layerContext in
+            layerContext.clip(to: circlePath)
+            layerContext.draw(Image(decorative: croppedImage, scale: 1.0), in: destRect)
+        }
     }
 }
 
