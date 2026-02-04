@@ -25,7 +25,7 @@ struct SpiralSettingsTests {
         #expect(settings.speed == 1.0)
         #expect(settings.apertureSize == 0.5)
         #expect(settings.phrases == ["Happy", "Birthday", "We Love You"])
-        #expect(settings.captureTimerMinutes == 0)
+        #expect(settings.phraseDisplayDuration == 2.0)
         #expect(settings.previewOnly == true)
         #expect(settings.colorFlowSpeed == 0.3)
         #expect(settings.mirrorAlwaysOn == true)
@@ -76,9 +76,9 @@ struct SpiralSettingsTests {
     @Test("Capture timer can be modified")
     func captureTimerModification() {
         let settings = SpiralSettings(forTesting: .standard)
-        settings.captureTimerMinutes = 15
+        settings.phraseDisplayDuration = 15
 
-        #expect(settings.captureTimerMinutes == 15)
+        #expect(settings.phraseDisplayDuration == 15)
     }
 
     @Test("PhrasesText getter joins phrases with newlines")
@@ -166,7 +166,7 @@ struct SpiralSettingsTests {
         settings.speed = 3.0
         settings.apertureSize = 0.1
         settings.phrases = ["Custom"]
-        settings.captureTimerMinutes = 30
+        settings.phraseDisplayDuration = 30
         settings.previewOnly = false
         settings.colorFlowSpeed = 2.0
         settings.mirrorAlwaysOn = false
@@ -180,7 +180,7 @@ struct SpiralSettingsTests {
         #expect(settings.speed == 1.0)
         #expect(settings.apertureSize == 0.5)
         #expect(settings.phrases == ["Happy", "Birthday", "We Love You"])
-        #expect(settings.captureTimerMinutes == 0)
+        #expect(settings.phraseDisplayDuration == 2.0)
         #expect(settings.previewOnly == true)
         #expect(settings.colorFlowSpeed == 0.3)
         #expect(settings.mirrorAlwaysOn == true)
@@ -234,11 +234,11 @@ struct SpiralSettingsTests {
     @Test("Randomize does not change capture timer")
     func randomizePreservesCaptureTimer() {
         let settings = SpiralSettings(forTesting: .standard)
-        settings.captureTimerMinutes = 15
+        settings.phraseDisplayDuration = 15
 
         settings.randomize()
 
-        #expect(settings.captureTimerMinutes == 15)
+        #expect(settings.phraseDisplayDuration == 15)
     }
 
     @Test("Randomize produces values within valid ranges")
@@ -318,7 +318,7 @@ struct PresetTests {
             speed: 1.5,
             apertureSize: 0.6,
             phrases: ["Hello", "World"],
-            captureTimerMinutes: 10,
+            phraseDisplayDuration: 10,
             previewOnly: true,
             colorFlowSpeed: 1.2,
             mirrorAlwaysOn: true,
@@ -331,7 +331,7 @@ struct PresetTests {
         #expect(preset.speed == 1.5)
         #expect(preset.apertureSize == 0.6)
         #expect(preset.phrases == ["Hello", "World"])
-        #expect(preset.captureTimerMinutes == 10)
+        #expect(preset.phraseDisplayDuration == 10)
         #expect(preset.previewOnly == true)
         #expect(preset.colorFlowSpeed == 1.2)
         #expect(preset.mirrorAlwaysOn == true)
@@ -346,11 +346,11 @@ struct PresetTests {
         #expect(preset1.id != preset2.id)
     }
 
-    @Test("Preset default captureTimerMinutes is 0")
+    @Test("Preset default phraseDisplayDuration is 2.0")
     func presetDefaultCaptureTimer() {
         let preset = Preset(name: "Test", bladeCount: 9, layerCount: 5, speed: 1.0, apertureSize: 0.5, phrases: [])
 
-        #expect(preset.captureTimerMinutes == 0)
+        #expect(preset.phraseDisplayDuration == 2.0)
     }
 
     @Test("Preset default previewOnly is false")
@@ -390,7 +390,7 @@ struct PresetTests {
             speed: 2.0,
             apertureSize: 0.7,
             phrases: ["A", "B"],
-            captureTimerMinutes: 5,
+            phraseDisplayDuration: 5,
             previewOnly: true,
             colorFlowSpeed: 1.5,
             mirrorAlwaysOn: true,
@@ -407,7 +407,7 @@ struct PresetTests {
         #expect(decoded.speed == original.speed)
         #expect(decoded.apertureSize == original.apertureSize)
         #expect(decoded.phrases == original.phrases)
-        #expect(decoded.captureTimerMinutes == original.captureTimerMinutes)
+        #expect(decoded.phraseDisplayDuration == original.phraseDisplayDuration)
         #expect(decoded.previewOnly == original.previewOnly)
         #expect(decoded.colorFlowSpeed == original.colorFlowSpeed)
         #expect(decoded.mirrorAlwaysOn == original.mirrorAlwaysOn)
@@ -432,7 +432,7 @@ struct PresetTests {
             speed: 1.0,
             apertureSize: 0.5,
             phrases: ["A"],
-            captureTimerMinutes: 0,
+            phraseDisplayDuration: 0,
             previewOnly: false,
             colorFlowSpeed: 0.5,
             mirrorAlwaysOn: true,
@@ -449,7 +449,7 @@ struct PresetTests {
             speed: 1.0,
             apertureSize: 0.5,
             phrases: ["A"],
-            captureTimerMinutes: 0,
+            phraseDisplayDuration: 0,
             previewOnly: false,
             colorFlowSpeed: 0.5,
             mirrorAlwaysOn: true,
@@ -488,7 +488,7 @@ struct PresetTests {
             speed: 1.0,
             apertureSize: 0.5,
             phrases: ["A"],
-            captureTimerMinutes: 0,
+            phraseDisplayDuration: 0,
             previewOnly: false,
             colorFlowSpeed: 0.5,
             mirrorAlwaysOn: false, // Different
@@ -527,7 +527,7 @@ struct PresetTests {
             speed: 1.0,
             apertureSize: 0.5,
             phrases: ["A"],
-            captureTimerMinutes: 0,
+            phraseDisplayDuration: 0,
             previewOnly: false,
             colorFlowSpeed: 0.5,
             mirrorAlwaysOn: false,
@@ -656,14 +656,14 @@ struct PresetManagerTests {
             speed: 1.0,
             apertureSize: 0.5,
             phrases: ["Test"],
-            captureTimerMinutes: 5,
+            phraseDisplayDuration: 5,
             previewOnly: true,
             colorFlowSpeed: 1.8
         )
         manager.applyPreset(preset)
 
         #expect(settings.previewOnly == true)
-        #expect(settings.captureTimerMinutes == 5)
+        #expect(settings.phraseDisplayDuration == 5)
         #expect(settings.colorFlowSpeed == 1.8)
     }
 
@@ -680,7 +680,7 @@ struct PresetManagerTests {
             speed: 1.0,
             apertureSize: 0.5,
             phrases: ["Test"],
-            captureTimerMinutes: 0,
+            phraseDisplayDuration: 0,
             previewOnly: false,
             colorFlowSpeed: 0.5,
             mirrorAlwaysOn: true,
@@ -807,273 +807,6 @@ struct PresetManagerTests {
 
         #expect(manager.userPresets.isEmpty)
         #expect(manager.currentPresetId == nil)
-    }
-}
-
-// MARK: - TrancePhoto Tests
-
-@Suite("TrancePhoto Tests")
-struct TrancePhotoTests {
-
-    @Test("TrancePhoto initializes with all properties")
-    func initialization() {
-        let id = UUID()
-        let date = Date()
-        let photo = TrancePhoto(id: id, filename: "test.jpg", capturedAt: date, presetName: "Birthday")
-
-        #expect(photo.id == id)
-        #expect(photo.filename == "test.jpg")
-        #expect(photo.capturedAt == date)
-        #expect(photo.presetName == "Birthday")
-    }
-
-    @Test("TrancePhoto has auto-generated UUID")
-    func autoGeneratedUUID() {
-        let photo1 = TrancePhoto(filename: "a.jpg")
-        let photo2 = TrancePhoto(filename: "b.jpg")
-
-        #expect(photo1.id != photo2.id)
-    }
-
-    @Test("TrancePhoto default presetName is nil")
-    func defaultPresetName() {
-        let photo = TrancePhoto(filename: "test.jpg")
-
-        #expect(photo.presetName == nil)
-    }
-
-    @Test("TrancePhoto default capturedAt is approximately now")
-    func defaultCapturedAt() {
-        let before = Date()
-        let photo = TrancePhoto(filename: "test.jpg")
-        let after = Date()
-
-        #expect(photo.capturedAt >= before)
-        #expect(photo.capturedAt <= after)
-    }
-
-    @Test("TrancePhoto is Codable")
-    func codable() throws {
-        let original = TrancePhoto(
-            filename: "photo.jpg",
-            capturedAt: Date(timeIntervalSince1970: 1000000),
-            presetName: "TestPreset"
-        )
-
-        let data = try JSONEncoder().encode(original)
-        let decoded = try JSONDecoder().decode(TrancePhoto.self, from: data)
-
-        #expect(decoded.id == original.id)
-        #expect(decoded.filename == original.filename)
-        #expect(decoded.capturedAt == original.capturedAt)
-        #expect(decoded.presetName == original.presetName)
-    }
-
-    @Test("TrancePhoto conforms to Identifiable")
-    func identifiable() {
-        let photo = TrancePhoto(filename: "test.jpg")
-
-        let id: UUID = photo.id
-        #expect(id == photo.id)
-    }
-}
-
-// MARK: - PhotoStorageManager Tests
-
-@Suite("PhotoStorageManager Tests")
-struct PhotoStorageManagerTests {
-
-    func createTestDirectory() -> URL {
-        let temp = FileManager.default.temporaryDirectory
-        return temp.appendingPathComponent("PhotoStorageTests_\(UUID().uuidString)")
-    }
-
-    func cleanupDirectory(_ url: URL) {
-        try? FileManager.default.removeItem(at: url)
-    }
-
-    func createTestImage() -> UIImage {
-        UIGraphicsBeginImageContext(CGSize(width: 100, height: 100))
-        UIColor.red.setFill()
-        UIRectFill(CGRect(x: 0, y: 0, width: 100, height: 100))
-        let image = UIGraphicsGetImageFromCurrentImageContext()!
-        UIGraphicsEndImageContext()
-        return image
-    }
-
-    @Test("Manager starts with empty photos")
-    func startsEmpty() {
-        let dir = createTestDirectory()
-        defer { cleanupDirectory(dir) }
-
-        let manager = PhotoStorageManager(forTesting: dir)
-
-        #expect(manager.photos.isEmpty)
-    }
-
-    @Test("SavePhoto creates photo file")
-    func savePhotoCreatesFile() {
-        let dir = createTestDirectory()
-        defer { cleanupDirectory(dir) }
-
-        let manager = PhotoStorageManager(forTesting: dir)
-        let image = createTestImage()
-
-        let photo = manager.savePhoto(image, presetName: nil)
-
-        #expect(photo != nil)
-        let fileURL = dir.appendingPathComponent(photo!.filename)
-        #expect(FileManager.default.fileExists(atPath: fileURL.path))
-    }
-
-    @Test("SavePhoto adds to photos array")
-    func savePhotoAddsToArray() {
-        let dir = createTestDirectory()
-        defer { cleanupDirectory(dir) }
-
-        let manager = PhotoStorageManager(forTesting: dir)
-        let image = createTestImage()
-
-        _ = manager.savePhoto(image, presetName: nil)
-
-        #expect(manager.photos.count == 1)
-    }
-
-    @Test("SavePhoto inserts at beginning")
-    func savePhotoInsertsAtBeginning() {
-        let dir = createTestDirectory()
-        defer { cleanupDirectory(dir) }
-
-        let manager = PhotoStorageManager(forTesting: dir)
-        let image = createTestImage()
-
-        let photo1 = manager.savePhoto(image, presetName: "First")
-        let photo2 = manager.savePhoto(image, presetName: "Second")
-
-        #expect(manager.photos[0].id == photo2?.id)
-        #expect(manager.photos[1].id == photo1?.id)
-    }
-
-    @Test("SavePhoto stores presetName")
-    func savePhotoStoresPresetName() {
-        let dir = createTestDirectory()
-        defer { cleanupDirectory(dir) }
-
-        let manager = PhotoStorageManager(forTesting: dir)
-        let image = createTestImage()
-
-        let photo = manager.savePhoto(image, presetName: "TestPreset")
-
-        #expect(photo?.presetName == "TestPreset")
-    }
-
-    @Test("LoadImage returns saved image")
-    func loadImageReturnsImage() {
-        let dir = createTestDirectory()
-        defer { cleanupDirectory(dir) }
-
-        let manager = PhotoStorageManager(forTesting: dir)
-        let image = createTestImage()
-
-        let photo = manager.savePhoto(image, presetName: nil)!
-        let loaded = manager.loadImage(for: photo)
-
-        #expect(loaded != nil)
-    }
-
-    @Test("LoadImage returns nil for non-existent photo")
-    func loadImageReturnsNilForMissing() {
-        let dir = createTestDirectory()
-        defer { cleanupDirectory(dir) }
-
-        let manager = PhotoStorageManager(forTesting: dir)
-        let fakePhoto = TrancePhoto(filename: "nonexistent.jpg")
-
-        let loaded = manager.loadImage(for: fakePhoto)
-
-        #expect(loaded == nil)
-    }
-
-    @Test("DeletePhoto removes file")
-    func deletePhotoRemovesFile() {
-        let dir = createTestDirectory()
-        defer { cleanupDirectory(dir) }
-
-        let manager = PhotoStorageManager(forTesting: dir)
-        let image = createTestImage()
-        let photo = manager.savePhoto(image, presetName: nil)!
-        let fileURL = dir.appendingPathComponent(photo.filename)
-
-        #expect(FileManager.default.fileExists(atPath: fileURL.path))
-
-        manager.deletePhoto(photo)
-
-        #expect(!FileManager.default.fileExists(atPath: fileURL.path))
-    }
-
-    @Test("DeletePhoto removes from photos array")
-    func deletePhotoRemovesFromArray() {
-        let dir = createTestDirectory()
-        defer { cleanupDirectory(dir) }
-
-        let manager = PhotoStorageManager(forTesting: dir)
-        let image = createTestImage()
-        let photo = manager.savePhoto(image, presetName: nil)!
-
-        #expect(manager.photos.count == 1)
-
-        manager.deletePhoto(photo)
-
-        #expect(manager.photos.isEmpty)
-    }
-
-    @Test("Reset clears all photos")
-    func resetClearsAll() {
-        let dir = createTestDirectory()
-        defer { cleanupDirectory(dir) }
-
-        let manager = PhotoStorageManager(forTesting: dir)
-        let image = createTestImage()
-        _ = manager.savePhoto(image, presetName: nil)
-        _ = manager.savePhoto(image, presetName: nil)
-
-        #expect(manager.photos.count == 2)
-
-        manager.reset()
-
-        #expect(manager.photos.isEmpty)
-    }
-
-    @Test("Photos persist across instances")
-    func photosPersist() {
-        let dir = createTestDirectory()
-        defer { cleanupDirectory(dir) }
-
-        let manager1 = PhotoStorageManager(forTesting: dir)
-        let image = createTestImage()
-        let photo = manager1.savePhoto(image, presetName: "Persist")!
-
-        // Create new manager instance pointing to same directory
-        let manager2 = PhotoStorageManager(forTesting: dir)
-
-        #expect(manager2.photos.count == 1)
-        #expect(manager2.photos[0].id == photo.id)
-        #expect(manager2.photos[0].presetName == "Persist")
-    }
-
-    @Test("Multiple photos can be saved")
-    func multiplePhotosSaved() {
-        let dir = createTestDirectory()
-        defer { cleanupDirectory(dir) }
-
-        let manager = PhotoStorageManager(forTesting: dir)
-        let image = createTestImage()
-
-        for i in 0..<5 {
-            _ = manager.savePhoto(image, presetName: "Photo\(i)")
-        }
-
-        #expect(manager.photos.count == 5)
     }
 }
 
@@ -2166,7 +1899,7 @@ struct PresetXMLSerializationTests {
             speed: 2.0,
             apertureSize: 0.4,
             phrases: ["A"],
-            captureTimerMinutes: 15,
+            phraseDisplayDuration: 15,
             previewOnly: true,
             colorFlowSpeed: 1.2,
             mirrorAlwaysOn: true,
@@ -2179,7 +1912,7 @@ struct PresetXMLSerializationTests {
 
         let xml = preset.toXML()
 
-        #expect(xml.contains("<captureTimerMinutes>15</captureTimerMinutes>"))
+        #expect(xml.contains("<phraseDisplayDuration>15</phraseDisplayDuration>"))
         #expect(xml.contains("<previewOnly>true</previewOnly>"))
         #expect(xml.contains("<colorFlowSpeed>1.2</colorFlowSpeed>"))
         #expect(xml.contains("<mirrorAlwaysOn>true</mirrorAlwaysOn>"))
@@ -2254,7 +1987,7 @@ struct PresetXMLSerializationTests {
             <phrase>First</phrase>
             <phrase>Second</phrase>
           </phrases>
-          <captureTimerMinutes>10</captureTimerMinutes>
+          <phraseDisplayDuration>10</phraseDisplayDuration>
           <previewOnly>true</previewOnly>
           <colorFlowSpeed>0.9</colorFlowSpeed>
           <mirrorAlwaysOn>true</mirrorAlwaysOn>
@@ -2275,7 +2008,7 @@ struct PresetXMLSerializationTests {
         #expect(preset?.speed == 0.75)
         #expect(preset?.apertureSize == 0.8)
         #expect(preset?.phrases == ["First", "Second"])
-        #expect(preset?.captureTimerMinutes == 10)
+        #expect(preset?.phraseDisplayDuration == 10)
         #expect(preset?.previewOnly == true)
         #expect(preset?.colorFlowSpeed == 0.9)
         #expect(preset?.mirrorAlwaysOn == true)
@@ -2303,7 +2036,7 @@ struct PresetXMLSerializationTests {
         let preset = Preset.fromXML(xml)
 
         #expect(preset != nil)
-        #expect(preset?.captureTimerMinutes == 0)
+        #expect(preset?.phraseDisplayDuration == 2.0)
         #expect(preset?.previewOnly == false)
         #expect(preset?.colorFlowSpeed == 0.5)
         #expect(preset?.mirrorAlwaysOn == false)
@@ -2374,7 +2107,7 @@ struct PresetXMLSerializationTests {
             speed: 1.8,
             apertureSize: 0.45,
             phrases: ["Alpha", "Beta", "Gamma"],
-            captureTimerMinutes: 20,
+            phraseDisplayDuration: 20,
             previewOnly: true,
             colorFlowSpeed: 1.5,
             mirrorAlwaysOn: true,
@@ -2396,7 +2129,7 @@ struct PresetXMLSerializationTests {
         #expect(abs((parsed?.speed ?? 0) - original.speed) < 0.001)
         #expect(abs((parsed?.apertureSize ?? 0) - original.apertureSize) < 0.001)
         #expect(parsed?.phrases == original.phrases)
-        #expect(parsed?.captureTimerMinutes == original.captureTimerMinutes)
+        #expect(parsed?.phraseDisplayDuration == original.phraseDisplayDuration)
         #expect(parsed?.previewOnly == original.previewOnly)
         #expect(abs((parsed?.colorFlowSpeed ?? 0) - original.colorFlowSpeed) < 0.001)
         #expect(parsed?.mirrorAlwaysOn == original.mirrorAlwaysOn)
@@ -2674,7 +2407,7 @@ struct PresetManagerImportExportTests {
             speed: 1.8,
             apertureSize: 0.45,
             phrases: ["One", "Two"],
-            captureTimerMinutes: 5,
+            phraseDisplayDuration: 5,
             previewOnly: true,
             colorFlowSpeed: 1.2,
             mirrorAlwaysOn: true,
@@ -2699,7 +2432,7 @@ struct PresetManagerImportExportTests {
         #expect(abs((imported?.speed ?? 0) - original.speed) < 0.001)
         #expect(abs((imported?.apertureSize ?? 0) - original.apertureSize) < 0.001)
         #expect(imported?.phrases == original.phrases)
-        #expect(imported?.captureTimerMinutes == original.captureTimerMinutes)
+        #expect(imported?.phraseDisplayDuration == original.phraseDisplayDuration)
         #expect(imported?.previewOnly == original.previewOnly)
         #expect(abs((imported?.colorFlowSpeed ?? 0) - original.colorFlowSpeed) < 0.001)
         #expect(imported?.mirrorAlwaysOn == original.mirrorAlwaysOn)
@@ -2806,7 +2539,7 @@ struct SpiralSettingsAdditionalTests {
             speed: 2.2,
             apertureSize: 0.35,
             phrases: ["Test", "Preset"],
-            captureTimerMinutes: 10,
+            phraseDisplayDuration: 10,
             previewOnly: true,
             colorFlowSpeed: 1.8,
             mirrorAlwaysOn: true,
@@ -2824,7 +2557,7 @@ struct SpiralSettingsAdditionalTests {
         #expect(abs(settings.speed - 2.2) < 0.001)
         #expect(abs(settings.apertureSize - 0.35) < 0.001)
         #expect(settings.phrases == ["Test", "Preset"])
-        #expect(settings.captureTimerMinutes == 10)
+        #expect(settings.phraseDisplayDuration == 10)
         #expect(settings.previewOnly == true)
         #expect(abs(settings.colorFlowSpeed - 1.8) < 0.001)
         #expect(settings.mirrorAlwaysOn == true)
@@ -2929,7 +2662,7 @@ struct PresetMatchesSettingsFullTests {
             speed: 1.5,
             apertureSize: 0.6,
             phrases: ["Hello"],
-            captureTimerMinutes: 5,
+            phraseDisplayDuration: 5,
             previewOnly: true,
             colorFlowSpeed: 1.2,
             mirrorAlwaysOn: true,
@@ -2948,7 +2681,7 @@ struct PresetMatchesSettingsFullTests {
             speed: 1.5,
             apertureSize: 0.6,
             phrases: ["Hello"],
-            captureTimerMinutes: 5,
+            phraseDisplayDuration: 5,
             previewOnly: true,
             colorFlowSpeed: 1.2,
             mirrorAlwaysOn: true,
@@ -2982,7 +2715,7 @@ struct PresetMatchesSettingsFullTests {
             speed: 1.0,
             apertureSize: 0.5,
             phrases: [],
-            captureTimerMinutes: 0,
+            phraseDisplayDuration: 0,
             previewOnly: false,
             colorFlowSpeed: 0.5,
             mirrorAlwaysOn: false,
@@ -3016,7 +2749,7 @@ struct PresetMatchesSettingsFullTests {
             speed: 1.0,
             apertureSize: 0.5,
             phrases: [],
-            captureTimerMinutes: 0,
+            phraseDisplayDuration: 0,
             previewOnly: false,
             colorFlowSpeed: 0.5,
             mirrorAlwaysOn: false,
@@ -3050,7 +2783,7 @@ struct PresetMatchesSettingsFullTests {
             speed: 1.0,
             apertureSize: 0.5,
             phrases: [],
-            captureTimerMinutes: 0,
+            phraseDisplayDuration: 0,
             previewOnly: false,
             colorFlowSpeed: 0.5,
             mirrorAlwaysOn: false,
@@ -3084,7 +2817,7 @@ struct PresetMatchesSettingsFullTests {
             speed: 1.0,
             apertureSize: 0.5,
             phrases: [],
-            captureTimerMinutes: 0,
+            phraseDisplayDuration: 0,
             previewOnly: false,
             colorFlowSpeed: 0.5,
             mirrorAlwaysOn: false,
@@ -3118,7 +2851,7 @@ struct PresetMatchesSettingsFullTests {
             speed: 1.0,
             apertureSize: 0.5,
             phrases: [],
-            captureTimerMinutes: 0,
+            phraseDisplayDuration: 0,
             previewOnly: false,
             colorFlowSpeed: 0.5,
             mirrorAlwaysOn: false,
@@ -3152,7 +2885,7 @@ struct PresetMatchesSettingsFullTests {
             speed: 1.0,
             apertureSize: 0.5,
             phrases: [],
-            captureTimerMinutes: 0,
+            phraseDisplayDuration: 0,
             previewOnly: false,
             colorFlowSpeed: 0.5,
             mirrorAlwaysOn: false,
@@ -3187,7 +2920,7 @@ struct PresetMatchesSettingsFullTests {
             speed: 1.005, // Within tolerance
             apertureSize: 0.505, // Within tolerance
             phrases: [],
-            captureTimerMinutes: 0,
+            phraseDisplayDuration: 0,
             previewOnly: false,
             colorFlowSpeed: 1.005, // Within tolerance
             mirrorAlwaysOn: false,
@@ -3329,7 +3062,7 @@ struct PresetManagerDetectCurrentPresetTests {
             speed: 1.7,
             apertureSize: 0.55,
             phrases: ["Custom"],
-            captureTimerMinutes: 3,
+            phraseDisplayDuration: 3,
             previewOnly: true,
             colorFlowSpeed: 0.8,
             mirrorAlwaysOn: true,
