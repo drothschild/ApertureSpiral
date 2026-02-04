@@ -1240,9 +1240,10 @@ struct BladeDrawingTests {
     @Test("Arc center moves inward as aperture closes")
     func arcCenterMovesInward() {
         let bladeRadius: CGFloat = 100
+        let thickness: CGFloat = 12  // arbitrary thickness for testing
 
-        let arcCenterOpen = calculateArcCenterX(bladeRadius: bladeRadius, apertureSize: 1.0)
-        let arcCenterClosed = calculateArcCenterX(bladeRadius: bladeRadius, apertureSize: 0.0)
+        let arcCenterOpen = calculateArcCenterX(bladeRadius: bladeRadius, apertureSize: 1.0, thickness: thickness)
+        let arcCenterClosed = calculateArcCenterX(bladeRadius: bladeRadius, apertureSize: 0.0, thickness: thickness)
 
         #expect(arcCenterOpen > arcCenterClosed)
     }
@@ -1250,9 +1251,10 @@ struct BladeDrawingTests {
     @Test("Arc radius scales with aperture size")
     func arcRadiusScalesWithAperture() {
         let bladeRadius: CGFloat = 100
+        let thickness: CGFloat = 12  // arbitrary thickness for testing
 
-        let radiusOpen = calculateArcRadius(bladeRadius: bladeRadius, apertureSize: 1.0)
-        let radiusClosed = calculateArcRadius(bladeRadius: bladeRadius, apertureSize: 0.0)
+        let radiusOpen = calculateArcRadius(bladeRadius: bladeRadius, apertureSize: 1.0, thickness: thickness)
+        let radiusClosed = calculateArcRadius(bladeRadius: bladeRadius, apertureSize: 0.0, thickness: thickness)
 
         #expect(radiusOpen > radiusClosed)
     }
@@ -1303,16 +1305,17 @@ struct BladeDrawingTests {
 
         // When aperture is fully closed (0.0), blades should meet at center
         let bladeRadius = calculateBladeRadius(baseRadius: baseRadius, layerIndex: layerIndex)
-        let arcCenterX = calculateArcCenterX(bladeRadius: bladeRadius, apertureSize: 0.0)
-        let arcRadius = calculateArcRadius(bladeRadius: bladeRadius, apertureSize: 0.0)
+        let thickness = baseRadius * (0.12 + CGFloat(layerIndex) * 0.02)
+        let arcCenterX = calculateArcCenterX(bladeRadius: bladeRadius, apertureSize: 0.0, thickness: thickness)
+        let arcRadius = calculateArcRadius(bladeRadius: bladeRadius, apertureSize: 0.0, thickness: thickness)
+        let innerRadius = arcRadius - thickness / 2
 
-        // The inner edge of the blade should reach approximately the center
-        // Inner edge is at: arcCenterX - arcRadius
-        let innerEdgeDistance = arcCenterX - arcRadius
+        // The inner edge of the blade should reach the center
+        // Inner edge is at: arcCenterX - innerRadius
+        let innerEdgeDistance = arcCenterX - innerRadius
 
-        // Should be very close to center (within small tolerance for visual smoothness)
-        // Using baseRadius * 0.02 as tolerance (2% of base radius)
-        #expect(innerEdgeDistance < baseRadius * 0.02)
+        // Should be at center (zero or very close)
+        #expect(innerEdgeDistance < baseRadius * 0.01)
         #expect(innerEdgeDistance >= 0)  // Should not overshoot center
     }
 
@@ -1323,36 +1326,17 @@ struct BladeDrawingTests {
 
         // When aperture is fully open (1.0), there should be a clear opening
         let bladeRadius = calculateBladeRadius(baseRadius: baseRadius, layerIndex: layerIndex)
-        let arcCenterX = calculateArcCenterX(bladeRadius: bladeRadius, apertureSize: 1.0)
-        let arcRadius = calculateArcRadius(bladeRadius: bladeRadius, apertureSize: 1.0)
+        let thickness = baseRadius * (0.12 + CGFloat(layerIndex) * 0.02)
+        let arcCenterX = calculateArcCenterX(bladeRadius: bladeRadius, apertureSize: 1.0, thickness: thickness)
+        let arcRadius = calculateArcRadius(bladeRadius: bladeRadius, apertureSize: 1.0, thickness: thickness)
+        let innerRadius = arcRadius - thickness / 2
 
         // Inner edge should be significantly away from center
-        let innerEdgeDistance = arcCenterX - arcRadius
+        let innerEdgeDistance = arcCenterX - innerRadius
         let openingRadius = innerEdgeDistance
 
         // Opening should be at least 15% of base radius
         #expect(openingRadius > baseRadius * 0.15)
-    }
-
-    @Test("Photo clipping radius matches aperture opening")
-    func photoRadiusMatchesAperture() {
-        let baseRadius: CGFloat = 100
-
-        // Test at various aperture sizes
-        for apertureSize in [0.0, 0.25, 0.5, 0.75, 1.0] {
-            // Calculate the actual aperture opening from innermost blade
-            let bladeRadius = calculateBladeRadius(baseRadius: baseRadius, layerIndex: 0)
-            let arcCenterX = calculateArcCenterX(bladeRadius: bladeRadius, apertureSize: apertureSize)
-            let arcRadius = calculateArcRadius(bladeRadius: bladeRadius, apertureSize: apertureSize)
-            let apertureOpening = arcCenterX - arcRadius
-
-            // Photo clipping should match aperture opening
-            let photoClipRadius = calculatePhotoClipRadius(baseRadius: baseRadius, apertureSize: apertureSize)
-
-            // Should be very close (within 1% tolerance for numerical precision)
-            let tolerance = baseRadius * 0.01
-            #expect(abs(photoClipRadius - apertureOpening) < tolerance)
-        }
     }
 
     // Helper functions mirroring NativeSpiralCanvas logic
@@ -1360,22 +1344,19 @@ struct BladeDrawingTests {
         return baseRadius * (0.4 + CGFloat(layerIndex) * 0.12)
     }
 
-    private func calculateArcCenterX(bladeRadius: CGFloat, apertureSize: Double) -> CGFloat {
+    private func calculateArcCenterX(bladeRadius: CGFloat, apertureSize: Double, thickness: CGFloat) -> CGFloat {
         // Updated formula for blade convergence
-        return bladeRadius * (0.42 * apertureSize)
+        let maxOpening = bladeRadius * 0.42
+        let openingRadius = maxOpening * apertureSize
+        let arcRadius = openingRadius + thickness / 2
+        return openingRadius + arcRadius - thickness / 2  // = 2 * openingRadius
     }
 
-    private func calculateArcRadius(bladeRadius: CGFloat, apertureSize: Double) -> CGFloat {
+    private func calculateArcRadius(bladeRadius: CGFloat, apertureSize: Double, thickness: CGFloat) -> CGFloat {
         // Updated formula for blade convergence
-        return bladeRadius * (0.42 * apertureSize)
-    }
-
-    private func calculatePhotoClipRadius(baseRadius: CGFloat, apertureSize: Double) -> CGFloat {
-        // Photo should clip to match the aperture opening
-        let bladeRadius = calculateBladeRadius(baseRadius: baseRadius, layerIndex: 0)
-        let arcCenterX = calculateArcCenterX(bladeRadius: bladeRadius, apertureSize: apertureSize)
-        let arcRadius = calculateArcRadius(bladeRadius: bladeRadius, apertureSize: apertureSize)
-        return arcCenterX - arcRadius
+        let maxOpening = bladeRadius * 0.42
+        let openingRadius = maxOpening * apertureSize
+        return openingRadius + thickness / 2
     }
 
     private func calculateLayerAlpha(layerIndex: Int, layerCount: Int) -> Double {

@@ -145,13 +145,20 @@ struct NativeSpiralCanvas: View {
         apertureSize: Double
     ) {
         let bladeRadius = radius * (0.4 + Double(layerIndex) * 0.12)
+        let thickness = radius * (0.12 + Double(layerIndex) * 0.02)
 
         // Blade parameters - blades converge to center when aperture closes
-        // When apertureSize = 0 (closed), inner edge should reach center
-        // When apertureSize = 1 (open), create a clear opening
-        let arcCenterX = bladeRadius * (0.42 * apertureSize)
-        let arcRadius = bladeRadius * (0.42 * apertureSize)
-        let thickness = radius * (0.12 + Double(layerIndex) * 0.02)
+        // The innermost point of blade is at: arcCenterX - innerRadius
+        // where innerRadius = arcRadius - thickness/2
+        // So innermost point = arcCenterX - arcRadius + thickness/2
+        // We want: innermost point = openingRadius
+        // Therefore: arcCenterX = openingRadius + arcRadius - thickness/2
+        // And: arcRadius = openingRadius + thickness/2
+        // So: arcCenterX = openingRadius + (openingRadius + thickness/2) - thickness/2 = 2 * openingRadius
+        let maxOpening = bladeRadius * 0.42
+        let openingRadius = maxOpening * apertureSize
+        let arcRadius = openingRadius + thickness / 2
+        let arcCenterX = openingRadius + arcRadius - thickness / 2  // = 2 * openingRadius
 
         // Arc sweep
         let arcSweep = Double.pi * (1.2 + 0.8 / Double(settings.bladeCount))
@@ -434,9 +441,14 @@ struct NativeSpiralCanvas: View {
         radius: CGFloat,
         apertureSize: Double
     ) {
-        // Use fixed radius based on maximum aperture size (settings.apertureSize)
-        // Photo stays constant size, only gets covered by fill color
-        let photoRadius = radius * settings.apertureSize * 0.43
+        // Photo stays at fixed maximum size, gets clipped by aperture
+        // Use settings.apertureSize (the max aperture setting) not apertureSize (the animated value)
+        let bladeRadius = radius * 0.4  // innermost layer (layerIndex = 0)
+        let maxOpening = bladeRadius * 0.42
+        let photoRadius = maxOpening  // Fixed at maximum opening size
+
+        // Calculate the clipping radius based on the actual aperture opening
+        let apertureOpening = maxOpening * apertureSize
 
         guard photoRadius > 1 else { return }
 
@@ -476,8 +488,15 @@ struct NativeSpiralCanvas: View {
         // Crop the image to the source rect
         guard let croppedImage = image.cropping(to: sourceRect) else { return }
 
-        // Create a circular clipping path
-        let circlePath = Path(ellipseIn: destRect)
+        // Create a circular clipping path that matches the aperture opening
+        let clipDiameter = apertureOpening * 2
+        let clipRect = CGRect(
+            x: cx - apertureOpening,
+            y: cy - apertureOpening,
+            width: clipDiameter,
+            height: clipDiameter
+        )
+        let circlePath = Path(ellipseIn: clipRect)
 
         // Apply clipping and draw
         context.drawLayer { layerContext in
