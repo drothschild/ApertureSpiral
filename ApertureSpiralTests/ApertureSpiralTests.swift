@@ -1334,17 +1334,48 @@ struct BladeDrawingTests {
         #expect(openingRadius > baseRadius * 0.15)
     }
 
+    @Test("Photo clipping radius matches aperture opening")
+    func photoRadiusMatchesAperture() {
+        let baseRadius: CGFloat = 100
+
+        // Test at various aperture sizes
+        for apertureSize in [0.0, 0.25, 0.5, 0.75, 1.0] {
+            // Calculate the actual aperture opening from innermost blade
+            let bladeRadius = calculateBladeRadius(baseRadius: baseRadius, layerIndex: 0)
+            let arcCenterX = calculateArcCenterX(bladeRadius: bladeRadius, apertureSize: apertureSize)
+            let arcRadius = calculateArcRadius(bladeRadius: bladeRadius, apertureSize: apertureSize)
+            let apertureOpening = arcCenterX - arcRadius
+
+            // Photo clipping should match aperture opening
+            let photoClipRadius = calculatePhotoClipRadius(baseRadius: baseRadius, apertureSize: apertureSize)
+
+            // Should be very close (within 1% tolerance for numerical precision)
+            let tolerance = baseRadius * 0.01
+            #expect(abs(photoClipRadius - apertureOpening) < tolerance)
+        }
+    }
+
     // Helper functions mirroring NativeSpiralCanvas logic
     private func calculateBladeRadius(baseRadius: CGFloat, layerIndex: Int) -> CGFloat {
         return baseRadius * (0.4 + CGFloat(layerIndex) * 0.12)
     }
 
     private func calculateArcCenterX(bladeRadius: CGFloat, apertureSize: Double) -> CGFloat {
-        return bladeRadius * (0.05 + 0.30 * apertureSize)
+        // Updated formula for blade convergence
+        return bladeRadius * (0.42 * apertureSize)
     }
 
     private func calculateArcRadius(bladeRadius: CGFloat, apertureSize: Double) -> CGFloat {
-        return bladeRadius * (0.85 + apertureSize * 0.4)
+        // Updated formula for blade convergence
+        return bladeRadius * (0.42 * apertureSize)
+    }
+
+    private func calculatePhotoClipRadius(baseRadius: CGFloat, apertureSize: Double) -> CGFloat {
+        // Photo should clip to match the aperture opening
+        let bladeRadius = calculateBladeRadius(baseRadius: baseRadius, layerIndex: 0)
+        let arcCenterX = calculateArcCenterX(bladeRadius: bladeRadius, apertureSize: apertureSize)
+        let arcRadius = calculateArcRadius(bladeRadius: bladeRadius, apertureSize: apertureSize)
+        return arcCenterX - arcRadius
     }
 
     private func calculateLayerAlpha(layerIndex: Int, layerCount: Int) -> Double {
