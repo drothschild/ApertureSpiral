@@ -252,35 +252,37 @@ struct NativeSpiralCanvas: View {
 
         // Different behavior depending on whether photo is present
         if settings.selectedPhotoData != nil {
-            // With photo: fill comes from photo edges inward, constrained to photo area
+            // With photo: draw ring that covers from photo edge inward
             // MUST match the exact photoRadius calculation from drawPhotoTexture
             let photoRadius = radius * settings.apertureSize * 0.43
-            // innerRadius shrinks with breathing animation
+            // innerRadius shrinks with breathing animation - this is what's visible of the photo
             let innerRadius = photoRadius * apertureSize
 
             guard photoRadius > 1 && innerRadius >= 0 else { return }
 
-            // Draw outer circle (full photo area)
-            let outerPath = Path(ellipseIn: CGRect(
-                x: cx - photoRadius,
-                y: cy - photoRadius,
-                width: photoRadius * 2,
-                height: photoRadius * 2
-            ))
+            // Only draw if there's actually a ring to show (innerRadius < photoRadius)
+            if innerRadius < photoRadius {
+                // Create a ring path using even-odd fill rule
+                var ringPath = Path()
 
-            // Draw inner circle (uncovered area that shrinks)
-            let innerPath = Path(ellipseIn: CGRect(
-                x: cx - innerRadius,
-                y: cy - innerRadius,
-                width: innerRadius * 2,
-                height: innerRadius * 2
-            ))
+                // Outer circle
+                ringPath.addEllipse(in: CGRect(
+                    x: cx - photoRadius,
+                    y: cy - photoRadius,
+                    width: photoRadius * 2,
+                    height: photoRadius * 2
+                ))
 
-            // Use layer to create ring by subtracting inner from outer
-            context.drawLayer { layerContext in
-                layerContext.fill(outerPath, with: .color(solidColor))
-                layerContext.blendMode = .destinationOut
-                layerContext.fill(innerPath, with: .color(.white))
+                // Inner circle (will be subtracted with even-odd rule)
+                ringPath.addEllipse(in: CGRect(
+                    x: cx - innerRadius,
+                    y: cy - innerRadius,
+                    width: innerRadius * 2,
+                    height: innerRadius * 2
+                ))
+
+                // Fill using even-odd rule to create ring
+                context.fill(ringPath, with: .color(solidColor), style: FillStyle(eoFill: true))
             }
         } else {
             // Without photo: small fill for blade gaps (original behavior)
