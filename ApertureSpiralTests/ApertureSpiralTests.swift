@@ -1296,6 +1296,44 @@ struct BladeDrawingTests {
         }
     }
 
+    @Test("Blades converge to center point when aperture closes")
+    func bladesConvergeToCenter() {
+        let baseRadius: CGFloat = 100
+        let layerIndex = 0  // innermost layer
+
+        // When aperture is fully closed (0.0), blades should meet at center
+        let bladeRadius = calculateBladeRadius(baseRadius: baseRadius, layerIndex: layerIndex)
+        let arcCenterX = calculateArcCenterX(bladeRadius: bladeRadius, apertureSize: 0.0)
+        let arcRadius = calculateArcRadius(bladeRadius: bladeRadius, apertureSize: 0.0)
+
+        // The inner edge of the blade should reach approximately the center
+        // Inner edge is at: arcCenterX - arcRadius
+        let innerEdgeDistance = arcCenterX - arcRadius
+
+        // Should be very close to center (within small tolerance for visual smoothness)
+        // Using baseRadius * 0.02 as tolerance (2% of base radius)
+        #expect(innerEdgeDistance < baseRadius * 0.02)
+        #expect(innerEdgeDistance >= 0)  // Should not overshoot center
+    }
+
+    @Test("Blades create opening when aperture opens")
+    func bladesCreateOpening() {
+        let baseRadius: CGFloat = 100
+        let layerIndex = 0
+
+        // When aperture is fully open (1.0), there should be a clear opening
+        let bladeRadius = calculateBladeRadius(baseRadius: baseRadius, layerIndex: layerIndex)
+        let arcCenterX = calculateArcCenterX(bladeRadius: bladeRadius, apertureSize: 1.0)
+        let arcRadius = calculateArcRadius(bladeRadius: bladeRadius, apertureSize: 1.0)
+
+        // Inner edge should be significantly away from center
+        let innerEdgeDistance = arcCenterX - arcRadius
+        let openingRadius = innerEdgeDistance
+
+        // Opening should be at least 15% of base radius
+        #expect(openingRadius > baseRadius * 0.15)
+    }
+
     // Helper functions mirroring NativeSpiralCanvas logic
     private func calculateBladeRadius(baseRadius: CGFloat, layerIndex: Int) -> CGFloat {
         return baseRadius * (0.4 + CGFloat(layerIndex) * 0.12)
