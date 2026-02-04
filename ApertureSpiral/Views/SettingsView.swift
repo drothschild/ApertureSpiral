@@ -7,6 +7,7 @@ struct SettingsView: View {
     @State private var phrasesText: String = ""
     @State private var newPresetName = ""
     @State private var showingSavePreset = false
+    @State private var showingPhotoPickerSheet = false
     @FocusState private var phrasesFocused: Bool
 
     var body: some View {
@@ -232,6 +233,42 @@ struct SettingsView: View {
                     ))
                 }
 
+                Section("Spiral Center Photo") {
+                    Button {
+                        showingPhotoPickerSheet = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "photo.circle.fill")
+                                .foregroundColor(.yellow)
+                            Text(settings.selectedPhotoData == nil ? "Select Photo" : "Change Photo")
+                                .foregroundColor(.primary)
+                            Spacer()
+                            if settings.selectedPhotoData != nil {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
+                            }
+                        }
+                    }
+                    .buttonStyle(.plain)
+
+                    if settings.selectedPhotoData != nil {
+                        Button(role: .destructive) {
+                            settings.selectedPhotoData = nil
+                            settings.photoCenterX = 0.5
+                            settings.photoCenterY = 0.5
+                        } label: {
+                            HStack {
+                                Image(systemName: "trash")
+                                Text("Remove Photo")
+                            }
+                        }
+                    }
+
+                    Text("Choose a photo to display in the spiral center aperture. The photo will be covered by the filled color as the aperture closes.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+
                 Section("Photo Capture") {
                     HStack {
                         Text(settings.captureTimerMinutes == 0 ? "Off" : "\(settings.captureTimerMinutes) min")
@@ -287,6 +324,9 @@ struct SettingsView: View {
                 }
             } message: {
                 Text("Enter a name for this preset")
+            }
+            .sheet(isPresented: $showingPhotoPickerSheet) {
+                PhotoPickerView(settings: settings)
             }
         }
     }
