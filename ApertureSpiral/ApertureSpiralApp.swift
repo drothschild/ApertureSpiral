@@ -86,7 +86,12 @@ class KeyCommandViewController<Content: View>: UIHostingController<Content> {
     }
 
     @objc func toggleMirror() {
-        SpiralSettings.shared.mirrorAlwaysOn.toggle()
+        let settings = SpiralSettings.shared
+        if settings.spiralCenterMode == .mirror {
+            settings.spiralCenterMode = .none
+        } else {
+            settings.spiralCenterMode = .mirror
+        }
     }
 
     @objc func randomizeSettings() {
