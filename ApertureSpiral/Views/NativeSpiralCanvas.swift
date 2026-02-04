@@ -376,10 +376,11 @@ struct NativeSpiralCanvas: View {
         radius: CGFloat,
         apertureSize: Double
     ) {
-        // Calculate the visible radius based on aperture size (same as camera preview)
-        let visibleRadius = radius * apertureSize * 0.43
+        // Use fixed radius based on maximum aperture size (settings.apertureSize)
+        // Photo stays constant size, only gets covered by fill color
+        let photoRadius = radius * settings.apertureSize * 0.43
 
-        guard visibleRadius > 1 else { return }
+        guard photoRadius > 1 else { return }
 
         // Get image dimensions
         let imageWidth = CGFloat(image.width)
@@ -389,15 +390,12 @@ struct NativeSpiralCanvas: View {
         let centerXPixels = imageWidth * settings.photoCenterX
         let centerYPixels = imageHeight * settings.photoCenterY
 
-        // Calculate the size we need to display (we'll scale the image so it fills the circle)
-        // We want the selected center to map to the aperture center
-        let displayDiameter = visibleRadius * 2
+        // Calculate the size we need to display (fixed size)
+        let displayDiameter = photoRadius * 2
 
         // Scale factor: how much of the image should be visible
         // We'll use a conservative scale that shows enough context
         let scaleToFit = displayDiameter / min(imageWidth, imageHeight)
-        let displayWidth = imageWidth * scaleToFit
-        let displayHeight = imageHeight * scaleToFit
 
         // Calculate source rect: the portion of the image to sample
         // We want to sample around the center point
@@ -409,10 +407,10 @@ struct NativeSpiralCanvas: View {
 
         let sourceRect = CGRect(x: sourceX, y: sourceY, width: sourceWidth, height: sourceHeight)
 
-        // Destination rect: where to draw on the canvas (centered on aperture)
+        // Destination rect: where to draw on the canvas (centered, fixed size)
         let destRect = CGRect(
-            x: cx - visibleRadius,
-            y: cy - visibleRadius,
+            x: cx - photoRadius,
+            y: cy - photoRadius,
             width: displayDiameter,
             height: displayDiameter
         )
