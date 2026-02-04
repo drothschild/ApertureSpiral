@@ -146,9 +146,9 @@ class SpiralSettings: ObservableObject {
             spiralCenterModeRaw = newValue.rawValue
             // Update mirrorAlwaysOn to match mode for compatibility
             mirrorAlwaysOn = (newValue == .mirror)
-            // Always use scale mode for mirror
+            // Always use zoom-only mode for mirror (no scale)
             if newValue == .mirror {
-                mirrorAnimationMode = 2
+                mirrorAnimationMode = 1
             }
         }
     }
