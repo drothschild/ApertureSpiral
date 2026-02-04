@@ -13,6 +13,7 @@ class SpiralSettings: ObservableObject {
         static let speed = "spiral.speed"
         static let apertureSize = "spiral.apertureSize"
         static let phrases = "spiral.phrases"
+        static let phraseDisplayDuration = "spiral.phraseDisplayDuration"
         static let captureTimerMinutes = "spiral.captureTimerMinutes"
         static let previewOnly = "spiral.previewOnly"
         static let colorFlowSpeed = "spiral.colorFlowSpeed"
@@ -37,6 +38,7 @@ class SpiralSettings: ObservableObject {
         static let speed = 1.0
         static let apertureSize = 0.5
         static let phrases = ["Happy", "Birthday", "We Love You"]
+        static let phraseDisplayDuration = 2.0  // Seconds to show each phrase
         static let captureTimerMinutes = 0
         static let previewOnly = true
         static let colorFlowSpeed = 0.3
@@ -67,6 +69,9 @@ class SpiralSettings: ObservableObject {
     }
     @Published var phrases: [String] = Defaults.phrases {
         didSet { if !suppressUserDefaultsWrites { userDefaults.set(phrases, forKey: Keys.phrases) } }
+    }
+    @Published var phraseDisplayDuration: Double = Defaults.phraseDisplayDuration {
+        didSet { if !suppressUserDefaultsWrites { userDefaults.set(phraseDisplayDuration, forKey: Keys.phraseDisplayDuration) } }
     }
     @Published var captureTimerMinutes: Int = Defaults.captureTimerMinutes {
         didSet { if !suppressUserDefaultsWrites { userDefaults.set(captureTimerMinutes, forKey: Keys.captureTimerMinutes) } }
@@ -128,6 +133,7 @@ class SpiralSettings: ObservableObject {
         speed = preset.speed
         apertureSize = preset.apertureSize
         phrases = preset.phrases
+        phraseDisplayDuration = preset.phraseDisplayDuration
         captureTimerMinutes = preset.captureTimerMinutes
         previewOnly = preset.previewOnly
         colorFlowSpeed = preset.colorFlowSpeed
@@ -152,6 +158,7 @@ class SpiralSettings: ObservableObject {
             speed: speed,
             apertureSize: apertureSize,
             phrases: phrases,
+            phraseDisplayDuration: phraseDisplayDuration,
             captureTimerMinutes: captureTimerMinutes,
             previewOnly: previewOnly,
             colorFlowSpeed: colorFlowSpeed,
@@ -172,6 +179,7 @@ class SpiralSettings: ObservableObject {
             ud.set(snapshot.speed, forKey: Keys.speed)
             ud.set(snapshot.apertureSize, forKey: Keys.apertureSize)
             ud.set(snapshot.phrases, forKey: Keys.phrases)
+            ud.set(snapshot.phraseDisplayDuration, forKey: Keys.phraseDisplayDuration)
             ud.set(snapshot.captureTimerMinutes, forKey: Keys.captureTimerMinutes)
             ud.set(snapshot.previewOnly, forKey: Keys.previewOnly)
             ud.set(snapshot.colorFlowSpeed, forKey: Keys.colorFlowSpeed)
@@ -204,6 +212,7 @@ class SpiralSettings: ObservableObject {
             speed = userDefaults.double(forKey: Keys.speed)
             apertureSize = userDefaults.double(forKey: Keys.apertureSize)
             phrases = userDefaults.stringArray(forKey: Keys.phrases) ?? Defaults.phrases
+            phraseDisplayDuration = userDefaults.object(forKey: Keys.phraseDisplayDuration) == nil ? Defaults.phraseDisplayDuration : userDefaults.double(forKey: Keys.phraseDisplayDuration)
             captureTimerMinutes = userDefaults.integer(forKey: Keys.captureTimerMinutes)
             previewOnly = userDefaults.bool(forKey: Keys.previewOnly)
             colorFlowSpeed = userDefaults.double(forKey: Keys.colorFlowSpeed)
@@ -229,6 +238,7 @@ class SpiralSettings: ObservableObject {
             if layerCount == 0 { layerCount = Defaults.layerCount }
             if speed == 0 { speed = Defaults.speed }
             if apertureSize == 0 { apertureSize = Defaults.apertureSize }
+            if phraseDisplayDuration == 0 { phraseDisplayDuration = Defaults.phraseDisplayDuration }
             if colorFlowSpeed == 0 { colorFlowSpeed = Defaults.colorFlowSpeed }
         } else {
             // First launch - use defaults
@@ -237,6 +247,7 @@ class SpiralSettings: ObservableObject {
             speed = Defaults.speed
             apertureSize = Defaults.apertureSize
             phrases = Defaults.phrases
+            phraseDisplayDuration = Defaults.phraseDisplayDuration
             captureTimerMinutes = Defaults.captureTimerMinutes
             previewOnly = Defaults.previewOnly
             colorFlowSpeed = Defaults.colorFlowSpeed
@@ -264,6 +275,7 @@ class SpiralSettings: ObservableObject {
         speed = Defaults.speed
         apertureSize = Defaults.apertureSize
         phrases = Defaults.phrases
+        phraseDisplayDuration = Defaults.phraseDisplayDuration
         captureTimerMinutes = Defaults.captureTimerMinutes
         previewOnly = Defaults.previewOnly
         colorFlowSpeed = Defaults.colorFlowSpeed
@@ -287,6 +299,7 @@ class SpiralSettings: ObservableObject {
         speed = Defaults.speed
         apertureSize = Defaults.apertureSize
         phrases = Defaults.phrases
+        phraseDisplayDuration = Defaults.phraseDisplayDuration
         captureTimerMinutes = Defaults.captureTimerMinutes
         previewOnly = Defaults.previewOnly
         colorFlowSpeed = Defaults.colorFlowSpeed

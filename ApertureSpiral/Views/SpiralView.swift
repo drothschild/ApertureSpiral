@@ -21,7 +21,7 @@ struct SpiralView: View {
     @State private var loadingId = UUID()
 
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
-    let phraseTimer = Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()
+    @State private var phraseTimerSubscription: AnyCancellable?
 
     private var cameraVisible: Bool {
         showCameraPreview || settings.mirrorAlwaysOn
@@ -216,11 +216,13 @@ struct SpiralView: View {
             UIApplication.shared.isIdleTimerDisabled = true
             scheduleHideTabBar()
             showLoadingScreen()
+            setupPhraseTimer()
         }
         .onDisappear {
             UIApplication.shared.isIdleTimerDisabled = false
             hideTask?.cancel()
             hideTabBar = false
+            phraseTimerSubscription?.cancel()
         }
         .onReceive(timer) { _ in
             checkCaptureTimer()
@@ -228,8 +230,8 @@ struct SpiralView: View {
         .onReceive(settings.$captureTimerMinutes) { minutes in
             updateCaptureTimer(minutes: minutes)
         }
-        .onReceive(phraseTimer) { _ in
-            cyclePhrase()
+        .onReceive(settings.$phraseDisplayDuration) { _ in
+            setupPhraseTimer()
         }
         .onReceive(NotificationCenter.default.publisher(for: .capturePhoto)) { _ in
             capturePhoto()
@@ -248,6 +250,15 @@ struct SpiralView: View {
                 showLoadingScreen()
             }
         }
+    }
+
+    private func setupPhraseTimer() {
+        phraseTimerSubscription?.cancel()
+        phraseTimerSubscription = Timer.publish(every: settings.phraseDisplayDuration, on: .main, in: .common)
+            .autoconnect()
+            .sink { _ in
+                cyclePhrase()
+            }
     }
 
     private func showLoadingScreen() {
