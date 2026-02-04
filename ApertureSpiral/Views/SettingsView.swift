@@ -8,6 +8,7 @@ struct SettingsView: View {
     @State private var newPresetName = ""
     @State private var showingSavePreset = false
     @State private var showingPhotoPickerSheet = false
+    @State private var showRandomizedFeedback = false
     @FocusState private var phrasesFocused: Bool
 
     var body: some View {
@@ -29,10 +30,28 @@ struct SettingsView: View {
                         showingSavePreset = true
                     }
 
-                    Button("Randomize") {
+                    Button {
                         settings.randomize()
                         presetManager.currentPresetId = nil
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            showRandomizedFeedback = true
+                        }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                showRandomizedFeedback = false
+                            }
+                        }
+                    } label: {
+                        HStack {
+                            Text(showRandomizedFeedback ? "Randomized!" : "Randomize")
+                            if showRandomizedFeedback {
+                                Image(systemName: "checkmark.circle.fill")
+                            }
+                        }
+                        .foregroundColor(showRandomizedFeedback ? .yellow : nil)
                     }
+                    .scaleEffect(showRandomizedFeedback ? 1.05 : 1.0)
+                    .animation(.easeInOut(duration: 0.2), value: showRandomizedFeedback)
                 }
 
                 Section("Phrases") {
