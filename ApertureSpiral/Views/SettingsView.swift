@@ -260,10 +260,6 @@ struct SettingsView: View {
                                 Text(settings.selectedPhotoData == nil ? "Select Photo" : "Change Photo")
                                     .foregroundColor(.primary)
                                 Spacer()
-                                if settings.selectedPhotoData != nil {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundColor(.green)
-                                }
                             }
                         }
                         .buttonStyle(.plain)
