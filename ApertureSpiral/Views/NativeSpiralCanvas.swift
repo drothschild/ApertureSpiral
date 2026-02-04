@@ -442,13 +442,12 @@ struct NativeSpiralCanvas: View {
         apertureSize: Double
     ) {
         // Photo stays at fixed maximum size, gets clipped by aperture
-        // Use settings.apertureSize (the max aperture setting) not apertureSize (the animated value)
-        let bladeRadius = radius * 0.4  // innermost layer (layerIndex = 0)
-        let maxOpening = bladeRadius * 0.42
-        let photoRadius = maxOpening  // Fixed at maximum opening size
+        // Use 0.38 to match camera preview size (both should show same aperture opening)
+        let maxPhotoRadius = radius * settings.apertureSize * 0.38
+        let photoRadius = maxPhotoRadius  // Fixed at maximum opening size
 
         // Calculate the clipping radius based on the actual aperture opening
-        let apertureOpening = maxOpening * apertureSize
+        let apertureOpening = radius * apertureSize * 0.38
 
         guard photoRadius > 1 else { return }
 
