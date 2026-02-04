@@ -319,6 +319,7 @@ class SpiralSettings: ObservableObject {
         mirrorAnimationMode = Int.random(in: 1...2)
         eyeCenteringEnabled = Bool.random()
         lensFlareEnabled = Bool.random()
+        phraseDisplayDuration = Double(Int.random(in: 1...10)) / 2.0  // 0.5 to 5.0 in 0.5 steps
     }
 
     var phrasesText: String {
