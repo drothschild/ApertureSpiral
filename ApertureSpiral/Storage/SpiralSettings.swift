@@ -37,7 +37,6 @@ class SpiralSettings: ObservableObject {
         static let freezeWhenNotLooking = "spiral.freezeWhenNotLooking"
         static let colorPaletteId = "spiral.colorPaletteId"
         static let colorByBlade = "spiral.colorByBlade"
-        static let lensFlareEnabled = "spiral.lensFlareEnabled"
         static let hasLaunchedBefore = "spiral.hasLaunchedBefore"
         static let selectedPhotoData = "spiral.selectedPhotoData"
         static let photoCenterX = "spiral.photoCenterX"
@@ -63,7 +62,6 @@ class SpiralSettings: ObservableObject {
         static let freezeWhenNotLooking = false
         static let colorPaletteId = "warm"
         static let colorByBlade = false
-        static let lensFlareEnabled = true
         static let photoCenterX = 0.5  // Center of image (normalized 0-1)
         static let photoCenterY = 0.5  // Center of image (normalized 0-1)
     }
@@ -119,9 +117,6 @@ class SpiralSettings: ObservableObject {
     @Published var colorByBlade: Bool = Defaults.colorByBlade {
         didSet { if !suppressUserDefaultsWrites { userDefaults.set(colorByBlade, forKey: Keys.colorByBlade) } }
     }
-    @Published var lensFlareEnabled: Bool = Defaults.lensFlareEnabled {
-        didSet { if !suppressUserDefaultsWrites { userDefaults.set(lensFlareEnabled, forKey: Keys.lensFlareEnabled) } }
-    }
     @Published var selectedPhotoData: Data? = nil {
         didSet { if !suppressUserDefaultsWrites { userDefaults.set(selectedPhotoData, forKey: Keys.selectedPhotoData) } }
     }
@@ -174,7 +169,6 @@ class SpiralSettings: ObservableObject {
         freezeWhenNotLooking = preset.freezeWhenNotLooking
         colorPaletteId = preset.colorPaletteId
         colorByBlade = preset.colorByBlade
-        lensFlareEnabled = preset.lensFlareEnabled
         suppressUserDefaultsWrites = false
         // Persist all values once
         persistAllToUserDefaults()
@@ -197,8 +191,7 @@ class SpiralSettings: ObservableObject {
             freezeWhenNoFace: freezeWhenNoFace,
             freezeWhenNotLooking: freezeWhenNotLooking,
             colorPaletteId: colorPaletteId,
-            colorByBlade: colorByBlade,
-            lensFlareEnabled: lensFlareEnabled
+            colorByBlade: colorByBlade
         )
 
         DispatchQueue.global(qos: .userInitiated).async {
@@ -218,7 +211,6 @@ class SpiralSettings: ObservableObject {
             ud.set(snapshot.freezeWhenNotLooking, forKey: Keys.freezeWhenNotLooking)
             ud.set(snapshot.colorPaletteId, forKey: Keys.colorPaletteId)
             ud.set(snapshot.colorByBlade, forKey: Keys.colorByBlade)
-            ud.set(snapshot.lensFlareEnabled, forKey: Keys.lensFlareEnabled)
         }
     }
 
@@ -255,7 +247,6 @@ class SpiralSettings: ObservableObject {
             freezeWhenNotLooking = userDefaults.object(forKey: Keys.freezeWhenNotLooking) == nil ? Defaults.freezeWhenNotLooking : userDefaults.bool(forKey: Keys.freezeWhenNotLooking)
             colorPaletteId = userDefaults.string(forKey: Keys.colorPaletteId) ?? Defaults.colorPaletteId
             colorByBlade = userDefaults.object(forKey: Keys.colorByBlade) == nil ? Defaults.colorByBlade : userDefaults.bool(forKey: Keys.colorByBlade)
-            lensFlareEnabled = userDefaults.object(forKey: Keys.lensFlareEnabled) == nil ? Defaults.lensFlareEnabled : userDefaults.bool(forKey: Keys.lensFlareEnabled)
             selectedPhotoData = userDefaults.data(forKey: Keys.selectedPhotoData)
             photoCenterX = userDefaults.object(forKey: Keys.photoCenterX) == nil ? Defaults.photoCenterX : userDefaults.double(forKey: Keys.photoCenterX)
             photoCenterY = userDefaults.object(forKey: Keys.photoCenterY) == nil ? Defaults.photoCenterY : userDefaults.double(forKey: Keys.photoCenterY)
@@ -298,7 +289,6 @@ class SpiralSettings: ObservableObject {
             freezeWhenNotLooking = Defaults.freezeWhenNotLooking
             colorPaletteId = Defaults.colorPaletteId
             colorByBlade = Defaults.colorByBlade
-            lensFlareEnabled = Defaults.lensFlareEnabled
             selectedPhotoData = nil
             photoCenterX = Defaults.photoCenterX
             photoCenterY = Defaults.photoCenterY
@@ -326,7 +316,6 @@ class SpiralSettings: ObservableObject {
         freezeWhenNotLooking = Defaults.freezeWhenNotLooking
         colorPaletteId = Defaults.colorPaletteId
         colorByBlade = Defaults.colorByBlade
-        lensFlareEnabled = Defaults.lensFlareEnabled
         selectedPhotoData = nil
         photoCenterX = Defaults.photoCenterX
         photoCenterY = Defaults.photoCenterY
@@ -350,7 +339,6 @@ class SpiralSettings: ObservableObject {
         freezeWhenNotLooking = Defaults.freezeWhenNotLooking
         colorPaletteId = Defaults.colorPaletteId
         colorByBlade = Defaults.colorByBlade
-        lensFlareEnabled = Defaults.lensFlareEnabled
         selectedPhotoData = nil
         photoCenterX = Defaults.photoCenterX
         photoCenterY = Defaults.photoCenterY
@@ -375,7 +363,6 @@ class SpiralSettings: ObservableObject {
         }
         mirrorAnimationMode = Int.random(in: 1...2)
         eyeCenteringEnabled = Bool.random()
-        lensFlareEnabled = Bool.random()
         phraseDisplayDuration = Double(Int.random(in: 1...10)) / 2.0  // 0.5 to 5.0 in 0.5 steps
     }
 
