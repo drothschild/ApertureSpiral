@@ -30,7 +30,6 @@ struct SpiralSettingsTests {
         #expect(settings.colorFlowSpeed == 0.3)
         #expect(settings.mirrorAlwaysOn == true)
         #expect(settings.mirrorAnimationMode == 2)
-        #expect(settings.lensFlareEnabled == true)
     }
 
     @Test("Blade count can be modified")
@@ -147,17 +146,6 @@ struct SpiralSettingsTests {
         #expect(settings.mirrorAnimationMode == 2)
     }
 
-    @Test("Lens flare enabled can be modified")
-    func lensFlareEnabledModification() {
-        let settings = SpiralSettings(forTesting: .standard)
-
-        #expect(settings.lensFlareEnabled == true) // Default
-        settings.lensFlareEnabled = false
-        #expect(settings.lensFlareEnabled == false)
-        settings.lensFlareEnabled = true
-        #expect(settings.lensFlareEnabled == true)
-    }
-
     @Test("Reset restores default values")
     func resetRestoresDefaults() {
         let settings = SpiralSettings(forTesting: .standard)
@@ -171,7 +159,6 @@ struct SpiralSettingsTests {
         settings.colorFlowSpeed = 2.0
         settings.mirrorAlwaysOn = false
         settings.mirrorAnimationMode = 0
-        settings.lensFlareEnabled = false
 
         settings.reset()
 
@@ -185,7 +172,6 @@ struct SpiralSettingsTests {
         #expect(settings.colorFlowSpeed == 0.3)
         #expect(settings.mirrorAlwaysOn == true)
         #expect(settings.mirrorAnimationMode == 2)
-        #expect(settings.lensFlareEnabled == true)
     }
 
     @Test("Randomize changes settings values")
@@ -458,8 +444,7 @@ struct PresetTests {
             freezeWhenNoFace: false,
             freezeWhenNotLooking: false,
             colorPaletteId: "warm",
-            colorByBlade: false,
-            lensFlareEnabled: true
+            colorByBlade: false
         )
 
         #expect(matches == true)
@@ -497,8 +482,7 @@ struct PresetTests {
             freezeWhenNoFace: false,
             freezeWhenNotLooking: false,
             colorPaletteId: "warm",
-            colorByBlade: false,
-            lensFlareEnabled: true
+            colorByBlade: false
         )
 
         #expect(matches == false)
@@ -536,8 +520,7 @@ struct PresetTests {
             freezeWhenNoFace: false,
             freezeWhenNotLooking: false,
             colorPaletteId: "warm",
-            colorByBlade: false,
-            lensFlareEnabled: true
+            colorByBlade: false
         )
 
         #expect(matches == false)
@@ -1406,63 +1389,6 @@ struct HoleDiameterTests {
     private func calculateHoleDiameter(radius: CGFloat, apertureSize: Double) -> CGFloat {
         let holeRadius = radius * apertureSize * 0.43
         return holeRadius * 2
-    }
-}
-
-// MARK: - Lens Flare Calculation Tests
-
-@Suite("Lens Flare Calculation Tests")
-struct LensFlareTests {
-
-    @Test("Flare position orbits around center")
-    func flarePositionOrbits() {
-        let cx: CGFloat = 100
-        let cy: CGFloat = 100
-        let radius: CGFloat = 100
-
-        var positions: [CGPoint] = []
-
-        for i in 0..<4 {
-            let time = Double(i) * .pi / 2  // Quarter rotations
-            let flareAngle = time * 0.5
-            let flareX = cx + cos(flareAngle) * radius * 0.3
-            let flareY = cy + sin(flareAngle) * radius * 0.3
-            positions.append(CGPoint(x: flareX, y: flareY))
-        }
-
-        // All positions should be different
-        for i in 0..<positions.count {
-            for j in (i+1)..<positions.count {
-                let dx = positions[i].x - positions[j].x
-                let dy = positions[i].y - positions[j].y
-                let distance = sqrt(dx*dx + dy*dy)
-                #expect(distance > 1.0)
-            }
-        }
-    }
-
-    @Test("Flare alpha oscillates")
-    func flareAlphaOscillates() {
-        let baseAlpha: Double = 0.05
-        let amplitude: Double = 0.02
-
-        var alphas: [Double] = []
-        for i in 0..<10 {
-            let time = Double(i) * 0.5
-            let alpha = baseAlpha + sin(time * 3) * amplitude
-            alphas.append(alpha)
-        }
-
-        // Check that alpha varies
-        let minAlpha = alphas.min()!
-        let maxAlpha = alphas.max()!
-        #expect(maxAlpha > minAlpha)
-
-        // Check that alpha stays in reasonable range
-        for alpha in alphas {
-            #expect(alpha >= baseAlpha - amplitude)
-            #expect(alpha <= baseAlpha + amplitude)
-        }
     }
 }
 
@@ -2721,8 +2647,7 @@ struct PresetMatchesSettingsFullTests {
             freezeWhenNoFace: true,
             freezeWhenNotLooking: true,
             colorPaletteId: "cool",
-            colorByBlade: true,
-            lensFlareEnabled: false
+            colorByBlade: true
         )
 
         let matches = preset.matchesSettings(
@@ -2740,8 +2665,7 @@ struct PresetMatchesSettingsFullTests {
             freezeWhenNoFace: true,
             freezeWhenNotLooking: true,
             colorPaletteId: "cool",
-            colorByBlade: true,
-            lensFlareEnabled: false
+            colorByBlade: true
         )
 
         #expect(matches == true)
@@ -2774,8 +2698,7 @@ struct PresetMatchesSettingsFullTests {
             freezeWhenNoFace: false,
             freezeWhenNotLooking: false,
             colorPaletteId: "warm",
-            colorByBlade: false,
-            lensFlareEnabled: true
+            colorByBlade: false
         )
 
         #expect(matches == false)
@@ -2808,8 +2731,7 @@ struct PresetMatchesSettingsFullTests {
             freezeWhenNoFace: false, // Different
             freezeWhenNotLooking: false,
             colorPaletteId: "warm",
-            colorByBlade: false,
-            lensFlareEnabled: true
+            colorByBlade: false
         )
 
         #expect(matches == false)
@@ -2842,8 +2764,7 @@ struct PresetMatchesSettingsFullTests {
             freezeWhenNoFace: false,
             freezeWhenNotLooking: false, // Different
             colorPaletteId: "warm",
-            colorByBlade: false,
-            lensFlareEnabled: true
+            colorByBlade: false
         )
 
         #expect(matches == false)
@@ -2876,8 +2797,7 @@ struct PresetMatchesSettingsFullTests {
             freezeWhenNoFace: false,
             freezeWhenNotLooking: false,
             colorPaletteId: "cool", // Different
-            colorByBlade: false,
-            lensFlareEnabled: true
+            colorByBlade: false
         )
 
         #expect(matches == false)
@@ -2910,42 +2830,7 @@ struct PresetMatchesSettingsFullTests {
             freezeWhenNoFace: false,
             freezeWhenNotLooking: false,
             colorPaletteId: "warm",
-            colorByBlade: false, // Different
-            lensFlareEnabled: true
-        )
-
-        #expect(matches == false)
-    }
-
-    @Test("matchesSettings returns false for different lensFlareEnabled")
-    func matchesSettingsDifferentLensFlare() {
-        let preset = Preset(
-            name: "Test",
-            bladeCount: 9,
-            layerCount: 5,
-            speed: 1.0,
-            apertureSize: 0.5,
-            phrases: [],
-            lensFlareEnabled: true
-        )
-
-        let matches = preset.matchesSettings(
-            bladeCount: 9,
-            layerCount: 5,
-            speed: 1.0,
-            apertureSize: 0.5,
-            phrases: [],
-            phraseDisplayDuration: 0,
-            previewOnly: false,
-            colorFlowSpeed: 0.5,
-            mirrorAlwaysOn: false,
-            mirrorAnimationMode: 2,
-            eyeCenteringEnabled: true,
-            freezeWhenNoFace: false,
-            freezeWhenNotLooking: false,
-            colorPaletteId: "warm",
-            colorByBlade: false,
-            lensFlareEnabled: false // Different
+            colorByBlade: false // Different
         )
 
         #expect(matches == false)
@@ -2979,8 +2864,7 @@ struct PresetMatchesSettingsFullTests {
             freezeWhenNoFace: false,
             freezeWhenNotLooking: false,
             colorPaletteId: "warm",
-            colorByBlade: false,
-            lensFlareEnabled: true
+            colorByBlade: false
         )
 
         #expect(matches == true)

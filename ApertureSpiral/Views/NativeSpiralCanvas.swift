@@ -154,10 +154,6 @@ struct NativeSpiralCanvas: View {
                         drawApertureHole(context: context, cx: cx, cy: cy, radius: radius, apertureSize: apertureSize)
                     }
 
-                    // Lens flare effect
-                    if settings.lensFlareEnabled {
-                        drawLensFlare(context: context, cx: cx, cy: cy, radius: radius, canvasSize: canvasSize)
-                    }
                 }
                 .onChange(of: timeline.date) { _, _ in
                     if !settings.spiralFrozen {
@@ -447,31 +443,6 @@ struct NativeSpiralCanvas: View {
         context.fill(
             Path(rect),
             with: .radialGradient(gradient, center: CGPoint(x: cx, y: cy), startRadius: radius * 0.5, endRadius: radius * 1.1)
-        )
-    }
-
-    private func drawLensFlare(
-        context: GraphicsContext,
-        cx: CGFloat,
-        cy: CGFloat,
-        radius: CGFloat,
-        canvasSize: CGSize
-    ) {
-        let flareAngle = time * 0.5
-        let flareX = cx + cos(flareAngle) * radius * 0.3
-        let flareY = cy + sin(flareAngle) * radius * 0.3
-
-        let flareAlpha = 0.05 + sin(time * 3) * 0.02
-        let gradient = Gradient(stops: [
-            .init(color: .white.opacity(flareAlpha), location: 0),
-            .init(color: Color(red: 248/255, green: 181/255, blue: 0/255).opacity(0.02), location: 0.5),
-            .init(color: .clear, location: 1),
-        ])
-
-        let rect = CGRect(origin: .zero, size: canvasSize)
-        context.fill(
-            Path(rect),
-            with: .radialGradient(gradient, center: CGPoint(x: flareX, y: flareY), startRadius: 0, endRadius: radius * 0.3)
         )
     }
 
