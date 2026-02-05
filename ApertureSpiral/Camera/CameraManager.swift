@@ -268,7 +268,18 @@ class CameraManager: NSObject, ObservableObject {
         }
     }
 
+    /// Returns true if running in UI test mode (--uitesting flag passed)
+    static var isUITesting: Bool {
+        ProcessInfo.processInfo.arguments.contains("--uitesting")
+    }
+
     func requestPermission() async -> Bool {
+        // Skip camera permission in UI tests to prevent stalling
+        if CameraManager.isUITesting {
+            await MainActor.run { isAuthorized = false }
+            return false
+        }
+
         switch AVCaptureDevice.authorizationStatus(for: .video) {
         case .authorized:
             await MainActor.run { isAuthorized = true }
