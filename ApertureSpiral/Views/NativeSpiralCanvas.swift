@@ -128,20 +128,29 @@ struct NativeSpiralCanvas: View {
                         }
                     }
 
-                    // Draw photo texture if available, otherwise draw aperture hole
-                    if let photoData = settings.selectedPhotoData,
-                       let uiImage = UIImage(data: photoData),
-                       let cgImage = uiImage.cgImage {
-                        drawPhotoTexture(
-                            context: context,
-                            image: cgImage,
-                            cx: cx,
-                            cy: cy,
-                            radius: radius,
-                            apertureSize: apertureSize
-                        )
-                    } else {
-                        // Draw center hole only when no photo is selected
+                    // Draw center content based on spiralCenterMode
+                    switch settings.spiralCenterMode {
+                    case .photo:
+                        if let photoData = settings.selectedPhotoData,
+                           let uiImage = UIImage(data: photoData),
+                           let cgImage = uiImage.cgImage {
+                            drawPhotoTexture(
+                                context: context,
+                                image: cgImage,
+                                cx: cx,
+                                cy: cy,
+                                radius: radius,
+                                apertureSize: apertureSize
+                            )
+                        } else {
+                            // Photo mode but no photo selected - show aperture hole
+                            drawApertureHole(context: context, cx: cx, cy: cy, radius: radius, apertureSize: apertureSize)
+                        }
+                    case .mirror:
+                        // Mirror mode - camera preview is handled in SpiralView, draw nothing here
+                        break
+                    case .none:
+                        // None mode - show dark aperture hole
                         drawApertureHole(context: context, cx: cx, cy: cy, radius: radius, apertureSize: apertureSize)
                     }
 
@@ -289,8 +298,8 @@ struct NativeSpiralCanvas: View {
         let color = getInterpolatedColor(at: colorPosition)
         let solidColor = Color(red: color.r/255, green: color.g/255, blue: color.b/255)
 
-        // Different behavior depending on whether photo is present
-        if settings.selectedPhotoData != nil {
+        // Different behavior depending on spiral center mode
+        if settings.spiralCenterMode == .photo && settings.selectedPhotoData != nil {
             // With photo: draw thin ring that covers from photo edge inward
             // MUST match the exact photoRadius calculation from drawPhotoTexture
             let photoRadius = radius * settings.apertureSize * 0.43
