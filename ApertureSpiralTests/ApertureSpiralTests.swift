@@ -3478,3 +3478,24 @@ struct IdleTimerManagerTests {
         #expect(manager.isIdleTimerDisabledValue == true)
     }
 }
+
+@Suite("IdleTrackingWindow Tests")
+@MainActor
+struct IdleTrackingWindowTests {
+
+    @Test("Touch event triggers userInteracted")
+    func touchEventTriggersInteraction() {
+        let manager = IdleTimerManager(forTesting: true, idleTimeout: 0.5, throttleInterval: 0.05)
+        manager.handleBatteryStateChange(to: .unplugged)
+
+        // Wait for timer to fire
+        Thread.sleep(forTimeInterval: 0.8)
+        RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        #expect(manager.isIdleTimerDisabledValue == false)
+
+        // Simulate what IdleTrackingWindow does
+        manager.userInteracted()
+        #expect(manager.isIdleTimerDisabledValue == true)
+        #expect(manager.idleTimer != nil)
+    }
+}
