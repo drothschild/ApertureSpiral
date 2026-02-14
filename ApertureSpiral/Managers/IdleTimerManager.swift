@@ -65,11 +65,12 @@ final class IdleTimerManager {
             isIdleTimerDisabledValue = true
             startIdleTimer()
         case .unknown:
-            // Treat unknown as plugged in (safe default)
-            isPluggedIn = true
-            idleTimer?.invalidate()
-            idleTimer = nil
+            // Treat unknown as unplugged — if actually charging, the next
+            // batteryStateDidChange notification will correct it.
+            // Defaulting to plugged-in risks the screen staying on forever.
+            isPluggedIn = false
             isIdleTimerDisabledValue = true
+            startIdleTimer()
         @unknown default:
             break
         }
