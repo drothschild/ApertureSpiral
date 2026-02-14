@@ -3465,6 +3465,15 @@ struct IdleTimerManagerTests {
         #expect(manager.isIdleTimerDisabledValue == false)
     }
 
+    @Test("Unknown battery state treats as unplugged and starts timer")
+    func unknownBatteryStateTreatedAsUnplugged() {
+        let manager = IdleTimerManager(forTesting: true)
+        manager.handleBatteryStateChange(to: .unknown)
+
+        #expect(manager.isIdleTimerDisabledValue == true)
+        #expect(manager.idleTimer != nil, "Timer should be started for unknown battery state")
+    }
+
     @Test("Plugging in after idle timer expires re-disables idle timer")
     func pluggingInAfterExpiry() {
         let manager = IdleTimerManager(forTesting: true, idleTimeout: 0.5)
