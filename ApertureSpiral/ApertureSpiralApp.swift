@@ -50,6 +50,7 @@ struct ApertureSpiralApp: App {
 
     var body: some Scene {
         WindowGroup {
+            // Content is managed by SceneDelegate's IdleTrackingWindow
             EmptyView()
         }
     }
