@@ -203,13 +203,11 @@ struct SpiralView: View {
             }
         }
         .onAppear {
-            UIApplication.shared.isIdleTimerDisabled = true
             scheduleHideTabBar()
             showLoadingScreen()
             setupPhraseTimer()
         }
         .onDisappear {
-            UIApplication.shared.isIdleTimerDisabled = false
             hideTask?.cancel()
             hideTabBar = false
             phraseTimerSubscription?.cancel()

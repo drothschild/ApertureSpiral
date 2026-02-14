@@ -1,13 +1,56 @@
 import SwiftUI
 
-@main
-struct ApertureSpiralApp: App {
-    var body: some Scene {
-        WindowGroup {
+class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(
+        _ application: UIApplication,
+        configurationForConnecting connectingSceneSession: UISceneSession,
+        options: UIScene.ConnectionOptions
+    ) -> UISceneConfiguration {
+        let config = UISceneConfiguration(name: nil, sessionRole: connectingSceneSession.role)
+        config.delegateClass = SceneDelegate.self
+        return config
+    }
+}
+
+class SceneDelegate: NSObject, UIWindowSceneDelegate {
+    var window: UIWindow?
+
+    func scene(
+        _ scene: UIScene,
+        willConnectTo session: UISceneSession,
+        options connectionOptions: UIScene.ConnectionOptions
+    ) {
+        guard let windowScene = scene as? UIWindowScene else { return }
+        let window = IdleTrackingWindow(windowScene: windowScene)
+        window.rootViewController = UIHostingController(rootView:
             KeyCommandView {
                 MainView()
             }
             .preferredColorScheme(.dark)
+        )
+        self.window = window
+        window.makeKeyAndVisible()
+    }
+}
+
+class IdleTrackingWindow: UIWindow {
+    override func sendEvent(_ event: UIEvent) {
+        super.sendEvent(event)
+        if event.type == .touches {
+            MainActor.assumeIsolated {
+                IdleTimerManager.shared.userInteracted()
+            }
+        }
+    }
+}
+
+@main
+struct ApertureSpiralApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+
+    var body: some Scene {
+        WindowGroup {
+            EmptyView()
         }
     }
 }
@@ -37,7 +80,6 @@ class KeyCommandViewController<Content: View>: UIHostingController<Content> {
             UIKeyCommand(input: UIKeyCommand.inputRightArrow, modifierFlags: [], action: #selector(speedUp)),
             UIKeyCommand(input: UIKeyCommand.inputLeftArrow, modifierFlags: [], action: #selector(slowDown))
         ]
-        // Allow key commands to work without showing in menu
         commands.forEach { $0.wantsPriorityOverSystemBehavior = true }
         return commands
     }
@@ -68,7 +110,6 @@ class KeyCommandViewController<Content: View>: UIHostingController<Content> {
             default:
                 break
             }
-            // Handle arrow keys
             switch key.keyCode {
             case .keyboardRightArrow:
                 speedUp()
