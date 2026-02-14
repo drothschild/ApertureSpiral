@@ -3400,3 +3400,102 @@ struct AudioSessionManagerTests {
         #expect(manager.wasPlayingBeforePause == false)
     }
 }
+
+// MARK: - IdleTimerManager Tests
+
+@Suite("IdleTimerManager Tests")
+@MainActor
+struct IdleTimerManagerTests {
+
+    @Test("Plugged in keeps idle timer disabled")
+    func pluggedInKeepsScreenOn() {
+        let manager = IdleTimerManager(forTesting: true)
+        manager.handleBatteryStateChange(to: .charging)
+
+        #expect(manager.isIdleTimerDisabledValue == true)
+        #expect(manager.idleTimer == nil)
+    }
+
+    @Test("On battery starts idle timer")
+    func onBatteryStartsTimer() {
+        let manager = IdleTimerManager(forTesting: true)
+        manager.handleBatteryStateChange(to: .unplugged)
+
+        #expect(manager.isIdleTimerDisabledValue == true)
+        #expect(manager.idleTimer != nil)
+    }
+
+    @Test("userInteracted resets timer")
+    func userInteractedResetsTimer() {
+        let manager = IdleTimerManager(forTesting: true, throttleInterval: 0.05)
+        manager.handleBatteryStateChange(to: .unplugged)
+        let firstTimer = manager.idleTimer
+
+        // Wait past throttle
+        Thread.sleep(forTimeInterval: 0.06)
+        manager.userInteracted()
+        let secondTimer = manager.idleTimer
+
+        #expect(firstTimer !== secondTimer)
+    }
+
+    @Test("userInteracted is throttled within 1 second")
+    func userInteractedThrottled() {
+        let manager = IdleTimerManager(forTesting: true)
+        manager.handleBatteryStateChange(to: .unplugged)
+        let firstTimer = manager.idleTimer
+
+        manager.userInteracted()
+        let secondTimer = manager.idleTimer
+
+        #expect(firstTimer === secondTimer)
+    }
+
+    @Test("Timer expiry allows sleep")
+    func timerExpiryAllowsSleep() {
+        let manager = IdleTimerManager(forTesting: true, idleTimeout: 0.5)
+        manager.handleBatteryStateChange(to: .unplugged)
+
+        #expect(manager.isIdleTimerDisabledValue == true)
+
+        // Wait for timer to fire
+        Thread.sleep(forTimeInterval: 0.8)
+        RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+
+        #expect(manager.isIdleTimerDisabledValue == false)
+    }
+
+    @Test("Plugging in after idle timer expires re-disables idle timer")
+    func pluggingInAfterExpiry() {
+        let manager = IdleTimerManager(forTesting: true, idleTimeout: 0.5)
+        manager.handleBatteryStateChange(to: .unplugged)
+
+        Thread.sleep(forTimeInterval: 0.8)
+        RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        #expect(manager.isIdleTimerDisabledValue == false)
+
+        manager.handleBatteryStateChange(to: .charging)
+        #expect(manager.isIdleTimerDisabledValue == true)
+    }
+}
+
+@Suite("IdleTrackingWindow Tests")
+@MainActor
+struct IdleTrackingWindowTests {
+
+    @Test("Touch event triggers userInteracted")
+    func touchEventTriggersInteraction() {
+        let manager = IdleTimerManager(forTesting: true, idleTimeout: 0.5, throttleInterval: 0.05)
+        manager.handleBatteryStateChange(to: .unplugged)
+
+        // Wait for timer to fire
+        Thread.sleep(forTimeInterval: 0.8)
+        RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        #expect(manager.isIdleTimerDisabledValue == false)
+
+        // Simulate what IdleTrackingWindow does
+        manager.userInteracted()
+        #expect(manager.isIdleTimerDisabledValue == true)
+        #expect(manager.idleTimer != nil)
+    }
+}
