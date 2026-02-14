@@ -90,7 +90,9 @@ final class IdleTimerManager {
     private func startIdleTimer() {
         idleTimer?.invalidate()
         idleTimer = Timer.scheduledTimer(withTimeInterval: idleTimeout, repeats: false) { [weak self] _ in
-            self?.isIdleTimerDisabledValue = false
+            MainActor.assumeIsolated {
+                self?.isIdleTimerDisabledValue = false
+            }
         }
     }
 }
