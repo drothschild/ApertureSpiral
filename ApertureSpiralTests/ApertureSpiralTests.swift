@@ -3404,6 +3404,7 @@ struct AudioSessionManagerTests {
 // MARK: - IdleTimerManager Tests
 
 @Suite("IdleTimerManager Tests")
+@MainActor
 struct IdleTimerManagerTests {
 
     @Test("Plugged in keeps idle timer disabled")
@@ -3426,12 +3427,12 @@ struct IdleTimerManagerTests {
 
     @Test("userInteracted resets timer")
     func userInteractedResetsTimer() {
-        let manager = IdleTimerManager(forTesting: true)
+        let manager = IdleTimerManager(forTesting: true, throttleInterval: 0.05)
         manager.handleBatteryStateChange(to: .unplugged)
         let firstTimer = manager.idleTimer
 
         // Wait past throttle
-        Thread.sleep(forTimeInterval: 1.1)
+        Thread.sleep(forTimeInterval: 0.06)
         manager.userInteracted()
         let secondTimer = manager.idleTimer
 

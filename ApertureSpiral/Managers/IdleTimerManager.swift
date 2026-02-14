@@ -1,5 +1,6 @@
 import UIKit
 
+@MainActor
 final class IdleTimerManager {
     static let shared = IdleTimerManager()
 
@@ -9,7 +10,7 @@ final class IdleTimerManager {
 
     private(set) var idleTimer: Timer?
     private var lastInteractionDate = Date()
-    private let throttleInterval: TimeInterval = 1.0
+    private let throttleInterval: TimeInterval
 
     private(set) var isIdleTimerDisabledValue: Bool = true {
         didSet {
@@ -24,13 +25,15 @@ final class IdleTimerManager {
     // Production init
     private init() {
         self.idleTimeout = Self.defaultIdleTimeout
+        self.throttleInterval = 1.0
         self.isTesting = false
         setupBatteryMonitoring()
     }
 
     // Testing init
-    init(forTesting: Bool, idleTimeout: TimeInterval = 600) {
+    init(forTesting: Bool, idleTimeout: TimeInterval = 600, throttleInterval: TimeInterval = 1.0) {
         self.idleTimeout = idleTimeout
+        self.throttleInterval = throttleInterval
         self.isTesting = forTesting
     }
 
